@@ -3,8 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './core/env.js';
-import { errorMiddleware } from './core/errorMiddleware.js';
-import { swaggerServe, swaggerSetup } from './core/docs.js';
+import { errorMiddleware } from './middleware/errorMiddleware.js';
+import { swaggerServe, swaggerSetup } from './docs/docs.js';
 import { authRoutes } from './users/infrastructure/routes/authRoutes.js';
 import { userRoutes } from './users/infrastructure/routes/userRoutes.js';
 

@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
-import { verifyToken, type AuthTokenPayload } from './jwt.js';
-import { UnauthorizedError, ForbiddenError } from './errors.js';
+import { verifyToken, type AuthTokenPayload } from '../core/jwt.js';
+import { UnauthorizedError, ForbiddenError } from '../core/errors.js';
 
 declare global {
   namespace Express {

@@ -6,7 +6,7 @@ import {
   PublicUserSchema,
   ErrorResponseSchema,
   wrapData,
-} from '../../../core/openapiRegistry.js';
+} from '../../../docs/openapiRegistry.js';
 
 openapiRegistry.registerPath({
   method: 'get',

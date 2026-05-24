@@ -6,7 +6,7 @@ import {
   openapiRegistry,
   PublicUserSchema,
   ErrorResponseSchema,
-} from '../../../core/openapiRegistry.js';
+} from '../../../docs/openapiRegistry.js';
 
 const LoginRequestSchema = z
   .object({
