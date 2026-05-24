@@ -18,7 +18,11 @@ export function verifyToken(token: string): AuthTokenPayload {
     if (typeof decoded === 'string' || !decoded || typeof decoded !== 'object') {
       throw new Error('Payload invalido');
     }
-    return decoded as AuthTokenPayload;
+    const payload = decoded as unknown as AuthTokenPayload;
+    if (typeof payload.sub !== 'number' || typeof payload.rol !== 'string') {
+      throw new Error('Payload invalido');
+    }
+    return payload;
   } catch {
     throw new UnauthorizedError('Token invalido o expirado');
   }
