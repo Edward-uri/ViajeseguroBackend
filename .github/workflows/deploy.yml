@@ -1,0 +1,80 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-ec2
+  cancel-in-progress: false
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+
+  deploy:
+    name: Deploy
+    needs: typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy on EC2 (git pull + docker compose up)
+        uses: appleboy/ssh-action@v1.2.0
+        env:
+          DEPLOY_BRANCH: ${{ github.ref_name }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          envs: DEPLOY_BRANCH
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd /home/ubuntu/viajeseguro-backend
+
+            echo "==> Pull ultimo del branch desplegado: $DEPLOY_BRANCH"
+            git fetch origin "$DEPLOY_BRANCH"
+            git reset --hard "origin/$DEPLOY_BRANCH"
+
+            echo "==> Regenerar .env desde secrets"
+            cat > .env <<EOF
+            NODE_ENV=production
+            PORT=3000
+            DB_HOST=${{ secrets.DB_HOST }}
+            DB_PORT=5432
+            DB_NAME=viajeseguro
+            DB_USER=postgres
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+            DB_SSL=true
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRES_IN=7d
+            BCRYPT_ROUNDS=10
+            EOF
+            chmod 600 .env
+
+            echo "==> Rebuild y restart de contenedores"
+            docker compose down || true
+            docker compose up -d --build
+
+            echo "==> Esperando que la API responda..."
+            for i in $(seq 1 20); do
+              if curl -fsS http://localhost/health > /dev/null; then
+                echo "OK - servicio respondiendo"
+                exit 0
+              fi
+              sleep 3
+            done
+
+            echo "FAILED - servicio no respondio. Logs:"
+            docker compose logs --tail 80 api nginx
+            exit 1
