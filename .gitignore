@@ -1,0 +1,35 @@
+# Credenciales y secrets — NUNCA commitear
+*.pem
+*.key
+*.cer
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+dist/
+build/
+.npm
+.pnpm-debug.log
+npm-debug.log*
+yarn-error.log*
+
+# AWS local
+.aws/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker-compose.override.yml
