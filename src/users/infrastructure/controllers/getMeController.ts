@@ -7,6 +7,7 @@ import {
   ErrorResponseSchema,
   wrapData,
 } from '../../../docs/openapiRegistry.js';
+import { toServingUserJSON } from '../userView.js';
 
 openapiRegistry.registerPath({
   method: 'get',
@@ -34,7 +35,7 @@ export const getMeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
     const user = await getMeUseCase.execute(req.user.sub);
-    res.json({ data: user.toPublicJSON() });
+    res.json({ data: await toServingUserJSON(user) });
   } catch (err) {
     next(err);
   }

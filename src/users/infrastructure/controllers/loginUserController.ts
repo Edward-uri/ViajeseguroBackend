@@ -7,6 +7,7 @@ import {
   AuthSuccessResponseSchema,
   ErrorResponseSchema,
 } from '../../../docs/openapiRegistry.js';
+import { toServingUserJSON } from '../userView.js';
 
 const LoginRequestSchema = z
   .object({
@@ -58,7 +59,7 @@ export const loginUserController: RequestHandler = async (req, res, next) => {
       throw new ValidationError('Datos invalidos', parsed.error.flatten().fieldErrors);
     }
     const { user, token } = await loginUserUseCase.execute(parsed.data);
-    res.json({ data: { user: user.toPublicJSON(), token } });
+    res.json({ data: { user: await toServingUserJSON(user), token } });
   } catch (err) {
     next(err);
   }

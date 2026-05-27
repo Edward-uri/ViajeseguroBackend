@@ -3,6 +3,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { env } from '../core/env.js';
@@ -17,6 +18,7 @@ export const ALLOWED_IMAGE_CONTENT_TYPES: ReadonlyArray<AllowedImageContentType>
 
 export const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024;
 const PRESIGNED_UPLOAD_TTL_SECONDS = 5 * 60;
+const PRESIGNED_READ_TTL_SECONDS = 60 * 60; // 1 hora
 
 const EXT_BY_CONTENT_TYPE: Record<AllowedImageContentType, string> = {
   'image/jpeg': 'jpg',
@@ -68,6 +70,28 @@ export async function getPresignedProfilePhotoUpload(
     expiresIn: PRESIGNED_UPLOAD_TTL_SECONDS,
     maxBytes: MAX_PROFILE_PHOTO_BYTES,
   };
+}
+
+/**
+ * Genera una URL pre-firmada de LECTURA para una key existente en S3.
+ *
+ * Necesario porque el bucket es privado (Learner Lab bloquea
+ * `BlockPublicPolicy` a nivel cuenta). El cliente recibe esta URL temporal
+ * via `User.fotoPerfilUrl` y la usa para descargar la imagen sin
+ * autenticarse.
+ *
+ * La URL incluye firma SigV4 con expiracion. Cuando expira, el cliente
+ * llama de nuevo a `/api/users/me` y recibe una URL fresca.
+ */
+export async function getPresignedReadUrl(
+  s3Key: string,
+  ttlSeconds: number = PRESIGNED_READ_TTL_SECONDS,
+): Promise<string> {
+  const command = new GetObjectCommand({
+    Bucket: env.AWS_S3_BUCKET,
+    Key: s3Key,
+  });
+  return getSignedUrl(s3Client, command, { expiresIn: ttlSeconds });
 }
 
 export async function deleteObject(s3Key: string): Promise<void> {

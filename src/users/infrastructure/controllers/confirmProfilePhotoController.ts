@@ -8,6 +8,7 @@ import {
   ErrorResponseSchema,
   wrapData,
 } from '../../../docs/openapiRegistry.js';
+import { toServingUserJSON } from '../userView.js';
 
 const ConfirmRequestSchema = z
   .object({
@@ -74,7 +75,7 @@ export const confirmProfilePhotoController: RequestHandler = async (req, res, ne
       idUsuario: req.user.sub,
       s3Key: parsed.data.s3Key,
     });
-    res.json({ data: user.toPublicJSON() });
+    res.json({ data: await toServingUserJSON(user) });
   } catch (err) {
     next(err);
   }
