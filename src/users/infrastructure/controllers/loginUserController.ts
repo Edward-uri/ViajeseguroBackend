@@ -4,9 +4,9 @@ import { loginUserUseCase } from '../dependencies.js';
 import { ValidationError } from '../../../core/errors.js';
 import {
   openapiRegistry,
-  PublicUserSchema,
+  AuthSuccessResponseSchema,
   ErrorResponseSchema,
-} from '../../../core/openapiRegistry.js';
+} from '../../../docs/openapiRegistry.js';
 
 const LoginRequestSchema = z
   .object({
@@ -21,18 +21,6 @@ const LoginRequestSchema = z
     password: z.string().min(1).max(128).openapi({ example: 'supersegura12', format: 'password' }),
   })
   .openapi('LoginRequest');
-
-const LoginResponseSchema = z
-  .object({
-    data: z.object({
-      user: PublicUserSchema,
-      token: z.string().openapi({
-        description: 'JWT firmado, valido por JWT_EXPIRES_IN',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-      }),
-    }),
-  })
-  .openapi('LoginResponse');
 
 openapiRegistry.registerPath({
   method: 'post',
@@ -50,7 +38,7 @@ openapiRegistry.registerPath({
   responses: {
     200: {
       description: 'Login correcto',
-      content: { 'application/json': { schema: LoginResponseSchema } },
+      content: { 'application/json': { schema: AuthSuccessResponseSchema } },
     },
     400: {
       description: 'Datos invalidos',

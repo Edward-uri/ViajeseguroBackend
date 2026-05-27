@@ -1,5 +1,5 @@
 import type { ErrorRequestHandler } from 'express';
-import { AppError } from './errors.js';
+import { AppError } from '../core/errors.js';
 
 export const errorMiddleware: ErrorRequestHandler = (err, _req, res, _next) => {
   if (err instanceof AppError) {

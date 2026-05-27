@@ -2,7 +2,7 @@ import type { RequestHandler } from 'express';
 import { OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import swaggerUi from 'swagger-ui-express';
 import { openapiRegistry } from './openapiRegistry.js';
-import { env } from './env.js';
+import { env } from '../core/env.js';
 
 // IMPORTANTE: importar los controllers *aqui* (efecto colateral) para que
 // se registren sus paths antes de generar el spec.
@@ -10,6 +10,9 @@ import { env } from './env.js';
 import '../users/infrastructure/controllers/registerUserController.js';
 import '../users/infrastructure/controllers/loginUserController.js';
 import '../users/infrastructure/controllers/getMeController.js';
+import '../users/infrastructure/controllers/presignProfilePhotoController.js';
+import '../users/infrastructure/controllers/confirmProfilePhotoController.js';
+import '../users/infrastructure/controllers/deleteAccountController.js';
 
 let cachedSpec: ReturnType<OpenApiGeneratorV31['generateDocument']> | null = null;
 

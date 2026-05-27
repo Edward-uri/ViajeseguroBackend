@@ -4,10 +4,9 @@ import { registerUserUseCase } from '../dependencies.js';
 import { ValidationError } from '../../../core/errors.js';
 import {
   openapiRegistry,
-  PublicUserSchema,
+  AuthSuccessResponseSchema,
   ErrorResponseSchema,
-  wrapData,
-} from '../../../core/openapiRegistry.js';
+} from '../../../docs/openapiRegistry.js';
 
 const RegisterRequestSchema = z
   .object({
@@ -44,7 +43,9 @@ openapiRegistry.registerPath({
   tags: ['Auth'],
   summary: 'Registrar usuario + persona',
   description:
-    'Crea un usuario con sus datos personales en una sola transaccion. Hashea la password con bcrypt.',
+    'Crea un usuario con sus datos personales en una sola transaccion, ' +
+    'hashea la password con bcrypt y devuelve un JWT para que el usuario ' +
+    'quede logueado de una vez (mismo shape que /api/auth/login).',
   request: {
     body: {
       required: true,
@@ -53,8 +54,8 @@ openapiRegistry.registerPath({
   },
   responses: {
     201: {
-      description: 'Usuario creado',
-      content: { 'application/json': { schema: wrapData(PublicUserSchema) } },
+      description: 'Usuario creado y autenticado',
+      content: { 'application/json': { schema: AuthSuccessResponseSchema } },
     },
     400: {
       description: 'Datos invalidos',
@@ -74,8 +75,8 @@ export const registerUserController: RequestHandler = async (req, res, next) => 
     if (!parsed.success) {
       throw new ValidationError('Datos invalidos', parsed.error.flatten().fieldErrors);
     }
-    const user = await registerUserUseCase.execute(parsed.data);
-    res.status(201).json({ data: user.toPublicJSON() });
+    const { user, token } = await registerUserUseCase.execute(parsed.data);
+    res.status(201).json({ data: { user: user.toPublicJSON(), token } });
   } catch (err) {
     next(err);
   }

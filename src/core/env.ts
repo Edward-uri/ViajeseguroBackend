@@ -19,6 +19,11 @@ const envSchema = z.object({
   JWT_EXPIRES_IN: z.string().default('7d'),
 
   BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(15).default(10),
+
+  AWS_REGION: z.string().min(1).default('us-east-1'),
+  AWS_S3_BUCKET: z.string().min(1),
+  /** Si se setea (ej. CDN/CloudFront), se usa como base de la URL publica. Si no, se construye `https://{bucket}.s3.{region}.amazonaws.com`. */
+  AWS_S3_PUBLIC_BASE_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

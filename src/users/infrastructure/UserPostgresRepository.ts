@@ -105,4 +105,65 @@ export class UserPostgresRepository implements IUserRepository {
       return created;
     });
   }
+
+  async updateProfilePhoto({
+    idUsuario,
+    fotoPerfilUrl,
+    fotoPerfilS3Key,
+  }: {
+    idUsuario: number;
+    fotoPerfilUrl: string;
+    fotoPerfilS3Key: string;
+  }): Promise<{ user: User; previousS3Key: string | null }> {
+    return withTransaction(async (client) => {
+      const { rows: prevRows } = await client.query<{ foto_perfil_s3_key: string | null }>(
+        'SELECT foto_perfil_s3_key FROM usuarios WHERE id_usuario = $1 FOR UPDATE',
+        [idUsuario],
+      );
+      if (prevRows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+      const previousS3Key = prevRows[0]!.foto_perfil_s3_key;
+
+      const { rows } = await client.query<UsuarioRow>(
+        `UPDATE usuarios
+            SET foto_perfil_url = $2,
+                foto_perfil_s3_key = $3
+          WHERE id_usuario = $1
+          RETURNING *`,
+        [idUsuario, fotoPerfilUrl, fotoPerfilS3Key],
+      );
+      const updated = mapUserRow(rows[0]);
+      if (!updated) {
+        throw new Error('No se pudo actualizar la foto de perfil');
+      }
+      return { user: updated, previousS3Key };
+    });
+  }
+
+  async softDeleteAndClearPhoto(
+    idUsuario: number,
+  ): Promise<{ previousS3Key: string | null }> {
+    return withTransaction(async (client) => {
+      const { rows: prevRows } = await client.query<{ foto_perfil_s3_key: string | null }>(
+        'SELECT foto_perfil_s3_key FROM usuarios WHERE id_usuario = $1 FOR UPDATE',
+        [idUsuario],
+      );
+      if (prevRows.length === 0) {
+        throw new Error('Usuario no encontrado');
+      }
+      const previousS3Key = prevRows[0]!.foto_perfil_s3_key;
+
+      await client.query(
+        `UPDATE usuarios
+            SET estado_cuenta = 'eliminado',
+                foto_perfil_url = NULL,
+                foto_perfil_s3_key = NULL
+          WHERE id_usuario = $1`,
+        [idUsuario],
+      );
+
+      return { previousS3Key };
+    });
+  }
 }

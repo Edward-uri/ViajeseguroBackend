@@ -35,6 +35,26 @@ export const ErrorResponseSchema = z
   })
   .openapi('ErrorResponse');
 
+/**
+ * Shape unico que devuelven los endpoints que emiten sesion:
+ * `POST /api/auth/login` y `POST /api/auth/register`.
+ *
+ * Tener un solo schema garantiza que ambos endpoints respondan
+ * exactamente lo mismo, y que el cliente pueda usar el mismo parser
+ * para los dos.
+ */
+export const AuthSuccessResponseSchema = z
+  .object({
+    data: z.object({
+      user: PublicUserSchema,
+      token: z.string().openapi({
+        description: 'JWT firmado, valido por JWT_EXPIRES_IN',
+        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+      }),
+    }),
+  })
+  .openapi('AuthSuccessResponse');
+
 export function wrapData<T extends z.ZodTypeAny>(schema: T) {
   return z.object({ data: schema });
 }

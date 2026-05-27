@@ -24,7 +24,7 @@ git push -u origin main
 ### 2. Generar deploy key en el EC2 (acceso read-only al repo)
 
 ```bash
-ssh -i backendViaje.pem ubuntu@100.52.170.9
+ssh -i backendViaje.pem ubuntu@100.51.99.11
 
 # en el EC2:
 ssh-keygen -t ed25519 -C "deploy@ec2-viajeseguro" -f ~/.ssh/github_deploy -N ""
@@ -69,14 +69,18 @@ ls viajeseguro-backend/   # deberia listar tus archivos
 GitHub repo -> Settings -> Secrets and variables -> Actions -> New repository secret.
 Agrega estos secretos uno por uno:
 
-| Nombre          | Valor                                                       |
-|-----------------|-------------------------------------------------------------|
-| `EC2_HOST`      | `100.52.170.9`                                              |
-| `EC2_USER`      | `ubuntu`                                                    |
-| `EC2_SSH_KEY`   | Contenido completo del archivo `backendViaje.pem` (texto)   |
-| `DB_HOST`       | `viajeseguro-db.cglxtkp5zsdm.us-east-1.rds.amazonaws.com`   |
-| `DB_PASSWORD`   | Password del usuario `postgres` (de Secrets Manager)        |
-| `JWT_SECRET`    | Cadena aleatoria fuerte de >=48 caracteres                  |
+| Nombre                  | Valor                                                       |
+|-------------------------|-------------------------------------------------------------|
+| `EC2_HOST`              | `100.51.99.11`                                              |
+| `EC2_USER`              | `ubuntu`                                                    |
+| `EC2_SSH_KEY`           | Contenido completo del archivo `backendViaje.pem` (texto)   |
+| `DB_HOST`               | `viajeseguro-db.cglxtkp5zsdm.us-east-1.rds.amazonaws.com`   |
+| `DB_PASSWORD`           | Password del usuario `postgres` (de Secrets Manager)        |
+| `JWT_SECRET`            | Cadena aleatoria fuerte de >=48 caracteres                  |
+| `AWS_REGION`            | `us-east-1`                                                 |
+| `AWS_S3_BUCKET`         | Nombre del bucket S3 (`viajeseguro-uploads-prod`)           |
+
+> **Credenciales AWS**: NO se pasan por `.env`. El EC2 tiene asociado el `LabInstanceProfile` (rol `LabRole`) y el SDK de Node descubre las credenciales automaticamente desde el metadata service (`http://169.254.169.254/...`). Las credenciales rotan solas cada hora sin que toquemos nada. Para que esto funcione dentro de Docker hay que subir el **hop limit de IMDSv2 a 2** en la instancia (EC2 -> Actions -> Instance settings -> Modify instance metadata options).
 
 Para generar un `JWT_SECRET` fuerte:
 
@@ -104,14 +108,14 @@ GitHub Actions correra el workflow `Deploy to EC2`. Ve el progreso en
 Tras unos 90-120 segundos deberias poder probar:
 
 ```bash
-curl http://100.52.170.9/health
+curl http://100.51.99.11/health
 # -> {"status":"ok","env":"production"}
 ```
 
 Y abrir en el navegador:
 
 ```
-http://100.52.170.9/api/docs
+http://100.51.99.11/api/docs
 ```
 
 para ver la documentacion Swagger.
@@ -129,7 +133,7 @@ GitHub repo -> Actions -> Deploy to EC2 -> Run workflow.
 ### Ver logs en el EC2
 
 ```bash
-ssh -i backendViaje.pem ubuntu@100.52.170.9
+ssh -i backendViaje.pem ubuntu@100.51.99.11
 cd /home/ubuntu/viajeseguro-backend
 docker compose logs -f api       # logs del API
 docker compose logs -f nginx     # logs de nginx
@@ -144,7 +148,7 @@ docker compose restart api
 ### Aplicar una nueva migracion SQL
 
 ```bash
-ssh -i backendViaje.pem ubuntu@100.52.170.9
+ssh -i backendViaje.pem ubuntu@100.51.99.11
 cd /home/ubuntu/viajeseguro-backend
 psql -h <ENDPOINT_RDS> -U postgres -d viajeseguro -f db/migrations/00X_<nombre>.sql
 ```
