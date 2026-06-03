@@ -23,7 +23,7 @@ export interface PublicUser {
 
 /**
  * Entidad de dominio: Usuario.
- * Representa credenciales y metadatos de cuenta.
+ * Reprenta credenciales y metadatos de cuenta.
  * No contiene logica de persistencia.
  */
 export class User {
