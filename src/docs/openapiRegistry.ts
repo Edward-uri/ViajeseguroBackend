@@ -17,11 +17,13 @@ export const EstadoCuentaSchema = z
 export const PublicUserSchema = z
   .object({
     idUsuario: z.number().int().openapi({ example: 1 }),
-    nombreUsuario: z.string().openapi({ example: 'edu' }),
+    telefono: z.string().openapi({ example: '9611234567' }),
+    correoElectronico: z.string().email().nullable().openapi({ example: 'juan@correo.com' }),
     rol: RolSchema,
     estadoCuenta: EstadoCuentaSchema,
-    fechaRegistro: z.string().datetime().nullable(),
+    telefonoVerificado: z.boolean(),
     fotoPerfilUrl: z.string().url().nullable(),
+    fechaRegistro: z.string().datetime().nullable(),
   })
   .openapi('PublicUser');
 
@@ -35,25 +37,14 @@ export const ErrorResponseSchema = z
   })
   .openapi('ErrorResponse');
 
-/**
- * Shape unico que devuelven los endpoints que emiten sesion:
- * `POST /api/auth/login` y `POST /api/auth/register`.
- *
- * Tener un solo schema garantiza que ambos endpoints respondan
- * exactamente lo mismo, y que el cliente pueda usar el mismo parser
- * para los dos.
- */
-export const AuthSuccessResponseSchema = z
+/** Respuesta de los endpoints que emiten sesión (register/complete, login/verify). */
+export const SessionResponseSchema = z
   .object({
-    data: z.object({
-      user: PublicUserSchema,
-      token: z.string().openapi({
-        description: 'JWT firmado, valido por JWT_EXPIRES_IN',
-        example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-      }),
-    }),
+    accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+    refreshToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
+    user: PublicUserSchema,
   })
-  .openapi('AuthSuccessResponse');
+  .openapi('SessionResponse');
 
 export function wrapData<T extends z.ZodTypeAny>(schema: T) {
   return z.object({ data: schema });

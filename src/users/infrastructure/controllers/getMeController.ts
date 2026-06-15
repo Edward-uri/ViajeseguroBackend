@@ -12,7 +12,7 @@ import { toServingUserJSON } from '../userView.js';
 openapiRegistry.registerPath({
   method: 'get',
   path: '/api/users/me',
-  tags: ['Users'],
+  tags: ['Compartido'],
   summary: 'Perfil del usuario autenticado',
   security: [{ bearerAuth: [] }],
   responses: {

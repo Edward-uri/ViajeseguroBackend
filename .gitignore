@@ -18,6 +18,9 @@ yarn-error.log*
 # AWS local
 .aws/
 
+# Documentos subidos (storage local)
+uploads/
+
 # IDE
 .vscode/
 .idea/
@@ -33,3 +36,9 @@ logs/
 
 # Docker
 docker-compose.override.yml
+
+/docs
+/scripts
+/tests
+
+MotoTaxi-Seguro.sql

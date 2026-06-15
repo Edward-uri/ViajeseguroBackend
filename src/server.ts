@@ -4,9 +4,11 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { env } from './core/env.js';
 import { errorMiddleware } from './middleware/errorMiddleware.js';
-import { swaggerServe, swaggerSetup } from './docs/docs.js';
-import { authRoutes } from './users/infrastructure/routes/authRoutes.js';
+import { swaggerServe, swaggerSetup, openapiJsonHandler } from './docs/docs.js';
+import { authRoutes } from './auth/infrastructure/routes/authRoutes.js';
 import { userRoutes } from './users/infrastructure/routes/userRoutes.js';
+import { conductorRoutes } from './conductores/infrastructure/routes/conductorRoutes.js';
+import { adminConductoresRoutes } from './conductores/infrastructure/routes/adminConductoresRoutes.js';
 
 export function buildApp(): Express {
   const app = express();
@@ -24,11 +26,13 @@ export function buildApp(): Express {
     res.json({ status: 'ok', env: env.NODE_ENV });
   });
 
-  // Documentacion OpenAPI / Swagger UI
   app.use('/api/docs', swaggerServe, swaggerSetup());
+  app.get('/api/docs.json', openapiJsonHandler);
 
   app.use('/api/auth', authRoutes);
   app.use('/api/users', userRoutes);
+  app.use('/api/conductor', conductorRoutes);
+  app.use('/api/admin', adminConductoresRoutes);
 
   app.use(errorMiddleware);
 

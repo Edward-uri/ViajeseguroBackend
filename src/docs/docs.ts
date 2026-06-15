@@ -7,12 +7,20 @@ import { env } from '../core/env.js';
 // IMPORTANTE: importar los controllers *aqui* (efecto colateral) para que
 // se registren sus paths antes de generar el spec.
 // Si se agrega un nuevo controller con OpenAPI, agregar el import aqui.
-import '../users/infrastructure/controllers/registerUserController.js';
-import '../users/infrastructure/controllers/loginUserController.js';
+import '../auth/infrastructure/openapi.js';
+import '../conductores/infrastructure/openapi.js';
 import '../users/infrastructure/controllers/getMeController.js';
 import '../users/infrastructure/controllers/presignProfilePhotoController.js';
 import '../users/infrastructure/controllers/confirmProfilePhotoController.js';
 import '../users/infrastructure/controllers/deleteAccountController.js';
+
+openapiRegistry.registerPath({
+  method: 'get',
+  path: '/health',
+  tags: ['Salud'],
+  summary: 'Disponibilidad del servicio',
+  responses: { 200: { description: 'Servicio disponible' } },
+});
 
 let cachedSpec: ReturnType<OpenApiGeneratorV31['generateDocument']> | null = null;
 
@@ -40,9 +48,27 @@ function buildSpec() {
       { url: 'http://100.51.99.11', description: 'Produccion (EC2)' },
     ],
     tags: [
-      { name: 'Health', description: 'Disponibilidad del servicio' },
-      { name: 'Auth', description: 'Registro y autenticacion' },
-      { name: 'Users', description: 'Operaciones sobre el usuario autenticado' },
+      { name: 'Salud', description: 'Disponibilidad del servicio.' },
+      {
+        name: 'Compartido',
+        description:
+          'Endpoints que consumen las TRES aplicaciones (App Pasajero, App Conductor y Web Admin): login, refresh, logout y perfil del usuario autenticado.',
+      },
+      {
+        name: 'App Pasajero',
+        description:
+          'Endpoints de la app del pasajero (registro como pasajero; próximamente viajes, direcciones y métodos de pago).',
+      },
+      {
+        name: 'App Conductor',
+        description:
+          'Endpoints de la app del conductor (registro como conductor; próximamente jornadas y servicios asignados).',
+      },
+      {
+        name: 'Web Admin',
+        description:
+          'Endpoints del panel de administración web (próximamente gestión de usuarios, conductores y aprobaciones).',
+      },
     ],
   });
 

@@ -9,7 +9,7 @@ import {
 openapiRegistry.registerPath({
   method: 'delete',
   path: '/api/users/me',
-  tags: ['Users'],
+  tags: ['Compartido'],
   summary: 'Eliminar cuenta (soft-delete) del usuario autenticado',
   description:
     'Marca la cuenta como `eliminado`, borra la foto de perfil de S3 (si existia) y limpia los campos de foto. La operacion es irreversible desde la API.',
