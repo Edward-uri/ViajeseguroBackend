@@ -9,6 +9,7 @@ import { authRoutes } from './auth/infrastructure/routes/authRoutes.js';
 import { userRoutes } from './users/infrastructure/routes/userRoutes.js';
 import { conductorRoutes } from './conductores/infrastructure/routes/conductorRoutes.js';
 import { adminConductoresRoutes } from './conductores/infrastructure/routes/adminConductoresRoutes.js';
+import { municipioRoutes } from './municipios/infrastructure/routes/municipioRoutes.js';
 
 export function buildApp(): Express {
   const app = express();
@@ -31,6 +32,7 @@ export function buildApp(): Express {
 
   app.use('/api/auth', authRoutes);
   app.use('/api/users', userRoutes);
+  app.use('/api/municipios', municipioRoutes);
   app.use('/api/conductor', conductorRoutes);
   app.use('/api/admin', adminConductoresRoutes);
 

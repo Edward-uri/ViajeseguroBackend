@@ -11,6 +11,7 @@ interface UsuarioRow {
   correo_verificado: boolean;
   rol: RolUsuario;
   estado_cuenta: EstadoCuenta;
+  id_municipio: string | number | null;
   foto_perfil_url: string | null;
   foto_perfil_s3_key: string | null;
   fecha_registro: Date;
@@ -26,6 +27,7 @@ function mapUserRow(row: UsuarioRow | undefined): User | null {
     .estadoCuenta(row.estado_cuenta)
     .telefonoVerificado(row.telefono_verificado)
     .correoVerificado(row.correo_verificado)
+    .idMunicipio(row.id_municipio == null ? null : Number(row.id_municipio))
     .fotoPerfilUrl(row.foto_perfil_url)
     .fotoPerfilS3Key(row.foto_perfil_s3_key)
     .fechaRegistro(row.fecha_registro)
@@ -69,12 +71,12 @@ export class UserPostgresRepository implements IUserRepository {
     return withTransaction(async (client) => {
       const { rows: uRows } = await client.query<UsuarioRow>(
         `INSERT INTO usuarios
-           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado)
-         VALUES ($1, $2, $3, $4, $5, $6)
+           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
          RETURNING *`,
         [
           user.telefono, user.correoElectronico, user.rol, user.estadoCuenta,
-          user.telefonoVerificado, user.correoVerificado,
+          user.telefonoVerificado, user.correoVerificado, user.idMunicipio,
         ],
       );
       const created = mapUserRow(uRows[0]);

@@ -16,6 +16,7 @@ function fechaToStr(v: unknown): string | null {
 
 interface Row {
   id_conductor: string | number;
+  id_municipio: string | number | null;
   licencia: string | null;
   licencia_fecha_expedicion: Date | string | null;
   licencia_fecha_vencimiento: Date | string | null;
@@ -25,6 +26,7 @@ function map(row: Row | undefined): Conductor | null {
   if (!row) return null;
   return new ConductorBuilder()
     .idConductor(Number(row.id_conductor))
+    .idMunicipio(row.id_municipio == null ? null : Number(row.id_municipio))
     .licencia(row.licencia)
     .licenciaFechaExpedicion(fechaToStr(row.licencia_fecha_expedicion))
     .licenciaFechaVencimiento(fechaToStr(row.licencia_fecha_vencimiento))
@@ -45,17 +47,18 @@ export class ConductorPostgresRepository implements IConductorRepository {
   }
 
   async upsertLicencia(a: {
-    idConductor: number; licencia: string; fechaExpedicion: string; fechaVencimiento: string;
+    idConductor: number; idMunicipio: number; licencia: string; fechaExpedicion: string; fechaVencimiento: string;
   }): Promise<Conductor> {
     const { rows } = await pool.query<Row>(
-      `INSERT INTO conductores (id_conductor, licencia, licencia_fecha_expedicion, licencia_fecha_vencimiento)
-       VALUES ($1, $2, $3, $4)
+      `INSERT INTO conductores (id_conductor, id_municipio, licencia, licencia_fecha_expedicion, licencia_fecha_vencimiento)
+       VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (id_conductor) DO UPDATE SET
+         id_municipio = EXCLUDED.id_municipio,
          licencia = EXCLUDED.licencia,
          licencia_fecha_expedicion = EXCLUDED.licencia_fecha_expedicion,
          licencia_fecha_vencimiento = EXCLUDED.licencia_fecha_vencimiento
        RETURNING *`,
-      [a.idConductor, a.licencia, a.fechaExpedicion, a.fechaVencimiento],
+      [a.idConductor, a.idMunicipio, a.licencia, a.fechaExpedicion, a.fechaVencimiento],
     );
     return map(rows[0])!;
   }

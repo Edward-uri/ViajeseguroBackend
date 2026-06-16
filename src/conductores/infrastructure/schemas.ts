@@ -3,6 +3,7 @@ import { z } from 'zod';
 const fecha = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato esperado YYYY-MM-DD');
 
 export const LicenciaSchema = z.object({
+  idMunicipio: z.number().int().positive(),
   licencia: z.string().min(3).max(50),
   licenciaFechaExpedicion: fecha,
   licenciaFechaVencimiento: fecha,

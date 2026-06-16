@@ -22,6 +22,7 @@ export const RegisterCompleteSchema = z.object({
   correo: z.string().email().max(60).optional(),
   idSexo: z.number().int().optional(),
   fechaNacimiento: z.string().optional(),
+  idMunicipio: z.number().int().positive().optional(),
   dispositivo: z.string().optional(),
 });
 

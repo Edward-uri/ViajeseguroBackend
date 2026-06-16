@@ -12,3 +12,6 @@ export class ArchivoRequeridoError extends ValidationError {
 export class NoEsTuDocumentoError extends ForbiddenError {
   constructor() { super('No puedes acceder a este documento'); }
 }
+export class MunicipioNoValidoError extends ValidationError {
+  constructor() { super('El municipio indicado no existe o no está activo'); }
+}

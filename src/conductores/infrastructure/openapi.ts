@@ -35,7 +35,7 @@ openapiRegistry.registerPath({
   method: 'post', path: '/api/conductor/onboarding/licencia', tags: ['App Conductor'],
   summary: 'Guarda los datos de la licencia del conductor', security: [{ bearerAuth: [] }],
   request: { body: { content: { 'application/json': { schema: LicenciaSchema } } } },
-  responses: { 200: { description: 'Licencia guardada', content: { 'application/json': { schema: z.object({ idConductor: z.number() }).passthrough() } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
+  responses: { 200: { description: 'Licencia guardada', content: { 'application/json': { schema: z.object({ idConductor: z.number(), idMunicipio: z.number() }).passthrough() } } }, 400: err('Municipio inválido'), 401: err('No autenticado'), 403: err('Rol no autorizado') },
 });
 
 const SUBIDAS: Array<[string, string]> = [

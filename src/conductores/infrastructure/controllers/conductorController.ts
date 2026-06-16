@@ -12,6 +12,7 @@ export const submitLicenciaController: RequestHandler = async (req, res, next) =
     const c = await conductorUseCases.submitLicencia({ idConductor: req.user.sub, ...dto });
     res.json({
       idConductor: c.idConductor,
+      idMunicipio: c.idMunicipio,
       licencia: c.licencia,
       licenciaFechaExpedicion: c.licenciaFechaExpedicion,
       licenciaFechaVencimiento: c.licenciaFechaVencimiento,

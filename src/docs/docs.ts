@@ -9,6 +9,7 @@ import { env } from '../core/env.js';
 // Si se agrega un nuevo controller con OpenAPI, agregar el import aqui.
 import '../auth/infrastructure/openapi.js';
 import '../conductores/infrastructure/openapi.js';
+import '../municipios/infrastructure/openapi.js';
 import '../users/infrastructure/controllers/getMeController.js';
 import '../users/infrastructure/controllers/presignProfilePhotoController.js';
 import '../users/infrastructure/controllers/confirmProfilePhotoController.js';

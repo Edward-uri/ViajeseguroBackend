@@ -22,6 +22,7 @@ export const PublicUserSchema = z
     rol: RolSchema,
     estadoCuenta: EstadoCuentaSchema,
     telefonoVerificado: z.boolean(),
+    idMunicipio: z.number().int().nullable().openapi({ example: 1 }),
     fotoPerfilUrl: z.string().url().nullable(),
     fechaRegistro: z.string().datetime().nullable(),
   })

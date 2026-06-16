@@ -14,6 +14,7 @@ export interface CompleteRegistrationInput {
   correo?: string | null;
   idSexo?: number | null;
   fechaNacimiento?: string | null;
+  idMunicipio?: number | null;
   dispositivo?: string | null;
 }
 
@@ -26,6 +27,7 @@ export function completeRegistration(deps: { users: IUserRepository; sessions: I
       .correoElectronico(input.correo ?? null)
       .rol(rol)
       .telefonoVerificado(true)
+      .idMunicipio(input.idMunicipio ?? null)
       .build();
     const persona = new PersonaBuilder()
       .nombre(input.nombre)

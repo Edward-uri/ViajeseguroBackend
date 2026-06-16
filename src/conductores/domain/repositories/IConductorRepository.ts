@@ -12,6 +12,7 @@ export interface IConductorRepository {
   findById(idConductor: number): Promise<Conductor | null>;
   upsertLicencia(args: {
     idConductor: number;
+    idMunicipio: number;
     licencia: string;
     fechaExpedicion: string;
     fechaVencimiento: string;

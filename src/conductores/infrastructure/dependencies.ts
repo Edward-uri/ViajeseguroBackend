@@ -1,6 +1,7 @@
 import { ConductorPostgresRepository } from './ConductorPostgresRepository.js';
 import { DocumentoConductorPostgresRepository } from './DocumentoConductorPostgresRepository.js';
 import { LocalDocumentStorage } from './LocalDocumentStorage.js';
+import { municipioRepository } from '../../municipios/infrastructure/dependencies.js';
 import { submitLicencia } from '../application/submitLicencia.js';
 import { uploadDocumento } from '../application/uploadDocumento.js';
 import { getOnboarding } from '../application/getOnboarding.js';
@@ -14,7 +15,7 @@ const documentos = new DocumentoConductorPostgresRepository();
 const storage = new LocalDocumentStorage();
 
 export const conductorUseCases = {
-  submitLicencia: submitLicencia({ conductores }),
+  submitLicencia: submitLicencia({ conductores, municipios: municipioRepository }),
   uploadDocumento: uploadDocumento({ conductores, documentos, storage }),
   getOnboarding: getOnboarding({ conductores, documentos }),
   reviewDocumento: reviewDocumento({ conductores, documentos }),
