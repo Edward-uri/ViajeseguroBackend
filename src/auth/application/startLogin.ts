@@ -9,20 +9,19 @@ export function startLogin(deps: {
   otp: IOtpRepository;
   sender: IOtpSender;
 }) {
-  return async ({ identificador }: { identificador: string }): Promise<void> => {
-    const user = await deps.users.findByIdentificador(identificador);
+  return async ({ correo }: { correo: string }): Promise<void> => {
+    const user = await deps.users.findByCorreo(correo);
     if (!user || user.idUsuario === null) throw new CredencialesError();
 
-    const canal = identificador.includes('@') ? ('email' as const) : ('sms' as const);
     const codigo = generarCodigo();
     await deps.otp.crear({
       idUsuario: user.idUsuario,
-      destino: identificador,
-      canal,
+      destino: correo,
+      canal: 'email',
       proposito: 'login',
       codigoHash: await hashCodigo(codigo),
       expiraEn: new Date(Date.now() + TTL_MINUTOS * 60_000),
     });
-    await deps.sender.enviar({ destino: identificador, canal, codigo });
+    await deps.sender.enviar({ destino: correo, canal: 'email', codigo });
   };
 }

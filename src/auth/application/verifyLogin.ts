@@ -11,9 +11,9 @@ export function verifyLogin(deps: {
   otp: IOtpRepository;
   sessions: ISessionRepository;
 }) {
-  return async ({ identificador, codigo, dispositivo }: { identificador: string; codigo: string; dispositivo?: string | null }):
+  return async ({ correo, codigo, dispositivo }: { correo: string; codigo: string; dispositivo?: string | null }):
     Promise<{ accessToken: string; refreshToken: string; user: PublicUser }> => {
-    const row = await deps.otp.ultimoVigente(identificador, 'login');
+    const row = await deps.otp.ultimoVigente(correo, 'login');
     if (!row || row.intentos >= MAX_INTENTOS) throw new OtpInvalidoError();
     if (!(await verificarCodigo(codigo, row.codigoHash))) {
       await deps.otp.incrementarIntentos(row.idCodigo);
@@ -21,7 +21,7 @@ export function verifyLogin(deps: {
     }
     await deps.otp.marcarUsado(row.idCodigo);
 
-    const user = await deps.users.findByIdentificador(identificador);
+    const user = await deps.users.findByCorreo(correo);
     if (!user || user.idUsuario === null) throw new CredencialesError();
     const tokens = await emitirTokens(deps.sessions, user.idUsuario, user.rol, dispositivo ?? null);
     return { ...tokens, user: user.toPublicJSON() };

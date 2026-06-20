@@ -6,6 +6,9 @@ export class OtpInvalidoError extends UnauthorizedError {
 export class TelefonoYaRegistradoError extends ConflictError {
   constructor() { super('El teléfono ya está registrado'); }
 }
+export class CorreoYaRegistradoError extends ConflictError {
+  constructor() { super('El correo ya está registrado'); }
+}
 export class CredencialesError extends UnauthorizedError {
   constructor() { super('No existe una cuenta con ese identificador'); }
 }

@@ -5,8 +5,8 @@ import type { IUserRepository } from '../domain/repositories/IUserRepository.js'
 
 interface UsuarioRow {
   id_usuario: string | number;
-  telefono: string;
-  correo_electronico: string | null;
+  telefono: string | null;
+  correo_electronico: string;
   telefono_verificado: boolean;
   correo_verificado: boolean;
   rol: RolUsuario;
@@ -47,14 +47,6 @@ export class UserPostgresRepository implements IUserRepository {
     const { rows } = await pool.query<UsuarioRow>(
       'SELECT * FROM usuarios WHERE correo_electronico = $1 LIMIT 1',
       [correo],
-    );
-    return mapUserRow(rows[0]);
-  }
-
-  async findByIdentificador(identificador: string): Promise<User | null> {
-    const { rows } = await pool.query<UsuarioRow>(
-      'SELECT * FROM usuarios WHERE telefono = $1 OR correo_electronico = $1 LIMIT 1',
-      [identificador],
     );
     return mapUserRow(rows[0]);
   }

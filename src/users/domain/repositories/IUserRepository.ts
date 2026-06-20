@@ -4,7 +4,6 @@ import type { Persona } from '../Persona.js';
 export interface IUserRepository {
   findByTelefono(telefono: string): Promise<User | null>;
   findByCorreo(correo: string): Promise<User | null>;
-  findByIdentificador(identificador: string): Promise<User | null>;
   findById(idUsuario: number): Promise<User | null>;
 
   createUserWithPersona(args: { user: User; persona: Persona }): Promise<User>;

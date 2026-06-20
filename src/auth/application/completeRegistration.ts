@@ -11,7 +11,7 @@ export interface CompleteRegistrationInput {
   nombre: string;
   apellidoPaterno: string;
   apellidoMaterno?: string | null;
-  correo?: string | null;
+  telefono?: string | null;
   idSexo?: number | null;
   fechaNacimiento?: string | null;
   idMunicipio?: number | null;
@@ -20,13 +20,13 @@ export interface CompleteRegistrationInput {
 
 export function completeRegistration(deps: { users: IUserRepository; sessions: ISessionRepository }) {
   return async (input: CompleteRegistrationInput): Promise<{ accessToken: string; refreshToken: string; user: PublicUser }> => {
-    const { telefono, rol } = verifyRegistrationToken(input.registrationToken);
+    const { correo, rol } = verifyRegistrationToken(input.registrationToken);
 
     const user = new UserBuilder()
-      .telefono(telefono)
-      .correoElectronico(input.correo ?? null)
+      .correoElectronico(correo)
+      .telefono(input.telefono ?? null)
       .rol(rol)
-      .telefonoVerificado(true)
+      .correoVerificado(true)
       .idMunicipio(input.idMunicipio ?? null)
       .build();
     const persona = new PersonaBuilder()

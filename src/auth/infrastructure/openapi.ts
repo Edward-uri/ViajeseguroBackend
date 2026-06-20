@@ -33,12 +33,12 @@ openapiRegistry.registerPath({
   method: 'post',
   path: '/api/auth/register/start',
   tags: ['App Pasajero', 'App Conductor'],
-  summary: 'Registro 1/3 — envía OTP al teléfono',
+  summary: 'Registro 1/3 — envía OTP al correo',
   request: { body: body(RegisterStartSchema) },
   responses: {
     202: res('Código enviado', MensajeSchema),
     400: err('Datos inválidos'),
-    409: err('El teléfono ya está registrado'),
+    409: err('El correo ya está registrado'),
   },
 });
 
@@ -46,7 +46,7 @@ openapiRegistry.registerPath({
   method: 'post',
   path: '/api/auth/register/verify',
   tags: ['App Pasajero', 'App Conductor'],
-  summary: 'Registro 2/3 — verifica el OTP y entrega un token de registro',
+  summary: 'Registro 2/3 — verifica el OTP del correo y entrega un token de registro',
   request: { body: body(RegisterVerifySchema) },
   responses: {
     200: res('Token de registro', RegistrationTokenSchema),
@@ -71,11 +71,11 @@ openapiRegistry.registerPath({
   method: 'post',
   path: '/api/auth/login/start',
   tags: ['Compartido'],
-  summary: 'Login 1/2 — envía OTP a teléfono o correo',
+  summary: 'Login 1/2 — envía OTP al correo',
   request: { body: body(LoginStartSchema) },
   responses: {
     202: res('Código enviado', MensajeSchema),
-    401: err('No existe una cuenta con ese identificador'),
+    401: err('No existe una cuenta con ese correo'),
   },
 });
 
@@ -83,7 +83,7 @@ openapiRegistry.registerPath({
   method: 'post',
   path: '/api/auth/login/verify',
   tags: ['Compartido'],
-  summary: 'Login 2/2 — verifica el OTP y abre sesión',
+  summary: 'Login 2/2 — verifica el OTP del correo y abre sesión',
   request: { body: body(LoginVerifySchema) },
   responses: {
     200: res('Sesión iniciada', SessionResponseSchema),

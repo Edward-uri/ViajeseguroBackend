@@ -6,7 +6,7 @@ export type Rol = 'pasajero' | 'conductor' | 'propietario' | 'admin';
 
 export interface AccessPayload { sub: number; rol: Rol; type: 'access'; }
 export interface RefreshPayload { sub: number; sid: number; type: 'refresh'; }
-export interface RegistrationPayload { telefono: string; rol: Rol; type: 'registration'; }
+export interface RegistrationPayload { correo: string; rol: Rol; type: 'registration'; }
 
 export type AuthTokenPayload = { sub: number; rol: Rol };
 
@@ -34,7 +34,7 @@ export const signRefreshToken = (p: { sub: number; sid: number }): string =>
   sign({ ...p, type: 'refresh' }, env.REFRESH_TOKEN_TTL);
 export const verifyRefreshToken = (t: string): RefreshPayload => verify<RefreshPayload>(t, 'refresh');
 
-export const signRegistrationToken = (p: { telefono: string; rol: Rol }): string =>
+export const signRegistrationToken = (p: { correo: string; rol: Rol }): string =>
   sign({ ...p, type: 'registration' }, env.REGISTRATION_TOKEN_TTL);
 export const verifyRegistrationToken = (t: string): RegistrationPayload =>
   verify<RegistrationPayload>(t, 'registration');

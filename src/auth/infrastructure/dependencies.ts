@@ -2,6 +2,8 @@ import { UserPostgresRepository } from '../../users/infrastructure/UserPostgresR
 import { OtpPostgresRepository } from './OtpPostgresRepository.js';
 import { SessionPostgresRepository } from './SessionPostgresRepository.js';
 import { MockOtpSender } from './MockOtpSender.js';
+import { BrevoOtpSender } from './BrevoOtpSender.js';
+import { env } from '../../core/env.js';
 import { startRegistration } from '../application/startRegistration.js';
 import { verifyRegistration } from '../application/verifyRegistration.js';
 import { completeRegistration } from '../application/completeRegistration.js';
@@ -13,8 +15,9 @@ import { logout } from '../application/logout.js';
 const users = new UserPostgresRepository();
 const otp = new OtpPostgresRepository();
 const sessions = new SessionPostgresRepository();
-// TODO prod: usar SnsOtpSender cuando NODE_ENV === 'production'
-const sender = new MockOtpSender();
+// Brevo en cualquier entorno con API key (salvo tests, que siempre usan el mock para leer el código).
+const sender =
+  env.NODE_ENV !== 'test' && env.BREVO_API_KEY ? new BrevoOtpSender() : new MockOtpSender();
 
 export const authUseCases = {
   startRegistration: startRegistration({ users, otp, sender }),
