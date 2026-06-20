@@ -27,10 +27,13 @@ const envSchema = z.object({
   AWS_S3_BUCKET: z.string().min(1),
   /** Si se setea (ej. CDN/CloudFront), se usa como base de la URL publica. Si no, se construye `https://{bucket}.s3.{region}.amazonaws.com`. */
   AWS_S3_PUBLIC_BASE_URL: z.string().url().optional(),
+  /** Carpeta donde LocalDocumentStorage guarda los documentos. En prod = punto de montaje del volumen de Coolify (ej. /app/uploads). Default: <cwd>/uploads. */
+  UPLOADS_DIR: z.string().min(1).optional(),
 
   BREVO_API_KEY: z.string().min(1).optional(),
   EMAIL_FROM: z.string().email().default('noreply@codigoverse.space'),
-  EMAIL_FROM_NAME: z.string().min(1).default('ViajeSeguro'),
+  EMAIL_FROM_NAME: z.string().min(1).default('Jala'),
+  BREVO_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

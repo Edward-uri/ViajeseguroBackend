@@ -1,8 +1,9 @@
 import { mkdir, writeFile, readFile, unlink } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import type { IDocumentStorage } from '../../core/storage.js';
+import { env } from '../../core/env.js';
 
-const ROOT = resolve(process.cwd(), 'uploads');
+const ROOT = env.UPLOADS_DIR ? resolve(env.UPLOADS_DIR) : resolve(process.cwd(), 'uploads');
 
 function rutaSegura(key: string): string {
   const full = resolve(ROOT, key);
