@@ -27,6 +27,7 @@ export interface IViajeRepository {
   porId(idViaje: number): Promise<Viaje | null>;
   listarPorPasajero(idPasajero: number): Promise<Viaje[]>;
   cambiarEstado(input: CambiarEstadoInput): Promise<Viaje>;
+  guardarUbicacion(idViaje: number, lat: number, lng: number): Promise<void>;
   crearEvaluacion(args: {
     idViaje: number;
     idEvaluador: number;

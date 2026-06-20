@@ -1,0 +1,20 @@
+# Progreso — Plan B Tiempo Real (Socket.IO + FCM)
+
+Plan: docs/superpowers/plans/2026-06-20-viajes-tiempo-real.md
+Restricción dura: NINGÚN comando git (no add/commit/push). El usuario commitea.
+Ejecución: subagent-driven (un implementador por task).
+
+## Estado de tasks
+- Task 1: completo (deps instaladas, env SOCKET_CORS_ORIGIN + FCM_SERVICE_ACCOUNT, typecheck limpio)
+- Task 2: completo (puerto IEventoViajeNotifier nuevas firmas, 3 casos de uso + mock, flow.test.ts 7/7)
+- Task 3: completo (src/realtime/rooms.ts + test, 1/1)
+- Task 4: completo (SocketEventoViajeNotifier + test, 6/6, typecheck limpio)
+- Task 5: completo (guardarUbicacion repo + registrarUbicacion use case + test, 4/4)
+- Task 6: completo (FCM: tokensActivosDeUsuario, Fcm/Log/pickPushSender, test 4/4). NOTA: firebase-admin v14 -> imports nombrados 'firebase-admin/app' y 'firebase-admin/messaging' (no default/namespace). Comportamiento idéntico al plan.
+- Task 7: completo (dependencies.ts: socketNotifier + pickPushSender + registrarUbicacion; mocks borrados; flow.test.ts 7/7)
+- Task 8: completo (socketServer.ts auth+joins+eventos entrantes; socketAuth.test.ts 3/3)
+- Task 9: completo (index.ts bootstrap http+io+attach+shutdown; realtime.test.ts E2E 1/1; suite completa 19 archivos / 64 tests verde; typecheck limpio)
+- Final review: completo (opus). Sin Critical. Important 1-3 + nit 5 -> fix subagent en background. Important 4 (fuga cross-municipio) documentado como deuda en ADR-013 (decisión del usuario).
+- Fix review: COMPLETO. Important 1-3 + nit 5 aplicados (shutdown async, cleanup tests, guards, getApps).
+- Important 4: CERRADO. conductor:online deriva municipio del server (conductores.id_municipio vía conductorUseCases.municipioOperativo), valida vs cliente, ack {ok}. + zod en payloads entrantes (src/realtime/schemas.ts) + eventos tipados (src/realtime/events.ts). Nuevos: events.ts, schemas.ts, conductores/application/municipioOperativo.ts. Test negativo agregado.
+- Estado final: typecheck limpio, suite 19 archivos / 66 tests verde. Todo en working tree (sin commitear; el usuario commitea).

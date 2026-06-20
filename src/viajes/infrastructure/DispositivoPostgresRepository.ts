@@ -11,4 +11,12 @@ export class DispositivoPostgresRepository implements IDispositivoRepository {
       [idUsuario, tokenFcm, plataforma],
     );
   }
+
+  async tokensActivosDeUsuario(idUsuario: number): Promise<string[]> {
+    const { rows } = await pool.query<{ token_fcm: string }>(
+      'SELECT token_fcm FROM dispositivos WHERE id_usuario = $1 AND activo = TRUE',
+      [idUsuario],
+    );
+    return rows.map((r) => r.token_fcm);
+  }
 }

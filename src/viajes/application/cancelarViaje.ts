@@ -11,7 +11,7 @@ export function cancelarViaje(deps: { viajes: IViajeRepository; notifier: IEvent
     if (viaje.idPasajero !== idPasajero) throw new NoEsTuViajeError();
     if (!puedeTransicionar(viaje.estado, 'cancelado')) throw new TransicionInvalidaError(viaje.estado, 'cancelado');
     const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'cancelado', canceladoPor: 'pasajero', motivo: motivo ?? null });
-    await deps.notifier.cambioEstado(idViaje, 'cancelado');
+    await deps.notifier.cambioEstado(actualizado.toJSON());
     return actualizado.toJSON();
   };
 }

@@ -120,6 +120,10 @@ export class ViajePostgresRepository implements IViajeRepository {
     });
   }
 
+  async guardarUbicacion(idViaje: number, lat: number, lng: number): Promise<void> {
+    await pool.query('INSERT INTO rastreo_ubicacion (id_viaje, lat, lng) VALUES ($1, $2, $3)', [idViaje, lat, lng]);
+  }
+
   async crearEvaluacion(args: {
     idViaje: number; idEvaluador: number; idEvaluado: number;
     tipo: 'pasajero_a_conductor'; calificacion: number; comentario: string | null;

@@ -8,6 +8,7 @@ import { getOnboarding } from '../application/getOnboarding.js';
 import { reviewDocumento } from '../application/reviewDocumento.js';
 import { listConductoresPendientes } from '../application/listConductoresPendientes.js';
 import { getArchivo } from '../application/getArchivo.js';
+import { municipioOperativo } from '../application/municipioOperativo.js';
 
 const conductores = new ConductorPostgresRepository();
 const documentos = new DocumentoConductorPostgresRepository();
@@ -21,4 +22,5 @@ export const conductorUseCases = {
   reviewDocumento: reviewDocumento({ conductores, documentos }),
   listConductoresPendientes: listConductoresPendientes({ conductores }),
   getArchivo: getArchivo({ documentos, storage }),
+  municipioOperativo: municipioOperativo({ conductores }),
 };

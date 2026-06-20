@@ -35,6 +35,9 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().email().default('noreply@codigoverse.space'),
   EMAIL_FROM_NAME: z.string().min(1).default('Jala'),
   BREVO_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
+
+  SOCKET_CORS_ORIGIN: z.string().default('*'),
+  FCM_SERVICE_ACCOUNT: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
