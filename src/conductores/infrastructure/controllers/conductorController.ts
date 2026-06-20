@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { conductorUseCases } from '../dependencies.js';
-import { LicenciaSchema } from '../schemas.js';
+import { LicenciaSchema, DisponibilidadSchema } from '../schemas.js';
 import type { TipoDocumento } from '../../domain/tipos.js';
 import { ArchivoRequeridoError } from '../../domain/errors.js';
 import { UnauthorizedError } from '../../../core/errors.js';
@@ -56,5 +56,20 @@ export const getMiArchivoController: RequestHandler = async (req, res, next) => 
     });
     res.setHeader('Content-Type', mimeType);
     res.send(contenido);
+  } catch (e) { next(e); }
+};
+
+export const setDisponibilidadController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const dto = DisponibilidadSchema.parse(req.body);
+    res.json(await conductorUseCases.setDisponibilidad(req.user.sub, dto));
+  } catch (e) { next(e); }
+};
+
+export const getDisponibilidadController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    res.json(await conductorUseCases.getDisponibilidad(req.user.sub));
   } catch (e) { next(e); }
 };

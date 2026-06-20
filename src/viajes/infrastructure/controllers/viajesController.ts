@@ -77,3 +77,17 @@ export const registrarDispositivoController: RequestHandler = async (req, res, n
     res.json(await viajeUseCases.registrarDispositivo(req.user.sub, dto));
   } catch (e) { next(e); }
 };
+
+export const listarPendientesController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    res.json({ data: await viajeUseCases.listarViajesPendientes(req.user.sub) });
+  } catch (e) { next(e); }
+};
+
+export const listarAsignadosController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    res.json({ data: await viajeUseCases.listarViajesAsignados(req.user.sub) });
+  } catch (e) { next(e); }
+};

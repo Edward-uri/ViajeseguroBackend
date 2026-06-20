@@ -2,7 +2,9 @@ import { ViajePostgresRepository } from './ViajePostgresRepository.js';
 import { ZonaTarifaPostgresRepository } from './ZonaTarifaPostgresRepository.js';
 import { DispositivoPostgresRepository } from './DispositivoPostgresRepository.js';
 import { HaversineRouteEstimator } from './HaversineRouteEstimator.js';
+import { OsrmRouteEstimator } from './OsrmRouteEstimator.js';
 import { TarifaPorZona } from './TarifaPorZona.js';
+import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
 import { SocketEventoViajeNotifier } from './SocketEventoViajeNotifier.js';
 import { pickPushSender } from './pushSenderFactory.js';
 import { env } from '../../core/env.js';
@@ -18,11 +20,16 @@ import { completarViaje } from '../application/completarViaje.js';
 import { evaluarViaje } from '../application/evaluarViaje.js';
 import { registrarDispositivo } from '../application/registrarDispositivo.js';
 import { registrarUbicacion } from '../application/registrarUbicacion.js';
+import { conductorUseCases } from '../../conductores/infrastructure/dependencies.js';
+import { listarViajesPendientes } from '../application/listarViajesPendientes.js';
+import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
 
 const viajes = new ViajePostgresRepository();
 const zonas = new ZonaTarifaPostgresRepository();
 const dispositivos = new DispositivoPostgresRepository();
-const rutas = new HaversineRouteEstimator();
+const haversine = new HaversineRouteEstimator();
+// Con OSRM_URL seteada se usa ruteo real (con Haversine de fallback); sin ella, solo Haversine.
+const rutas: IRouteEstimator = env.OSRM_URL ? new OsrmRouteEstimator(env.OSRM_URL, haversine) : haversine;
 const tarifas = new TarifaPorZona(zonas, rutas);
 
 export const socketNotifier = new SocketEventoViajeNotifier();
@@ -41,4 +48,6 @@ export const viajeUseCases = {
   evaluarViaje: evaluarViaje({ viajes }),
   registrarDispositivo: registrarDispositivo({ dispositivos }),
   registrarUbicacion: registrarUbicacion({ viajes, notifier }),
+  listarViajesPendientes: listarViajesPendientes({ viajes, municipioDelConductor: conductorUseCases.municipioOperativo }),
+  listarViajesAsignados: listarViajesAsignados({ viajes }),
 };

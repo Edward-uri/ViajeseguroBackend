@@ -38,6 +38,9 @@ const envSchema = z.object({
 
   SOCKET_CORS_ORIGIN: z.string().default('*'),
   FCM_SERVICE_ACCOUNT: z.string().min(1).optional(),
+
+  /** URL de OSRM self-hosted (red interna, ej. http://osrm:5000). Vacío = solo Haversine. */
+  OSRM_URL: z.string().url().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

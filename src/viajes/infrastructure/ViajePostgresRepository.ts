@@ -134,4 +134,20 @@ export class ViajePostgresRepository implements IViajeRepository {
       [args.idViaje, args.idEvaluador, args.idEvaluado, args.tipo, args.calificacion, args.comentario],
     );
   }
+
+  async listarPendientesPorMunicipio(idMunicipio: number): Promise<Viaje[]> {
+    const { rows } = await pool.query<ViajeRow>(
+      "SELECT * FROM viajes WHERE estado='solicitado' AND id_municipio=$1 ORDER BY fecha_solicitud ASC, id_viaje ASC",
+      [idMunicipio],
+    );
+    return rows.map((r) => mapViaje(r)!);
+  }
+
+  async listarPorConductor(idConductor: number): Promise<Viaje[]> {
+    const { rows } = await pool.query<ViajeRow>(
+      'SELECT * FROM viajes WHERE id_conductor=$1 ORDER BY fecha_solicitud DESC, id_viaje DESC',
+      [idConductor],
+    );
+    return rows.map((r) => mapViaje(r)!);
+  }
 }

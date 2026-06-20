@@ -21,3 +21,9 @@ export const RevisarDocumentoSchema = z.discriminatedUnion('estado', [
   z.object({ estado: z.literal('aprobado') }),
   z.object({ estado: z.literal('rechazado'), motivoRechazo: z.string().min(3).max(500) }),
 ]);
+
+export const DisponibilidadSchema = z.object({
+  disponible: z.boolean(),
+  lat: z.number().finite().min(-90).max(90).optional(),
+  lng: z.number().finite().min(-180).max(180).optional(),
+});

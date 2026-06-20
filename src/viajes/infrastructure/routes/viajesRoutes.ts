@@ -16,6 +16,8 @@ viajesRoutes.use(authMiddleware);
 
 viajesRoutes.post('/', c.crearViajeController);
 viajesRoutes.get('/mios', c.listarMisViajesController);
+viajesRoutes.get('/pendientes', requireRole('conductor'), c.listarPendientesController);
+viajesRoutes.get('/asignados', requireRole('conductor'), c.listarAsignadosController);
 viajesRoutes.get('/:id', c.getViajeController);
 viajesRoutes.post('/:id/cancelar', c.cancelarViajeController);
 viajesRoutes.post('/:id/evaluacion', c.evaluarViajeController);

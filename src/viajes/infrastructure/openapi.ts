@@ -85,6 +85,18 @@ openapiRegistry.registerPath({
 });
 
 openapiRegistry.registerPath({
+  method: 'get', path: '/api/viajes/pendientes', tags: ['App Conductor'],
+  summary: 'Viajes solicitados en mi municipio (para aceptar)', security: [{ bearerAuth: [] }],
+  responses: { 200: ok('Pendientes', z.object({ data: z.array(ViajeSchema) })), 401: err('No autenticado'), 403: err('Rol no autorizado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/viajes/asignados', tags: ['App Conductor'],
+  summary: 'Mis viajes como conductor (activos + historial)', security: [{ bearerAuth: [] }],
+  responses: { 200: ok('Asignados', z.object({ data: z.array(ViajeSchema) })), 401: err('No autenticado'), 403: err('Rol no autorizado') },
+});
+
+openapiRegistry.registerPath({
   method: 'post', path: '/api/viajes/{id}/aceptar', tags: ['App Conductor'],
   summary: 'Acepta un viaje (asigna conductor + vehículo)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId, body: json(AceptarViajeSchema) },

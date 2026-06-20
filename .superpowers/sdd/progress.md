@@ -18,3 +18,10 @@ Ejecución: subagent-driven (un implementador por task).
 - Fix review: COMPLETO. Important 1-3 + nit 5 aplicados (shutdown async, cleanup tests, guards, getApps).
 - Important 4: CERRADO. conductor:online deriva municipio del server (conductores.id_municipio vía conductorUseCases.municipioOperativo), valida vs cliente, ack {ok}. + zod en payloads entrantes (src/realtime/schemas.ts) + eventos tipados (src/realtime/events.ts). Nuevos: events.ts, schemas.ts, conductores/application/municipioOperativo.ts. Test negativo agregado.
 - Estado final: typecheck limpio, suite 19 archivos / 66 tests verde. Todo en working tree (sin commitear; el usuario commitea).
+
+# Plan C — Flujo del conductor (subagent-driven)
+Plan: docs/superpowers/plans/2026-06-20-viajes-conductor.md
+- Task 1 (disponibilidad: migración 007 + REST): COMPLETO. Review aplicado (rango geográfico zod + asserts null). 5/5 tests, typecheck limpio.
+- Task 2 (viajes conductor: pendientes + asignados): COMPLETO. Review aplicado (test 403 /asignados). 
+- Cierre Plan C: suite 22 archivos / 81 tests verde, typecheck limpio. Todo en working tree (sin commitear).
+- Deuda preexistente señalada (Plan A): ViajeSchema en openapi omite las fechas (fechaSolicitud, etc.) — afecta todos los endpoints de viajes.

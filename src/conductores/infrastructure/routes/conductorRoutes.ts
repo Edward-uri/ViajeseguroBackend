@@ -7,6 +7,8 @@ export const conductorRoutes: Router = Router();
 
 conductorRoutes.use(authMiddleware, requireRole('conductor'));
 conductorRoutes.post('/onboarding/licencia', c.submitLicenciaController);
+conductorRoutes.post('/disponibilidad', c.setDisponibilidadController);
+conductorRoutes.get('/disponibilidad', c.getDisponibilidadController);
 
 const upload = subirArchivo.single('archivo');
 conductorRoutes.post('/documentos/licencia', upload, c.subirDocumento('licencia'));

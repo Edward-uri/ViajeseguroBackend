@@ -2,7 +2,16 @@
   "permissions": {
     "allow": [
       "PowerShell($env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/flow.test.ts 2>&1 | Select-Object -Last 40)",
-      "PowerShell(npm run typecheck 2>&1 | Select-Object -Last 6; Write-Output \"===== SUITE =====\"; $env:DB_NAME='viajeseguro_test'; npm test 2>&1 | Select-Object -Last 22)"
+      "PowerShell(npm run typecheck 2>&1 | Select-Object -Last 6; Write-Output \"===== SUITE =====\"; $env:DB_NAME='viajeseguro_test'; npm test 2>&1 | Select-Object -Last 22)",
+      "mcp__codegraph__codegraph_files",
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npm run db:migrate 2>&1)",
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/conductores/disponibilidad.test.ts 2>&1 | Select-Object -Last 30)",
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/conductores/disponibilidad.test.ts 2>&1)",
+      "PowerShell($env:DB_NAME='viajeseguro_test'; npx vitest run tests/conductores/disponibilidad.test.ts 2>&1 | Select-Object -Last 15; npm run typecheck)",
+      "PowerShell(cd \"C:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/conductor.test.ts 2>&1 | Select-Object -Last 30)",
+      "PowerShell(cd \"C:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/conductor.test.ts 2>&1 | Select-Object -Last 20)",
+      "PowerShell(cd \"C:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npm test 2>&1 | Select-Object -Last 30)",
+      "PowerShell($env:DB_NAME='viajeseguro_test'; npm test 2>&1 | Select-Object -Last 12; npm run typecheck)"
     ]
   }
 }

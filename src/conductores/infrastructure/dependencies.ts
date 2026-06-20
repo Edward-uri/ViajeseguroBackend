@@ -9,11 +9,15 @@ import { reviewDocumento } from '../application/reviewDocumento.js';
 import { listConductoresPendientes } from '../application/listConductoresPendientes.js';
 import { getArchivo } from '../application/getArchivo.js';
 import { municipioOperativo } from '../application/municipioOperativo.js';
+import { DisponibilidadPostgresRepository } from './DisponibilidadPostgresRepository.js';
+import { setDisponibilidad } from '../application/setDisponibilidad.js';
+import { getDisponibilidad } from '../application/getDisponibilidad.js';
 
 const conductores = new ConductorPostgresRepository();
 const documentos = new DocumentoConductorPostgresRepository();
 // TODO prod: cambiar por S3DocumentStorage cuando se decida el almacenamiento definitivo
 const storage = new LocalDocumentStorage();
+const disponibilidad = new DisponibilidadPostgresRepository();
 
 export const conductorUseCases = {
   submitLicencia: submitLicencia({ conductores, municipios: municipioRepository }),
@@ -23,4 +27,6 @@ export const conductorUseCases = {
   listConductoresPendientes: listConductoresPendientes({ conductores }),
   getArchivo: getArchivo({ documentos, storage }),
   municipioOperativo: municipioOperativo({ conductores }),
+  setDisponibilidad: setDisponibilidad({ disponibilidad }),
+  getDisponibilidad: getDisponibilidad({ disponibilidad }),
 };

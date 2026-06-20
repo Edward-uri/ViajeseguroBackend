@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { openapiRegistry, ErrorResponseSchema } from '../../docs/openapiRegistry.js';
-import { LicenciaSchema, RevisarDocumentoSchema } from './schemas.js';
+import { LicenciaSchema, RevisarDocumentoSchema, DisponibilidadSchema } from './schemas.js';
 
 const DocItemSchema = z
   .object({
@@ -65,6 +65,29 @@ openapiRegistry.registerPath({
   summary: 'Descarga un documento propio', security: [{ bearerAuth: [] }],
   request: { params: ParamsId },
   responses: { 200: archivoRes, 403: err('No es tu documento'), 404: err('No encontrado') },
+});
+
+const DisponibilidadResSchema = z
+  .object({
+    idConductor: z.number(),
+    disponible: z.boolean(),
+    lat: z.number().nullable(),
+    lng: z.number().nullable(),
+    actualizadoEn: z.string().nullable(),
+  })
+  .openapi('Disponibilidad');
+
+openapiRegistry.registerPath({
+  method: 'post', path: '/api/conductor/disponibilidad', tags: ['App Conductor'],
+  summary: 'Prende/apaga la disponibilidad del conductor (+ ubicación)', security: [{ bearerAuth: [] }],
+  request: { body: { content: { 'application/json': { schema: DisponibilidadSchema } } } },
+  responses: { 200: { description: 'Disponibilidad actualizada', content: { 'application/json': { schema: DisponibilidadResSchema } } }, 400: err('Datos inválidos'), 401: err('No autenticado'), 403: err('Rol no autorizado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/conductor/disponibilidad', tags: ['App Conductor'],
+  summary: 'Estado de disponibilidad del conductor', security: [{ bearerAuth: [] }],
+  responses: { 200: { description: 'Disponibilidad', content: { 'application/json': { schema: DisponibilidadResSchema } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
 });
 
 // ---- Web Admin ----
