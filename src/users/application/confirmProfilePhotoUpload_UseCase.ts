@@ -1,5 +1,5 @@
 import { buildPublicUrl, deleteObject } from '../../infrastructure/s3.js';
-import type { IUserRepository } from '../domain/IUserRepository.js';
+import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 import type { User } from '../domain/User.js';
 
 export interface ConfirmProfilePhotoInput {

@@ -40,7 +40,7 @@ const PresignDataSchema = z
 openapiRegistry.registerPath({
   method: 'post',
   path: '/api/users/me/photo/presign',
-  tags: ['Users'],
+  tags: ['Compartido'],
   summary: 'Solicita una URL pre-firmada para subir la foto de perfil a S3',
   description:
     'Devuelve `uploadUrl` (PUT directo a S3) y `s3Key`. Tras subir, llamar a `PUT /api/users/me/photo/confirm` con esa key.',

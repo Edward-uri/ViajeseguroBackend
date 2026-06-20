@@ -1,5 +1,5 @@
 import type { RequestHandler } from 'express';
-import { verifyToken, type AuthTokenPayload } from '../core/jwt.js';
+import { verifyAccessToken, type AuthTokenPayload } from '../core/jwt.js';
 import { UnauthorizedError, ForbiddenError } from '../core/errors.js';
 
 declare global {
@@ -17,7 +17,7 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
   }
   const token = header.slice(7);
   try {
-    req.user = verifyToken(token);
+    req.user = verifyAccessToken(token);
     next();
   } catch (err) {
     next(err);

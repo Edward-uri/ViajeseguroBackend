@@ -1,5 +1,5 @@
 import { deleteObject } from '../../infrastructure/s3.js';
-import type { IUserRepository } from '../domain/IUserRepository.js';
+import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 
 
 export class DeleteAccount_UseCase {

@@ -2,28 +2,39 @@ import jwt, { type SignOptions } from 'jsonwebtoken';
 import { env } from './env.js';
 import { UnauthorizedError } from './errors.js';
 
-export interface AuthTokenPayload {
-  sub: number;
-  rol: 'pasajero' | 'conductor' | 'propietario' | 'admin';
+export type Rol = 'pasajero' | 'conductor' | 'propietario' | 'admin';
+
+export interface AccessPayload { sub: number; rol: Rol; type: 'access'; }
+export interface RefreshPayload { sub: number; sid: number; type: 'refresh'; }
+export interface RegistrationPayload { telefono: string; rol: Rol; type: 'registration'; }
+
+export type AuthTokenPayload = { sub: number; rol: Rol };
+
+function sign(payload: object, ttl: string): string {
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: ttl as SignOptions['expiresIn'] });
 }
 
-export function signToken(payload: AuthTokenPayload): string {
-  const opts: SignOptions = { expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'] };
-  return jwt.sign(payload, env.JWT_SECRET, opts);
-}
-
-export function verifyToken(token: string): AuthTokenPayload {
+function verify<T extends { type: string }>(token: string, type: T['type']): T {
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET);
-    if (typeof decoded === 'string' || !decoded || typeof decoded !== 'object') {
-      throw new Error('Payload invalido');
+    if (!decoded || typeof decoded !== 'object' || (decoded as { type?: string }).type !== type) {
+      throw new Error('tipo de token invalido');
     }
-    const payload = decoded as unknown as AuthTokenPayload;
-    if (typeof payload.sub !== 'number' || typeof payload.rol !== 'string') {
-      throw new Error('Payload invalido');
-    }
-    return payload;
+    return decoded as unknown as T;
   } catch {
     throw new UnauthorizedError('Token invalido o expirado');
   }
 }
+
+export const signAccessToken = (p: { sub: number; rol: Rol }): string =>
+  sign({ ...p, type: 'access' }, env.ACCESS_TOKEN_TTL);
+export const verifyAccessToken = (t: string): AccessPayload => verify<AccessPayload>(t, 'access');
+
+export const signRefreshToken = (p: { sub: number; sid: number }): string =>
+  sign({ ...p, type: 'refresh' }, env.REFRESH_TOKEN_TTL);
+export const verifyRefreshToken = (t: string): RefreshPayload => verify<RefreshPayload>(t, 'refresh');
+
+export const signRegistrationToken = (p: { telefono: string; rol: Rol }): string =>
+  sign({ ...p, type: 'registration' }, env.REGISTRATION_TOKEN_TTL);
+export const verifyRegistrationToken = (t: string): RegistrationPayload =>
+  verify<RegistrationPayload>(t, 'registration');

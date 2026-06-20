@@ -27,7 +27,7 @@ const ConfirmRequestSchema = z
 openapiRegistry.registerPath({
   method: 'put',
   path: '/api/users/me/photo/confirm',
-  tags: ['Users'],
+  tags: ['Compartido'],
   summary: 'Confirma que la foto fue subida a S3 y la persiste en el perfil',
   description:
     'Recibe la `s3Key` previamente generada por `/presign`. Actualiza la BD con la URL publica y borra la foto anterior de S3 (si existia).',
