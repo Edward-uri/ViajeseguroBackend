@@ -46,8 +46,8 @@ function buildSpec() {
         'Backend del proyecto integrador ViajeSeguro (plataforma de moto-taxis para Suchiapa, Chiapas).',
     },
     servers: [
+      { url: 'https://api.codigoverse.space', description: 'Producción' },
       { url: `http://localhost:${env.PORT}`, description: 'Desarrollo local' },
-      { url: 'http://100.51.99.11', description: 'Produccion (EC2)' },
     ],
     tags: [
       { name: 'Salud', description: 'Disponibilidad del servicio.' },

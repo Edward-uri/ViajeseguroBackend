@@ -1,0 +1,10 @@
+import { NotFoundError, ForbiddenError, ConflictError, ValidationError } from '../../core/errors.js';
+
+export class ViajeNoEncontradoError extends NotFoundError { constructor() { super('Viaje'); } }
+export class NoEsTuViajeError extends ForbiddenError { constructor() { super('No tienes acceso a este viaje'); } }
+export class TransicionInvalidaError extends ConflictError {
+  constructor(de: string, a: string) { super(`No se puede pasar de ${de} a ${a}`); }
+}
+export class ViajeNoCompletadoError extends ConflictError { constructor() { super('El viaje no está completado'); } }
+export class MunicipioInvalidoError extends ValidationError { constructor() { super('El municipio no existe o no está activo'); } }
+export class ZonaInvalidaError extends ValidationError { constructor() { super('La zona no existe en ese municipio'); } }
