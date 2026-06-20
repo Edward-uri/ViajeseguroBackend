@@ -1,5 +1,5 @@
 import type { IDocumentoConductorRepository } from '../domain/repositories/IDocumentoConductorRepository.js';
-import type { IDocumentStorage } from '../domain/IDocumentStorage.js';
+import type { IDocumentStorage } from '../../core/storage.js';
 import { DocumentoNoEncontradoError, NoEsTuDocumentoError } from '../domain/errors.js';
 
 export function getArchivo(deps: {

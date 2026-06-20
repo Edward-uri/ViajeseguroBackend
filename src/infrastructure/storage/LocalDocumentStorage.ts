@@ -1,6 +1,6 @@
 import { mkdir, writeFile, readFile, unlink } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import type { IDocumentStorage } from '../domain/IDocumentStorage.js';
+import type { IDocumentStorage } from '../../core/storage.js';
 
 const ROOT = resolve(process.cwd(), 'uploads');
 

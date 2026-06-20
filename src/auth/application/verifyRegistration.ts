@@ -3,7 +3,7 @@ import { verificarCodigo, MAX_INTENTOS } from '../domain/otp.js';
 import { signRegistrationToken, type Rol } from '../../core/jwt.js';
 import { OtpInvalidoError } from '../domain/errors.js';
 
-const ROLES_PERMITIDOS: Rol[] = ['pasajero', 'conductor'];
+const ROLES_PERMITIDOS: Rol[] = ['pasajero', 'conductor', 'propietario'];
 
 export function verifyRegistration(deps: { otp: IOtpRepository }) {
   return async ({ telefono, codigo, rol }: { telefono: string; codigo: string; rol?: Rol }): Promise<{ registrationToken: string }> => {

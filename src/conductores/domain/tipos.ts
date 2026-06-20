@@ -16,15 +16,6 @@ export const REQUERIDOS: TipoDocumento[] = [
   'foto_vehiculo',
 ];
 
-/** mime aceptado -> extensión de archivo. */
-export const MIME_PERMITIDOS: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'application/pdf': '.pdf',
-};
-
-export const MAX_BYTES = 5 * 1024 * 1024;
-
 export function calcularEstadoVerificacion(
   estadosPorTipo: Map<TipoDocumento, EstadoDocumento>,
 ): EstadoVerificacion {

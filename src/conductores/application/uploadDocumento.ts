@@ -1,9 +1,10 @@
 import { randomUUID } from 'node:crypto';
 import type { IConductorRepository } from '../domain/repositories/IConductorRepository.js';
 import type { IDocumentoConductorRepository } from '../domain/repositories/IDocumentoConductorRepository.js';
-import type { IDocumentStorage } from '../domain/IDocumentStorage.js';
+import type { IDocumentStorage } from '../../core/storage.js';
+import { MIME_PERMITIDOS } from '../../core/storage.js';
 import type { DocumentoConductor } from '../domain/DocumentoConductor.js';
-import { MIME_PERMITIDOS, type TipoDocumento } from '../domain/tipos.js';
+import { type TipoDocumento } from '../domain/tipos.js';
 import { ArchivoRequeridoError } from '../domain/errors.js';
 
 export function uploadDocumento(deps: {

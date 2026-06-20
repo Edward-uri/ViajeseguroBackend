@@ -5,13 +5,13 @@ const codigo = z.string().regex(/^\d{4}$/, 'El código debe tener 4 dígitos');
 
 export const RegisterStartSchema = z.object({
   telefono,
-  rol: z.enum(['pasajero', 'conductor']).optional(),
+  rol: z.enum(['pasajero', 'conductor', 'propietario']).optional(),
 });
 
 export const RegisterVerifySchema = z.object({
   telefono,
   codigo,
-  rol: z.enum(['pasajero', 'conductor']).optional(),
+  rol: z.enum(['pasajero', 'conductor', 'propietario']).optional(),
 });
 
 export const RegisterCompleteSchema = z.object({

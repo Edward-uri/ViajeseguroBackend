@@ -10,6 +10,7 @@ import { env } from '../core/env.js';
 import '../auth/infrastructure/openapi.js';
 import '../conductores/infrastructure/openapi.js';
 import '../municipios/infrastructure/openapi.js';
+import '../flotillas/infrastructure/openapi.js';
 import '../users/infrastructure/controllers/getMeController.js';
 import '../users/infrastructure/controllers/presignProfilePhotoController.js';
 import '../users/infrastructure/controllers/confirmProfilePhotoController.js';
@@ -69,6 +70,11 @@ function buildSpec() {
         name: 'Web Admin',
         description:
           'Endpoints del panel de administración web (próximamente gestión de usuarios, conductores y aprobaciones).',
+      },
+      {
+        name: 'Web Flotillas',
+        description:
+          'Endpoints de gestión de flotilla (propietarios): registro de vehículos y carga de documentos del vehículo para revisión. Los consume tanto un panel web de propietarios como la app del conductor (un conductor dueño de motos).',
       },
     ],
   });

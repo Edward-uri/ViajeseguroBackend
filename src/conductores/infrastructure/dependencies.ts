@@ -1,6 +1,6 @@
 import { ConductorPostgresRepository } from './ConductorPostgresRepository.js';
 import { DocumentoConductorPostgresRepository } from './DocumentoConductorPostgresRepository.js';
-import { LocalDocumentStorage } from './LocalDocumentStorage.js';
+import { LocalDocumentStorage } from '../../infrastructure/storage/LocalDocumentStorage.js';
 import { municipioRepository } from '../../municipios/infrastructure/dependencies.js';
 import { submitLicencia } from '../application/submitLicencia.js';
 import { uploadDocumento } from '../application/uploadDocumento.js';

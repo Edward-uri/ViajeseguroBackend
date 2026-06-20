@@ -1,5 +1,5 @@
 import multer from 'multer';
-import { MIME_PERMITIDOS, MAX_BYTES } from '../domain/tipos.js';
+import { MIME_PERMITIDOS, MAX_BYTES } from '../../core/storage.js';
 
 export const subirArchivo = multer({
   storage: multer.memoryStorage(),

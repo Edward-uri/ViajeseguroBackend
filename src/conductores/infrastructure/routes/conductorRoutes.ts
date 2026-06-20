@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware, requireRole } from '../../../middleware/authMiddleware.js';
-import { subirArchivo } from '../multerConfig.js';
+import { subirArchivo } from '../../../infrastructure/storage/multerConfig.js';
 import * as c from '../controllers/conductorController.js';
 
 export const conductorRoutes: Router = Router();

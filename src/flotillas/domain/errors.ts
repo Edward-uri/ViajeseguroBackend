@@ -1,0 +1,17 @@
+import { NotFoundError, ForbiddenError, ValidationError } from '../../core/errors.js';
+
+export class VehiculoNoEncontradoError extends NotFoundError {
+  constructor() { super('Vehículo'); }
+}
+export class DocumentoNoEncontradoError extends NotFoundError {
+  constructor() { super('Documento'); }
+}
+export class NoEsTuVehiculoError extends ForbiddenError {
+  constructor() { super('No puedes acceder a este vehículo'); }
+}
+export class ArchivoRequeridoError extends ValidationError {
+  constructor() { super('Se requiere un archivo válido (jpg, png o pdf, máx. 5 MB)'); }
+}
+export class MunicipioNoValidoError extends ValidationError {
+  constructor() { super('El municipio indicado no existe o no está activo'); }
+}
