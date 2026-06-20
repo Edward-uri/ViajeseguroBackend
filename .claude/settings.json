@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/flow.test.ts 2>&1 | Select-Object -Last 40)",
+      "PowerShell(npm run typecheck 2>&1 | Select-Object -Last 6; Write-Output \"===== SUITE =====\"; $env:DB_NAME='viajeseguro_test'; npm test 2>&1 | Select-Object -Last 22)"
+    ]
+  }
+}

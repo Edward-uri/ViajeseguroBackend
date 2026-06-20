@@ -14,6 +14,7 @@ const envSchema = z.object({
     .string()
     .default('true')
     .transform((v) => v === 'true' || v === '1'),
+  DB_POOL_MAX: z.coerce.number().int().positive().default(10),
 
   JWT_SECRET: z.string().min(32, 'JWT_SECRET debe tener al menos 32 caracteres'),
   JWT_EXPIRES_IN: z.string().default('7d'),

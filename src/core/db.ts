@@ -10,7 +10,7 @@ export const pool = new Pool({
   user: env.DB_USER,
   password: env.DB_PASSWORD,
   ssl: env.DB_SSL ? { rejectUnauthorized: false } : false,
-  max: 10,
+  max: env.DB_POOL_MAX,
   idleTimeoutMillis: 30_000,
   connectionTimeoutMillis: 5_000,
 });

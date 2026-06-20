@@ -11,6 +11,7 @@ import '../auth/infrastructure/openapi.js';
 import '../conductores/infrastructure/openapi.js';
 import '../municipios/infrastructure/openapi.js';
 import '../flotillas/infrastructure/openapi.js';
+import '../viajes/infrastructure/openapi.js';
 import '../users/infrastructure/controllers/getMeController.js';
 import '../users/infrastructure/controllers/presignProfilePhotoController.js';
 import '../users/infrastructure/controllers/confirmProfilePhotoController.js';
