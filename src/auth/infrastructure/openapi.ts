@@ -12,9 +12,12 @@ import {
   LoginVerifySchema,
   RefreshSchema,
   LogoutSchema,
+  SetPasswordSchema,
+  LoginPasswordSchema,
 } from './schemas.js';
 
 const MensajeSchema = z.object({ message: z.string() }).openapi('Mensaje');
+const OkSchema = z.object({ ok: z.boolean() }).openapi('Ok');
 const RegistrationTokenSchema = z
   .object({ registrationToken: z.string() })
   .openapi('RegistrationTokenResponse');
@@ -110,4 +113,31 @@ openapiRegistry.registerPath({
   summary: 'Cierra la sesión (revoca el refresh)',
   request: { body: body(LogoutSchema) },
   responses: { 200: res('Sesión cerrada', MensajeSchema) },
+});
+
+openapiRegistry.registerPath({
+  method: 'post',
+  path: '/api/auth/password',
+  tags: ['Compartido'],
+  summary: 'Fija o cambia la contraseña del usuario autenticado. Política: mínimo 8 caracteres, con al menos una mayúscula, una minúscula y un número.',
+  security: [{ bearerAuth: [] }],
+  request: { body: body(SetPasswordSchema) },
+  responses: {
+    200: res('Contraseña actualizada', OkSchema),
+    400: err('La contraseña no cumple la política'),
+    401: err('No autenticado'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'post',
+  path: '/api/auth/login/password',
+  tags: ['Compartido'],
+  summary: 'Login con correo + contraseña',
+  request: { body: body(LoginPasswordSchema) },
+  responses: {
+    200: res('Sesión iniciada', SessionResponseSchema),
+    400: err('Datos inválidos'),
+    401: err('Correo o contraseña inválidos'),
+  },
 });

@@ -35,3 +35,18 @@ export const LoginVerifySchema = z.object({
 });
 export const RefreshSchema = z.object({ refreshToken: z.string() });
 export const LogoutSchema = z.object({ refreshToken: z.string() });
+
+const passwordPolitica = z
+  .string()
+  .min(8, 'La contraseña debe tener al menos 8 caracteres')
+  .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
+  .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
+  .regex(/[0-9]/, 'Debe incluir al menos un número');
+
+export const SetPasswordSchema = z.object({ password: passwordPolitica });
+
+export const LoginPasswordSchema = z.object({
+  correo,
+  password: z.string().min(1),
+  dispositivo: z.string().optional(),
+});

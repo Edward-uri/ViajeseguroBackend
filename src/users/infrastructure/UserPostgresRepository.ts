@@ -15,6 +15,7 @@ interface UsuarioRow {
   foto_perfil_url: string | null;
   foto_perfil_s3_key: string | null;
   fecha_registro: Date;
+  password_hash: string | null;
 }
 
 function mapUserRow(row: UsuarioRow | undefined): User | null {
@@ -31,6 +32,7 @@ function mapUserRow(row: UsuarioRow | undefined): User | null {
     .fotoPerfilUrl(row.foto_perfil_url)
     .fotoPerfilS3Key(row.foto_perfil_s3_key)
     .fechaRegistro(row.fecha_registro)
+    .tienePassword(row.password_hash != null)
     .build();
 }
 
@@ -108,6 +110,18 @@ export class UserPostgresRepository implements IUserRepository {
       if (!updated) throw new Error('No se pudo actualizar la foto de perfil');
       return { user: updated, previousS3Key };
     });
+  }
+
+  async setPasswordHash(idUsuario: number, passwordHash: string): Promise<void> {
+    await pool.query('UPDATE usuarios SET password_hash = $2 WHERE id_usuario = $1', [idUsuario, passwordHash]);
+  }
+
+  async passwordHashPorId(idUsuario: number): Promise<string | null> {
+    const { rows } = await pool.query<{ password_hash: string | null }>(
+      'SELECT password_hash FROM usuarios WHERE id_usuario = $1',
+      [idUsuario],
+    );
+    return rows[0]?.password_hash ?? null;
   }
 
   async softDeleteAndClearPhoto(idUsuario: number): Promise<{ previousS3Key: string | null }> {

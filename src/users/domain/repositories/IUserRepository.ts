@@ -15,4 +15,7 @@ export interface IUserRepository {
   }): Promise<{ user: User; previousS3Key: string | null }>;
 
   softDeleteAndClearPhoto(idUsuario: number): Promise<{ previousS3Key: string | null }>;
+
+  setPasswordHash(idUsuario: number, passwordHash: string): Promise<void>;
+  passwordHashPorId(idUsuario: number): Promise<string | null>;
 }

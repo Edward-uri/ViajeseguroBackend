@@ -11,6 +11,8 @@ import { startLogin } from '../application/startLogin.js';
 import { verifyLogin } from '../application/verifyLogin.js';
 import { refreshSession } from '../application/refreshSession.js';
 import { logout } from '../application/logout.js';
+import { setPassword } from '../application/setPassword.js';
+import { loginPassword } from '../application/loginPassword.js';
 
 const users = new UserPostgresRepository();
 const otp = new OtpPostgresRepository();
@@ -27,4 +29,6 @@ export const authUseCases = {
   verifyLogin: verifyLogin({ users, otp, sessions }),
   refreshSession: refreshSession({ users, sessions }),
   logout: logout({ sessions }),
+  setPassword: setPassword({ users }),
+  loginPassword: loginPassword({ users, sessions }),
 };

@@ -1,6 +1,7 @@
 import type { RequestHandler } from 'express';
 import { authUseCases } from '../dependencies.js';
 import * as S from '../schemas.js';
+import { UnauthorizedError } from '../../../core/errors.js';
 
 export const registerStart: RequestHandler = async (req, res, next) => {
   try {
@@ -44,5 +45,20 @@ export const logoutController: RequestHandler = async (req, res, next) => {
   try {
     await authUseCases.logout(S.LogoutSchema.parse(req.body));
     res.json({ message: 'Sesión cerrada' });
+  } catch (e) { next(e); }
+};
+
+export const setPasswordController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const { password } = S.SetPasswordSchema.parse(req.body);
+    await authUseCases.setPassword(req.user.sub, password);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
+export const loginPassword: RequestHandler = async (req, res, next) => {
+  try {
+    res.json(await authUseCases.loginPassword(S.LoginPasswordSchema.parse(req.body)));
   } catch (e) { next(e); }
 };

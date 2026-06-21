@@ -25,3 +25,12 @@ Plan: docs/superpowers/plans/2026-06-20-viajes-conductor.md
 - Task 2 (viajes conductor: pendientes + asignados): COMPLETO. Review aplicado (test 403 /asignados). 
 - Cierre Plan C: suite 22 archivos / 81 tests verde, typecheck limpio. Todo en working tree (sin commitear).
 - Deuda preexistente señalada (Plan A): ViajeSchema en openapi omite las fechas (fechaSolicitud, etc.) — afecta todos los endpoints de viajes.
+
+# Auth con contraseña (subagent-driven, sin commits)
+Plan: docs/superpowers/plans/2026-06-20-auth-password.md
+- Task 1 (migración 008 + tienePassword + POST /api/auth/password): COMPLETO. Review limpio (Spec ✅, calidad Aprobada). 4/4 tests verde, typecheck limpio. Sin commitear (working tree).
+  - Minor para el review final: M-2 los tests de política usan 'abc' (viola 3 reglas a la vez); podría cubrirse cada regla por separado.
+- Task 2 (POST /api/auth/login/password + passwordHashPorId): COMPLETO. Review limpio (Spec ✅, calidad Aprobada). 8/8 en el archivo, suite completa 89/89, typecheck limpio. Sin commitear (working tree).
+  - Minor para el review final: el tipo inline de `dispositivo` en loginPassword es `string | null | undefined` vs `string | undefined` del schema (cosmético, sin bug).
+- Review final (opus): sin Critical. Important I-1 (code del error de credenciales): CERRADO con opción A — CredencialesError ahora emite `code: 'CREDENCIALES'` (extiende AppError), mensaje 'Correo o contraseña inválidos', unificado OTP+password. Tests refuerzan `error.code`. Suite 89/89, typecheck limpio.
+- Estado: feature COMPLETA, en working tree (sin commitear; el usuario hace push+deploy). Requiere migración 008 en prod.

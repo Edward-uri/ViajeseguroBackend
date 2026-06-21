@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import * as c from '../controllers/authController.js';
+import { authMiddleware } from '../../../middleware/authMiddleware.js';
 
 export const authRoutes: Router = Router();
 
@@ -10,3 +11,5 @@ authRoutes.post('/login/start', c.loginStart);
 authRoutes.post('/login/verify', c.loginVerify);
 authRoutes.post('/refresh', c.refresh);
 authRoutes.post('/logout', c.logoutController);
+authRoutes.post('/password', authMiddleware, c.setPasswordController);
+authRoutes.post('/login/password', c.loginPassword);
