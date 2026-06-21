@@ -23,9 +23,15 @@ import { registrarUbicacion } from '../application/registrarUbicacion.js';
 import { conductorUseCases } from '../../conductores/infrastructure/dependencies.js';
 import { listarViajesPendientes } from '../application/listarViajesPendientes.js';
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
+import { ZonaAdminPostgresRepository } from './ZonaAdminPostgresRepository.js';
+import { listarZonasAdmin } from '../application/listarZonasAdmin.js';
+import { crearZona } from '../application/crearZona.js';
+import { actualizarZona } from '../application/actualizarZona.js';
+import { desactivarZona } from '../application/desactivarZona.js';
 
 const viajes = new ViajePostgresRepository();
 const zonas = new ZonaTarifaPostgresRepository();
+const zonasAdmin = new ZonaAdminPostgresRepository();
 const dispositivos = new DispositivoPostgresRepository();
 const haversine = new HaversineRouteEstimator();
 // Con OSRM_URL seteada se usa ruteo real (con Haversine de fallback); sin ella, solo Haversine.
@@ -50,4 +56,8 @@ export const viajeUseCases = {
   registrarUbicacion: registrarUbicacion({ viajes, notifier }),
   listarViajesPendientes: listarViajesPendientes({ viajes, municipioDelConductor: conductorUseCases.municipioOperativo }),
   listarViajesAsignados: listarViajesAsignados({ viajes }),
+  listarZonasAdmin: listarZonasAdmin({ zonasAdmin }),
+  crearZona: crearZona({ zonasAdmin }),
+  actualizarZona: actualizarZona({ zonasAdmin }),
+  desactivarZona: desactivarZona({ zonasAdmin }),
 };

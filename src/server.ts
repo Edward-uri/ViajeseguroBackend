@@ -13,6 +13,7 @@ import { municipioRoutes } from './municipios/infrastructure/routes/municipioRou
 import { flotillasRoutes } from './flotillas/infrastructure/routes/flotillasRoutes.js';
 import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVehiculosRoutes.js';
 import { viajesRoutes, tarifasRoutes, dispositivosRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
+import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
 
 export function buildApp(): Express {
   const app = express();
@@ -41,6 +42,7 @@ export function buildApp(): Express {
   app.use('/api/flotillas', flotillasRoutes);
   app.use('/api/admin', adminVehiculosRoutes);
   app.use('/api/municipios', tarifasRoutes);
+  app.use('/api/admin', zonasAdminRoutes);
   app.use('/api/viajes', viajesRoutes);
   app.use('/api/dispositivos', dispositivosRoutes);
 

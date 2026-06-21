@@ -34,3 +34,14 @@ Plan: docs/superpowers/plans/2026-06-20-auth-password.md
   - Minor para el review final: el tipo inline de `dispositivo` en loginPassword es `string | null | undefined` vs `string | undefined` del schema (cosmético, sin bug).
 - Review final (opus): sin Critical. Important I-1 (code del error de credenciales): CERRADO con opción A — CredencialesError ahora emite `code: 'CREDENCIALES'` (extiende AppError), mensaje 'Correo o contraseña inválidos', unificado OTP+password. Tests refuerzan `error.code`. Suite 89/89, typecheck limpio.
 - Estado: feature COMPLETA, en working tree (sin commitear; el usuario hace push+deploy). Requiere migración 008 en prod.
+
+# Admin de Tarifas (subagent-driven, sin commits)
+Plan: docs/superpowers/plans/2026-06-20-admin-tarifas-zonas.md
+- Task 1 (GET lista + POST crear zona+tarifa en transacción): COMPLETO. Review limpio (Spec ✅, calidad Aprobada). 8/8 tests, typecheck limpio. Sin migración nueva (reusa 006). Working tree.
+  - Minor (no bloqueante): #1 el 404 de municipio inexistente depende de la FK zonas.id_municipio (existe en 006, test pasa); #2 ActualizarZonaSchema se agregó en Task 1 por pedido del plan (se consume en Task 2).
+- Task 2 (PATCH editar + DELETE soft-delete): COMPLETO. Review: Spec ✅. 16/16 en el archivo, suite completa 105/105, typecheck limpio. Working tree.
+  - Hallazgos adjudicados (no bloqueantes): I-1 mapRow(rows[0]!) no alcanzable por la invariante zona+tarifa (guardarlo=YAGNI); I-2 desactivar con pool.query es un solo UPDATE atómico, plan-aligned, no defecto; I-3 re-lectura sin re-filtrar municipio es segura por el FOR UPDATE previo. Pasados al review final para triage.
+- Review final (opus): LISTO PARA MERGE. Sin Critical/Important. Concordó con I-1/I-2/I-3. Confirmó que uq_tarifa_zona_vigente no se viola (update en sitio).
+  - N-1 (decisión de producto, no bloqueante): no se puede poner el centro (lat/lng) de una zona a NULL una vez seteado. Recomendado aceptar para MVP (cercanía es futuro). Fix de 1 línea si se quisiera (schema nullable + propagar null).
+  - Minors: N-3 zona sin centro es invisible a zonaMasCercana (coherente); N-4 mensaje de error con comillas vacías (cosmético, no alcanzable); N-5 triple app.use('/api/admin') es deuda preexistente.
+- Estado: feature COMPLETA, en working tree (sin commitear). Sin migración nueva. Suite 105/105.

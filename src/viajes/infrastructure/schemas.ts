@@ -26,3 +26,33 @@ export const DispositivoSchema = z.object({
   tokenFcm: z.string().min(1).max(255),
   plataforma: z.enum(['android', 'ios']),
 });
+
+export const IdParamSchema = z.coerce.number().int().positive();
+
+const precioZona = z.number().finite().positive().max(999999.99);
+const latZona = z.number().finite().min(-90).max(90);
+const lngZona = z.number().finite().min(-180).max(180);
+
+export const CrearZonaSchema = z
+  .object({
+    nombre: z.string().trim().min(1).max(120),
+    precio: precioZona,
+    lat: latZona.optional(),
+    lng: lngZona.optional(),
+  })
+  .refine((v) => (v.lat == null) === (v.lng == null), {
+    message: 'lat y lng deben venir juntos o ninguno',
+  });
+
+export const ActualizarZonaSchema = z
+  .object({
+    nombre: z.string().trim().min(1).max(120).optional(),
+    precio: precioZona.optional(),
+    lat: latZona.optional(),
+    lng: lngZona.optional(),
+    activo: z.boolean().optional(),
+  })
+  .refine((v) => Object.keys(v).length > 0, { message: 'Nada que actualizar' })
+  .refine((v) => (v.lat == null) === (v.lng == null), {
+    message: 'lat y lng deben venir juntos o ninguno',
+  });

@@ -8,3 +8,10 @@ export class TransicionInvalidaError extends ConflictError {
 export class ViajeNoCompletadoError extends ConflictError { constructor() { super('El viaje no está completado'); } }
 export class MunicipioInvalidoError extends ValidationError { constructor() { super('El municipio no existe o no está activo'); } }
 export class ZonaInvalidaError extends ValidationError { constructor() { super('La zona no existe en ese municipio'); } }
+export class ZonaNoEncontradaError extends NotFoundError { constructor() { super('Zona'); } }
+export class MunicipioNoEncontradoError extends NotFoundError { constructor() { super('Municipio'); } }
+export class ZonaNombreDuplicadoError extends ConflictError {
+  constructor(nombre: string) {
+    super(`Ya existe una zona "${nombre}" en este municipio. Si está inactiva, reactívala.`);
+  }
+}

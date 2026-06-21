@@ -36,6 +36,43 @@ const ViajeSchema = z
 const TarifaZonaSchema = z.object({ idZona: z.number().int(), nombre: z.string(), precio: z.number() }).openapi('TarifaZona');
 const OkSchema = z.object({ ok: z.boolean() });
 
+const ZonaAdminSchema = z
+  .object({
+    idZona: z.number().int(),
+    nombre: z.string(),
+    precio: z.number(),
+    latCentro: z.number().nullable(),
+    lngCentro: z.number().nullable(),
+    activo: z.boolean(),
+  })
+  .openapi('ZonaAdmin');
+
+const CrearZonaBody = z
+  .object({
+    nombre: z.string().openapi({ example: 'Centro' }),
+    precio: z.number().openapi({ example: 25.5 }),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+  })
+  .openapi('CrearZona');
+
+const ParamsMunicipioZonas = z.object({ idMunicipio: z.string().openapi({ example: '1' }) });
+
+const ActualizarZonaBody = z
+  .object({
+    nombre: z.string().optional(),
+    precio: z.number().optional(),
+    lat: z.number().optional(),
+    lng: z.number().optional(),
+    activo: z.boolean().optional(),
+  })
+  .openapi('ActualizarZona');
+
+const ParamsMunicipioZona = z.object({
+  idMunicipio: z.string().openapi({ example: '1' }),
+  idZona: z.string().openapi({ example: '7' }),
+});
+
 openapiRegistry.registerPath({
   method: 'get', path: '/api/municipios/{id}/tarifas', tags: ['App Pasajero'],
   summary: 'Tarifario de zonas del municipio (precios fijos)',
@@ -115,4 +152,46 @@ openapiRegistry.registerPath({
   summary: 'Completa el viaje', security: [{ bearerAuth: [] }],
   request: { params: ParamsId },
   responses: { 200: ok('Viaje completado', ViajeSchema), 409: err('Transición inválida') },
+});
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/admin/municipios/{idMunicipio}/zonas', tags: ['Admin Tarifas'],
+  summary: 'Lista las zonas del municipio (activas e inactivas)', security: [{ bearerAuth: [] }],
+  request: { params: ParamsMunicipioZonas },
+  responses: {
+    200: ok('Zonas', z.object({ data: z.array(ZonaAdminSchema) })),
+    401: err('No autenticado'), 403: err('Rol no autorizado'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'post', path: '/api/admin/municipios/{idMunicipio}/zonas', tags: ['Admin Tarifas'],
+  summary: 'Crea una zona con su tarifa vigente', security: [{ bearerAuth: [] }],
+  request: { params: ParamsMunicipioZonas, body: json(CrearZonaBody) },
+  responses: {
+    201: ok('Zona creada', z.object({ data: ZonaAdminSchema })),
+    400: err('Datos inválidos'), 403: err('Rol no autorizado'),
+    404: err('Municipio inexistente'), 409: err('Nombre de zona duplicado'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'patch', path: '/api/admin/municipios/{idMunicipio}/zonas/{idZona}', tags: ['Admin Tarifas'],
+  summary: 'Edita nombre / precio / centro / activo de una zona', security: [{ bearerAuth: [] }],
+  request: { params: ParamsMunicipioZona, body: json(ActualizarZonaBody) },
+  responses: {
+    200: ok('Zona actualizada', z.object({ data: ZonaAdminSchema })),
+    400: err('Datos inválidos'), 403: err('Rol no autorizado'),
+    404: err('Zona inexistente'), 409: err('Nombre de zona duplicado'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'delete', path: '/api/admin/municipios/{idMunicipio}/zonas/{idZona}', tags: ['Admin Tarifas'],
+  summary: 'Desactiva (soft delete) una zona', security: [{ bearerAuth: [] }],
+  request: { params: ParamsMunicipioZona },
+  responses: {
+    204: { description: 'Zona desactivada' },
+    403: err('Rol no autorizado'), 404: err('Zona inexistente'),
+  },
 });

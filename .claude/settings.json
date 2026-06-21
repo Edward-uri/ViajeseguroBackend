@@ -17,7 +17,13 @@
       "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/auth/password.test.ts 2>&1 | Select-Object -Last 40)",
       "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/auth/password.test.ts 2>&1 | Select-Object -Last 30)",
       "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npm test 2>&1 | Select-Object -Last 30)",
-      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME = 'viajeseguro_test'; npm test 2>&1)"
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME = 'viajeseguro_test'; npm test 2>&1)",
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/tarifasAdmin.test.ts 2>&1 | Select-Object -Last 40)",
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/tarifasAdmin.test.ts 2>&1)",
+      "PowerShell(cd \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\"; $env:DB_NAME='viajeseguro_test'; npx vitest run tests/viajes/tarifasAdmin.test.ts 2>&1 | Select-Object -Last 30)",
+      "PowerShell(New-Item -ItemType Directory -Force \"c:\\\\Users\\\\eduar\\\\Desktop\\\\Universidad\\\\9VO CUATRI\\\\Integrador\\\\BackendViajeseguro\\\\.superpowers\\\\sdd\")",
+      "Bash(git -C \"c:/Users/eduar/Desktop/Universidad/9VO CUATRI/Integrador/BackendViajeseguro\" status --short)",
+      "Bash(git -C \"c:/Users/eduar/Desktop/Universidad/9VO CUATRI/Integrador/BackendViajeseguro\" log --oneline -6)"
     ]
   }
 }
