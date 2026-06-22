@@ -4,6 +4,13 @@ const correo = z.string().email().max(60);
 const telefono = z.string().min(10).max(15);
 const codigo = z.string().regex(/^\d{4}$/, 'El código debe tener 4 dígitos');
 
+export const passwordPolitica = z
+  .string()
+  .min(8, 'La contraseña debe tener al menos 8 caracteres')
+  .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
+  .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
+  .regex(/[0-9]/, 'Debe incluir al menos un número');
+
 export const RegisterStartSchema = z.object({
   correo,
   rol: z.enum(['pasajero', 'conductor', 'propietario']).optional(),
@@ -25,6 +32,7 @@ export const RegisterCompleteSchema = z.object({
   fechaNacimiento: z.string().optional(),
   idMunicipio: z.number().int().positive().optional(),
   dispositivo: z.string().optional(),
+  password: passwordPolitica.optional(),
 });
 
 export const LoginStartSchema = z.object({ correo });
@@ -35,13 +43,6 @@ export const LoginVerifySchema = z.object({
 });
 export const RefreshSchema = z.object({ refreshToken: z.string() });
 export const LogoutSchema = z.object({ refreshToken: z.string() });
-
-const passwordPolitica = z
-  .string()
-  .min(8, 'La contraseña debe tener al menos 8 caracteres')
-  .regex(/[A-Z]/, 'Debe incluir al menos una mayúscula')
-  .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
-  .regex(/[0-9]/, 'Debe incluir al menos un número');
 
 export const SetPasswordSchema = z.object({ password: passwordPolitica });
 

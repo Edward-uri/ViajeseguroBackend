@@ -45,3 +45,8 @@ Plan: docs/superpowers/plans/2026-06-20-admin-tarifas-zonas.md
   - N-1 (decisión de producto, no bloqueante): no se puede poner el centro (lat/lng) de una zona a NULL una vez seteado. Recomendado aceptar para MVP (cercanía es futuro). Fix de 1 línea si se quisiera (schema nullable + propagar null).
   - Minors: N-3 zona sin centro es invisible a zonaMasCercana (coherente); N-4 mensaje de error con comillas vacías (cosmético, no alcanzable); N-5 triple app.use('/api/admin') es deuda preexistente.
 - Estado: feature COMPLETA, en working tree (sin commitear). Sin migración nueva. Suite 105/105.
+
+# Contraseña opcional en el registro (subagent-driven, sin commits)
+Plan: docs/superpowers/plans/2026-06-20-password-en-registro.md
+- Task única (password? en register/complete, hash atómico en createUserWithPersona, reusa passwordPolitica+hashPassword): COMPLETO. Review limpio (Spec ✅, calidad Aprobada). 11/11 en password.test.ts, suite completa 108/108, typecheck limpio. Sin migración (reusa password_hash de 008). Working tree.
+  - Minors (no bloqueantes): password?: string|null vs string del schema (sigue la convención del resto de CompleteRegistrationInput); el test "con password" asienta accessToken pero no refreshToken.

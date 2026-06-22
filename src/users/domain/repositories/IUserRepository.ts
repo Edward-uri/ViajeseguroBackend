@@ -6,7 +6,11 @@ export interface IUserRepository {
   findByCorreo(correo: string): Promise<User | null>;
   findById(idUsuario: number): Promise<User | null>;
 
-  createUserWithPersona(args: { user: User; persona: Persona }): Promise<User>;
+  createUserWithPersona(args: {
+    user: User;
+    persona: Persona;
+    passwordHash?: string | null;
+  }): Promise<User>;
 
   updateProfilePhoto(args: {
     idUsuario: number;

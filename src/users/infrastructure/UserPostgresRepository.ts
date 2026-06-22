@@ -61,16 +61,18 @@ export class UserPostgresRepository implements IUserRepository {
     return mapUserRow(rows[0]);
   }
 
-  async createUserWithPersona({ user, persona }: { user: User; persona: Persona }): Promise<User> {
+  async createUserWithPersona(
+    { user, persona, passwordHash }: { user: User; persona: Persona; passwordHash?: string | null },
+  ): Promise<User> {
     return withTransaction(async (client) => {
       const { rows: uRows } = await client.query<UsuarioRow>(
         `INSERT INTO usuarios
-           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
         [
           user.telefono, user.correoElectronico, user.rol, user.estadoCuenta,
-          user.telefonoVerificado, user.correoVerificado, user.idMunicipio,
+          user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
         ],
       );
       const created = mapUserRow(uRows[0]);

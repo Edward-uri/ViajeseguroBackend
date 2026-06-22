@@ -5,6 +5,7 @@ import { verifyRegistrationToken } from '../../core/jwt.js';
 import { UserBuilder } from '../../users/domain/User.js';
 import { PersonaBuilder } from '../../users/domain/Persona.js';
 import { emitirTokens } from './sessionTokens.js';
+import { hashPassword } from '../domain/password.js';
 
 export interface CompleteRegistrationInput {
   registrationToken: string;
@@ -16,6 +17,7 @@ export interface CompleteRegistrationInput {
   fechaNacimiento?: string | null;
   idMunicipio?: number | null;
   dispositivo?: string | null;
+  password?: string | null;
 }
 
 export function completeRegistration(deps: { users: IUserRepository; sessions: ISessionRepository }) {
@@ -37,7 +39,8 @@ export function completeRegistration(deps: { users: IUserRepository; sessions: I
       .fechaNacimiento(input.fechaNacimiento ?? null)
       .build();
 
-    const creado = await deps.users.createUserWithPersona({ user, persona });
+    const passwordHash = input.password ? await hashPassword(input.password) : null;
+    const creado = await deps.users.createUserWithPersona({ user, persona, passwordHash });
     const tokens = await emitirTokens(deps.sessions, creado.idUsuario!, creado.rol, input.dispositivo ?? null);
     return { ...tokens, user: creado.toPublicJSON() };
   };
