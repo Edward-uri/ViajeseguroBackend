@@ -1,4 +1,4 @@
-import { NotFoundError, ForbiddenError, ConflictError, ValidationError } from '../../core/errors.js';
+import { NotFoundError, ForbiddenError, ConflictError, ValidationError, AppError } from '../../core/errors.js';
 
 export class ViajeNoEncontradoError extends NotFoundError { constructor() { super('Viaje'); } }
 export class NoEsTuViajeError extends ForbiddenError { constructor() { super('No tienes acceso a este viaje'); } }
@@ -14,4 +14,10 @@ export class ZonaNombreDuplicadoError extends ConflictError {
   constructor(nombre: string) {
     super(`Ya existe una zona "${nombre}" en este municipio. Si está inactiva, reactívala.`);
   }
+}
+export class VehiculoNoEncontradoError extends AppError {
+  constructor() { super('Vehículo no encontrado', 404, 'VEHICULO_NO_ENCONTRADO'); }
+}
+export class VehiculoNoAutorizadoError extends AppError {
+  constructor() { super('No puedes aceptar viajes con este vehículo', 403, 'VEHICULO_NO_AUTORIZADO'); }
 }

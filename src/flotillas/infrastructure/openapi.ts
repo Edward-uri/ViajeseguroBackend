@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { openapiRegistry, ErrorResponseSchema } from '../../docs/openapiRegistry.js';
-import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, RevisarDocumentoVehiculoSchema } from './schemas.js';
+import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, RevisarDocumentoVehiculoSchema, AsignarConductorSchema } from './schemas.js';
 
 const DocItemSchema = z
   .object({
@@ -55,7 +55,7 @@ openapiRegistry.registerPath({
 openapiRegistry.registerPath({
   method: 'get', path: '/api/flotillas/vehiculos', tags: ['Web Flotillas'],
   summary: 'Lista mis vehículos', security: [{ bearerAuth: [] }],
-  responses: { 200: { description: 'Vehículos del propietario', content: { 'application/json': { schema: z.object({ data: z.array(VehiculoDetalleSchema.partial()) }) } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
+  responses: { 200: { description: 'Vehículos del propietario', content: { 'application/json': { schema: z.object({ data: z.array(VehiculoDetalleSchema.partial().extend({ origen: z.enum(['propio', 'asignado']).optional() })) }) } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
 });
 openapiRegistry.registerPath({
   method: 'get', path: '/api/flotillas/vehiculos/{id}', tags: ['Web Flotillas'],
@@ -89,6 +89,25 @@ openapiRegistry.registerPath({
   summary: 'Descarga un documento de un vehículo propio', security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().openapi({ example: '7' }), idDoc: z.string().openapi({ example: '12' }) }) },
   responses: { 200: archivoRes, 403: err('No es tu vehículo'), 404: err('No encontrado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'post', path: '/api/flotillas/vehiculos/{id}/conductores', tags: ['Web Flotillas'],
+  summary: 'Asigna un conductor a un vehículo propio', security: [{ bearerAuth: [] }],
+  request: { params: ParamsId, body: { content: { 'application/json': { schema: AsignarConductorSchema } } } },
+  responses: { 201: { description: 'Asignado', content: { 'application/json': { schema: z.object({ ok: z.boolean() }) } } }, 400: err('Datos inválidos'), 403: err('No es tu vehículo'), 404: err('Vehículo o conductor no encontrado') },
+});
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/flotillas/vehiculos/{id}/conductores', tags: ['Web Flotillas'],
+  summary: 'Lista los conductores activos asignados al vehículo', security: [{ bearerAuth: [] }],
+  request: { params: ParamsId },
+  responses: { 200: { description: 'IDs de conductores', content: { 'application/json': { schema: z.object({ data: z.array(z.number().int()) }) } } }, 403: err('No es tu vehículo'), 404: err('No encontrado') },
+});
+openapiRegistry.registerPath({
+  method: 'delete', path: '/api/flotillas/vehiculos/{id}/conductores/{idConductor}', tags: ['Web Flotillas'],
+  summary: 'Revoca la asignación de un conductor', security: [{ bearerAuth: [] }],
+  request: { params: z.object({ id: z.string().openapi({ example: '7' }), idConductor: z.string().openapi({ example: '12' }) }) },
+  responses: { 204: { description: 'Revocado' }, 403: err('No es tu vehículo'), 404: err('No encontrado') },
 });
 
 // ---- Web Admin ----

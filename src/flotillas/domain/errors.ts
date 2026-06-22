@@ -1,5 +1,9 @@
 import { NotFoundError, ForbiddenError, ValidationError } from '../../core/errors.js';
 
+export class ConductorNoEncontradoError extends NotFoundError {
+  constructor() { super('Conductor'); }
+}
+
 export class VehiculoNoEncontradoError extends NotFoundError {
   constructor() { super('Vehículo'); }
 }

@@ -19,3 +19,5 @@ conductorRoutes.post('/documentos/foto-vehiculo', upload, c.subirDocumento('foto
 
 conductorRoutes.get('/onboarding', c.getOnboardingController);
 conductorRoutes.get('/documentos/:id/archivo', c.getMiArchivoController);
+conductorRoutes.get('/stats', c.getStatsController);
+conductorRoutes.get('/ganancias', c.getGananciasController);

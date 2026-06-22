@@ -141,6 +141,13 @@ openapiRegistry.registerPath({
 });
 
 openapiRegistry.registerPath({
+  method: 'post', path: '/api/viajes/{id}/rechazar', tags: ['App Conductor'],
+  summary: 'Rechaza un viaje (lo oculta de mis pendientes; sigue disponible para otros)', security: [{ bearerAuth: [] }],
+  request: { params: ParamsId },
+  responses: { 204: { description: 'Viaje rechazado' }, 401: err('No autenticado'), 403: err('Rol no autorizado'), 404: err('Viaje no encontrado') },
+});
+
+openapiRegistry.registerPath({
   method: 'post', path: '/api/viajes/{id}/iniciar', tags: ['App Conductor'],
   summary: 'Inicia el viaje (en curso)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId },

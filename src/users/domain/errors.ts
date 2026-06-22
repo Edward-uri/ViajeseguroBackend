@@ -1,4 +1,4 @@
-import { ConflictError, NotFoundError, UnauthorizedError } from '../../core/errors.js';
+import { AppError, ConflictError, NotFoundError, UnauthorizedError } from '../../core/errors.js';
 
 export class UserAlreadyExistsError extends ConflictError {
   public readonly field: string;
@@ -23,5 +23,11 @@ export class InvalidCredentialsError extends UnauthorizedError {
 export class AccountNotActiveError extends UnauthorizedError {
   constructor() {
     super('La cuenta no esta activa');
+  }
+}
+
+export class TelefonoDuplicadoError extends AppError {
+  constructor() {
+    super('El teléfono ya está en uso', 409, 'TELEFONO_DUPLICADO');
   }
 }

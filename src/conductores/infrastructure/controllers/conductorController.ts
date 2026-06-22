@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { conductorUseCases } from '../dependencies.js';
-import { LicenciaSchema, DisponibilidadSchema } from '../schemas.js';
+import { LicenciaSchema, DisponibilidadSchema, GananciasQuerySchema } from '../schemas.js';
 import type { TipoDocumento } from '../../domain/tipos.js';
 import { ArchivoRequeridoError } from '../../domain/errors.js';
 import { UnauthorizedError } from '../../../core/errors.js';
@@ -71,5 +71,20 @@ export const getDisponibilidadController: RequestHandler = async (req, res, next
   try {
     if (!req.user) throw new UnauthorizedError();
     res.json(await conductorUseCases.getDisponibilidad(req.user.sub));
+  } catch (e) { next(e); }
+};
+
+export const getStatsController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    res.json(await conductorUseCases.getStats(req.user.sub));
+  } catch (e) { next(e); }
+};
+
+export const getGananciasController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const q = GananciasQuerySchema.parse(req.query);
+    res.json(await conductorUseCases.getGanancias(req.user.sub, q));
   } catch (e) { next(e); }
 };

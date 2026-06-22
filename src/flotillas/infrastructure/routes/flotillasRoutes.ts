@@ -17,6 +17,10 @@ flotillasRoutes.get('/vehiculos', c.listarVehiculosController);
 flotillasRoutes.get('/vehiculos/:id', c.getVehiculoController);
 flotillasRoutes.patch('/vehiculos/:id', c.editarVehiculoController);
 
+flotillasRoutes.post('/vehiculos/:id/conductores', c.asignarConductorController);
+flotillasRoutes.get('/vehiculos/:id/conductores', c.listarConductoresAsignadosController);
+flotillasRoutes.delete('/vehiculos/:id/conductores/:idConductor', c.revocarConductorController);
+
 const upload = subirArchivo.single('archivo');
 flotillasRoutes.post('/vehiculos/:id/documentos/tarjeta-circulacion', upload, c.subirDocumentoVehiculo('tarjeta_circulacion'));
 flotillasRoutes.post('/vehiculos/:id/documentos/foto-vehiculo', upload, c.subirDocumentoVehiculo('foto_vehiculo'));

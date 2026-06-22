@@ -23,6 +23,8 @@ import { registrarUbicacion } from '../application/registrarUbicacion.js';
 import { conductorUseCases } from '../../conductores/infrastructure/dependencies.js';
 import { listarViajesPendientes } from '../application/listarViajesPendientes.js';
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
+import { rechazarViaje } from '../application/rechazarViaje.js';
+import { asignaciones, vehiculos as flotillaVehiculos } from '../../flotillas/infrastructure/dependencies.js';
 import { ZonaAdminPostgresRepository } from './ZonaAdminPostgresRepository.js';
 import { listarZonasAdmin } from '../application/listarZonasAdmin.js';
 import { crearZona } from '../application/crearZona.js';
@@ -42,13 +44,19 @@ export const socketNotifier = new SocketEventoViajeNotifier();
 const notifier = socketNotifier;
 const push = pickPushSender(env.FCM_SERVICE_ACCOUNT, dispositivos);
 
+const autorizacionVehiculo = {
+  existeVehiculo: async (idVehiculo: number) => (await flotillaVehiculos.findById(idVehiculo)) != null,
+  conductorAutorizado: (idConductor: number, idVehiculo: number) =>
+    asignaciones.conductorAutorizado(idConductor, idVehiculo),
+};
+
 export const viajeUseCases = {
   getTarifario: getTarifario({ zonas }),
   crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier }),
   getViaje: getViaje({ viajes }),
   listarMisViajes: listarMisViajes({ viajes }),
   cancelarViaje: cancelarViaje({ viajes, notifier }),
-  aceptarViaje: aceptarViaje({ viajes, notifier, push }),
+  aceptarViaje: aceptarViaje({ viajes, notifier, push, autorizacion: autorizacionVehiculo }),
   iniciarViaje: iniciarViaje({ viajes, notifier }),
   completarViaje: completarViaje({ viajes, notifier }),
   evaluarViaje: evaluarViaje({ viajes }),
@@ -56,6 +64,7 @@ export const viajeUseCases = {
   registrarUbicacion: registrarUbicacion({ viajes, notifier }),
   listarViajesPendientes: listarViajesPendientes({ viajes, municipioDelConductor: conductorUseCases.municipioOperativo }),
   listarViajesAsignados: listarViajesAsignados({ viajes }),
+  rechazarViaje: rechazarViaje({ viajes }),
   listarZonasAdmin: listarZonasAdmin({ zonasAdmin }),
   crearZona: crearZona({ zonasAdmin }),
   actualizarZona: actualizarZona({ zonasAdmin }),

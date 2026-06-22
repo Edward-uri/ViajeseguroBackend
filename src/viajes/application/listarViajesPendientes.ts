@@ -8,7 +8,7 @@ export function listarViajesPendientes(deps: {
   return async (idConductor: number): Promise<PublicViaje[]> => {
     const municipio = await deps.municipioDelConductor(idConductor);
     if (municipio == null) return [];
-    const viajes = await deps.viajes.listarPendientesPorMunicipio(municipio);
+    const viajes = await deps.viajes.listarPendientesPorMunicipio(municipio, idConductor);
     return viajes.map((v) => v.toJSON());
   };
 }

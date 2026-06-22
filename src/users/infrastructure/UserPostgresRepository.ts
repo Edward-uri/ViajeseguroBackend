@@ -2,6 +2,7 @@ import { pool, withTransaction } from '../../core/db.js';
 import { User, UserBuilder, type EstadoCuenta, type RolUsuario } from '../domain/User.js';
 import type { Persona } from '../domain/Persona.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
+import { TelefonoDuplicadoError } from '../domain/errors.js';
 
 interface UsuarioRow {
   id_usuario: string | number;
@@ -16,6 +17,7 @@ interface UsuarioRow {
   foto_perfil_s3_key: string | null;
   fecha_registro: Date;
   password_hash: string | null;
+  es_propietario?: boolean;
 }
 
 function mapUserRow(row: UsuarioRow | undefined): User | null {
@@ -33,6 +35,7 @@ function mapUserRow(row: UsuarioRow | undefined): User | null {
     .fotoPerfilS3Key(row.foto_perfil_s3_key)
     .fechaRegistro(row.fecha_registro)
     .tienePassword(row.password_hash != null)
+    .esPropietario(row.es_propietario === true)
     .build();
 }
 
@@ -55,7 +58,11 @@ export class UserPostgresRepository implements IUserRepository {
 
   async findById(idUsuario: number): Promise<User | null> {
     const { rows } = await pool.query<UsuarioRow>(
-      'SELECT * FROM usuarios WHERE id_usuario = $1 LIMIT 1',
+      `SELECT u.*,
+              EXISTS (SELECT 1 FROM vehiculos v WHERE v.id_propietario = u.id_usuario) AS es_propietario
+         FROM usuarios u
+        WHERE u.id_usuario = $1
+        LIMIT 1`,
       [idUsuario],
     );
     return mapUserRow(rows[0]);
@@ -143,5 +150,52 @@ export class UserPostgresRepository implements IUserRepository {
       );
       return { previousS3Key };
     });
+  }
+
+  async actualizarPerfil(
+    idUsuario: number,
+    campos: {
+      nombre?: string;
+      apellidoPaterno?: string;
+      apellidoMaterno?: string | null;
+      idSexo?: number | null;
+      fechaNacimiento?: string | null;
+      telefono?: string;
+    },
+  ): Promise<User> {
+    try {
+      return await withTransaction(async (client) => {
+        await client.query(
+          `UPDATE personas SET
+             nombre           = COALESCE($2, nombre),
+             apellido_paterno = COALESCE($3, apellido_paterno),
+             apellido_materno = COALESCE($4, apellido_materno),
+             id_sexo          = COALESCE($5, id_sexo),
+             fecha_nacimiento = COALESCE($6, fecha_nacimiento)
+           WHERE id_persona = $1`,
+          [
+            idUsuario,
+            campos.nombre ?? null,
+            campos.apellidoPaterno ?? null,
+            campos.apellidoMaterno ?? null,
+            campos.idSexo ?? null,
+            campos.fechaNacimiento ?? null,
+          ],
+        );
+        if (campos.telefono !== undefined) {
+          await client.query(
+            'UPDATE usuarios SET telefono = $2 WHERE id_usuario = $1',
+            [idUsuario, campos.telefono],
+          );
+        }
+        return idUsuario;
+      }).then((id) => this.findById(id)).then((u) => {
+        if (!u) throw new Error('Usuario no encontrado tras actualizar');
+        return u;
+      });
+    } catch (err) {
+      if ((err as { code?: string }).code === '23505') throw new TelefonoDuplicadoError();
+      throw err;
+    }
   }
 }

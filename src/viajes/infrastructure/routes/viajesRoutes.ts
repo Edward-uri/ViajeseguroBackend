@@ -26,3 +26,4 @@ viajesRoutes.post('/:id/evaluacion', c.evaluarViajeController);
 viajesRoutes.post('/:id/aceptar', requireRole('conductor'), c.aceptarViajeController);
 viajesRoutes.post('/:id/iniciar', requireRole('conductor'), c.iniciarViajeController);
 viajesRoutes.post('/:id/completar', requireRole('conductor'), c.completarViajeController);
+viajesRoutes.post('/:id/rechazar', requireRole('conductor'), c.rechazarViajeController);

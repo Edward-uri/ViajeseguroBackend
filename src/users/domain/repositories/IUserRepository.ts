@@ -22,4 +22,16 @@ export interface IUserRepository {
 
   setPasswordHash(idUsuario: number, passwordHash: string): Promise<void>;
   passwordHashPorId(idUsuario: number): Promise<string | null>;
+
+  actualizarPerfil(
+    idUsuario: number,
+    campos: {
+      nombre?: string;
+      apellidoPaterno?: string;
+      apellidoMaterno?: string | null;
+      idSexo?: number | null;
+      fechaNacimiento?: string | null;
+      telefono?: string;
+    },
+  ): Promise<User>;
 }

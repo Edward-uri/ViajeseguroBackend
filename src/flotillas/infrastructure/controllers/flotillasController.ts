@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { flotillaUseCases } from '../dependencies.js';
-import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema } from '../schemas.js';
+import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, AsignarConductorSchema } from '../schemas.js';
 import type { TipoDocumentoVehiculo } from '../../domain/tipos.js';
 import { ArchivoRequeridoError } from '../../domain/errors.js';
 import { UnauthorizedError } from '../../../core/errors.js';
@@ -87,6 +87,34 @@ export function subirDocumentoVehiculo(tipo: TipoDocumentoVehiculo): RequestHand
     } catch (e) { next(e); }
   };
 }
+
+export const asignarConductorController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const idVehiculo = Number(req.params.id);
+    const dto = AsignarConductorSchema.parse(req.body);
+    await flotillaUseCases.asignarConductor({ idVehiculo, idPropietario: req.user.sub, idConductor: dto.idConductor });
+    res.status(201).json({ ok: true });
+  } catch (e) { next(e); }
+};
+
+export const revocarConductorController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const idVehiculo = Number(req.params.id);
+    const idConductor = Number(req.params.idConductor);
+    await flotillaUseCases.revocarConductor({ idVehiculo, idPropietario: req.user.sub, idConductor });
+    res.status(204).send();
+  } catch (e) { next(e); }
+};
+
+export const listarConductoresAsignadosController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const idVehiculo = Number(req.params.id);
+    res.json({ data: await flotillaUseCases.listarConductoresAsignados({ idVehiculo, idPropietario: req.user.sub }) });
+  } catch (e) { next(e); }
+};
 
 export const getMiArchivoVehiculoController: RequestHandler = async (req, res, next) => {
   try {

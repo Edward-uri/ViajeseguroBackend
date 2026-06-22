@@ -1,5 +1,6 @@
 import type { IVehiculoRepository } from '../domain/repositories/IVehiculoRepository.js';
 import type { IDocumentoVehiculoRepository } from '../domain/repositories/IDocumentoVehiculoRepository.js';
+import type { IAsignacionRepository } from '../domain/repositories/IAsignacionRepository.js';
 import { calcularEstadoVerificacion, type EstadoVerificacion } from '../domain/tipos.js';
 
 export interface VehiculoResumen {
@@ -10,16 +11,30 @@ export interface VehiculoResumen {
   anio: number | null;
   idMunicipio: number;
   estadoVerificacion: EstadoVerificacion;
+  origen: 'propio' | 'asignado';
 }
 
 export function listarVehiculos(deps: {
   vehiculos: IVehiculoRepository;
   documentos: IDocumentoVehiculoRepository;
+  asignaciones: IAsignacionRepository;
 }) {
   return async ({ idPropietario }: { idPropietario: number }): Promise<VehiculoResumen[]> => {
-    const vehiculos = await deps.vehiculos.listarPorPropietario(idPropietario);
+    const propios = await deps.vehiculos.listarPorPropietario(idPropietario);
+    const propiosIds = new Set(propios.map((v) => v.idVehiculo));
+
+    const asignadosIds = await deps.asignaciones.vehiculosAsignados(idPropietario);
+    const asignados = (
+      await Promise.all(asignadosIds.filter((id) => !propiosIds.has(id)).map((id) => deps.vehiculos.findById(id)))
+    ).filter((v): v is NonNullable<typeof v> => v != null);
+
+    const filas: Array<{ v: typeof propios[number]; origen: 'propio' | 'asignado' }> = [
+      ...propios.map((v) => ({ v, origen: 'propio' as const })),
+      ...asignados.map((v) => ({ v, origen: 'asignado' as const })),
+    ];
+
     return Promise.all(
-      vehiculos.map(async (v) => {
+      filas.map(async ({ v, origen }) => {
         const docs = await deps.documentos.listarPorVehiculo(v.idVehiculo);
         const estado = calcularEstadoVerificacion(new Map(docs.map((d) => [d.tipo, d.estado])));
         return {
@@ -30,6 +45,7 @@ export function listarVehiculos(deps: {
           anio: v.anio,
           idMunicipio: v.idMunicipio,
           estadoVerificacion: estado,
+          origen,
         };
       }),
     );

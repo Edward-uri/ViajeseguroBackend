@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { openapiRegistry, ErrorResponseSchema } from '../../docs/openapiRegistry.js';
-import { LicenciaSchema, RevisarDocumentoSchema, DisponibilidadSchema } from './schemas.js';
+import { LicenciaSchema, RevisarDocumentoSchema, DisponibilidadSchema, GananciasQuerySchema } from './schemas.js';
 
 const DocItemSchema = z
   .object({
@@ -88,6 +88,45 @@ openapiRegistry.registerPath({
   method: 'get', path: '/api/conductor/disponibilidad', tags: ['App Conductor'],
   summary: 'Estado de disponibilidad del conductor', security: [{ bearerAuth: [] }],
   responses: { 200: { description: 'Disponibilidad', content: { 'application/json': { schema: DisponibilidadResSchema } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
+});
+
+const StatsSchema = z.object({
+  viajesHoy: z.number(),
+  gananciasHoy: z.number(),
+  viajesTotal: z.number(),
+  calificacionPromedio: z.number().nullable(),
+}).openapi('ConductorStats');
+
+const GananciaViajeSchema = z.object({
+  idViaje: z.number(),
+  fechaFin: z.string(),
+  tarifa: z.number(),
+  origenTexto: z.string().nullable(),
+  destinoTexto: z.string().nullable(),
+}).openapi('GananciaViaje');
+
+const GananciasSchema = z.object({
+  desde: z.string(),
+  hasta: z.string(),
+  totalGanancias: z.number(),
+  totalViajes: z.number(),
+  horasEnLinea: z.number(),
+  viajes: z.array(GananciaViajeSchema),
+}).openapi('ConductorGanancias');
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/conductor/stats', tags: ['App Conductor'],
+  summary: 'Resumen del conductor (viajes/ganancias de hoy, total, calificación)',
+  security: [{ bearerAuth: [] }],
+  responses: { 200: { description: 'Stats', content: { 'application/json': { schema: StatsSchema } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/conductor/ganancias', tags: ['App Conductor'],
+  summary: 'Ganancias por rango (default hoy) + horas en línea',
+  security: [{ bearerAuth: [] }],
+  request: { query: GananciasQuerySchema },
+  responses: { 200: { description: 'Ganancias', content: { 'application/json': { schema: GananciasSchema } } }, 400: err('Rango inválido'), 401: err('No autenticado'), 403: err('Rol no autorizado') },
 });
 
 // ---- Web Admin ----

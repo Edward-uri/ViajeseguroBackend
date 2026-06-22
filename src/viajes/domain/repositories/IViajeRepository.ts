@@ -36,6 +36,7 @@ export interface IViajeRepository {
     calificacion: number;
     comentario: string | null;
   }): Promise<void>;
-  listarPendientesPorMunicipio(idMunicipio: number): Promise<Viaje[]>;
+  listarPendientesPorMunicipio(idMunicipio: number, idConductor: number): Promise<Viaje[]>;
+  rechazar(idViaje: number, idConductor: number): Promise<void>;
   listarPorConductor(idConductor: number): Promise<Viaje[]>;
 }

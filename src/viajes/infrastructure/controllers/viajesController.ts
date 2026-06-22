@@ -91,3 +91,11 @@ export const listarAsignadosController: RequestHandler = async (req, res, next) 
     res.json({ data: await viajeUseCases.listarViajesAsignados(req.user.sub) });
   } catch (e) { next(e); }
 };
+
+export const rechazarViajeController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    await viajeUseCases.rechazarViaje(Number(req.params.id), req.user.sub);
+    res.status(204).end();
+  } catch (e) { next(e); }
+};

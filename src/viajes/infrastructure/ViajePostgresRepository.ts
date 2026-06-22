@@ -135,12 +135,27 @@ export class ViajePostgresRepository implements IViajeRepository {
     );
   }
 
-  async listarPendientesPorMunicipio(idMunicipio: number): Promise<Viaje[]> {
+  async listarPendientesPorMunicipio(idMunicipio: number, idConductor: number): Promise<Viaje[]> {
     const { rows } = await pool.query<ViajeRow>(
-      "SELECT * FROM viajes WHERE estado='solicitado' AND id_municipio=$1 ORDER BY fecha_solicitud ASC, id_viaje ASC",
-      [idMunicipio],
+      `SELECT v.* FROM viajes v
+        WHERE v.estado='solicitado' AND v.id_municipio=$1
+          AND NOT EXISTS (
+            SELECT 1 FROM viaje_rechazos r
+             WHERE r.id_viaje = v.id_viaje AND r.id_conductor = $2
+          )
+        ORDER BY v.fecha_solicitud ASC, v.id_viaje ASC`,
+      [idMunicipio, idConductor],
     );
     return rows.map((r) => mapViaje(r)!);
+  }
+
+  async rechazar(idViaje: number, idConductor: number): Promise<void> {
+    await pool.query(
+      `INSERT INTO viaje_rechazos (id_viaje, id_conductor)
+       VALUES ($1, $2)
+       ON CONFLICT (id_viaje, id_conductor) DO NOTHING`,
+      [idViaje, idConductor],
+    );
   }
 
   async listarPorConductor(idConductor: number): Promise<Viaje[]> {

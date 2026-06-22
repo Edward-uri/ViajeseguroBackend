@@ -12,6 +12,7 @@ export interface PublicUser {
   idMunicipio: number | null;
   fotoPerfilUrl: string | null;
   fechaRegistro: Date | null;
+  esPropietario: boolean;
 }
 
 export class User {
@@ -28,6 +29,7 @@ export class User {
     public fotoPerfilS3Key: string | null,
     public fechaRegistro: Date | null,
     public tienePassword: boolean = false,
+    public esPropietario: boolean = false,
   ) {}
 
   toPublicJSON(): PublicUser {
@@ -42,6 +44,7 @@ export class User {
       idMunicipio: this.idMunicipio,
       fotoPerfilUrl: this.fotoPerfilUrl,
       fechaRegistro: this.fechaRegistro,
+      esPropietario: this.esPropietario,
     };
   }
 }
@@ -59,6 +62,7 @@ export class UserBuilder {
   private _fotoKey: string | null = null;
   private _fechaRegistro: Date | null = null;
   private _tienePassword = false;
+  private _esPropietario = false;
 
   idUsuario(v: number | null): this { this._id = v; return this; }
   telefono(v: string | null): this { this._telefono = v; return this; }
@@ -72,12 +76,13 @@ export class UserBuilder {
   fotoPerfilS3Key(v: string | null): this { this._fotoKey = v; return this; }
   fechaRegistro(v: Date | null): this { this._fechaRegistro = v; return this; }
   tienePassword(v: boolean): this { this._tienePassword = v; return this; }
+  esPropietario(v: boolean): this { this._esPropietario = v; return this; }
 
   build(): User {
     if (!this._correo) throw new Error('User.correoElectronico es requerido');
     return new User(
       this._id, this._telefono, this._correo, this._rol, this._estado,
-      this._telVerif, this._correoVerif, this._idMunicipio, this._fotoUrl, this._fotoKey, this._fechaRegistro, this._tienePassword,
+      this._telVerif, this._correoVerif, this._idMunicipio, this._fotoUrl, this._fotoKey, this._fechaRegistro, this._tienePassword, this._esPropietario,
     );
   }
 }

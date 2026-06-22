@@ -26,6 +26,7 @@ export const PublicUserSchema = z
     idMunicipio: z.number().int().nullable().openapi({ example: 1 }),
     fotoPerfilUrl: z.string().url().nullable(),
     fechaRegistro: z.string().datetime().nullable(),
+    esPropietario: z.boolean().openapi({ example: false }),
   })
   .openapi('PublicUser');
 
