@@ -1,9 +1,9 @@
-import type { Coordenada } from '../domain/tipos.js';
+import type { Coordenada, RutaGeoJSON } from '../domain/tipos.js';
 import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
 
 interface OsrmResponse {
   code: string;
-  routes?: { distance: number; duration: number }[];
+  routes?: { distance: number; duration: number; geometry?: RutaGeoJSON }[];
 }
 
 /**
@@ -18,9 +18,9 @@ export class OsrmRouteEstimator implements IRouteEstimator {
     private readonly timeoutMs = 2000,
   ) {}
 
-  async estimar(o: Coordenada, d: Coordenada): Promise<{ distanciaKm: number; duracionMin: number }> {
+  async estimar(o: Coordenada, d: Coordenada): Promise<{ distanciaKm: number; duracionMin: number; geometria: RutaGeoJSON | null }> {
     // OSRM usa orden lng,lat (no lat,lng).
-    const url = `${this.baseUrl}/route/v1/driving/${o.lng},${o.lat};${d.lng},${d.lat}?overview=false`;
+    const url = `${this.baseUrl}/route/v1/driving/${o.lng},${o.lat};${d.lng},${d.lat}?overview=full&geometries=geojson`;
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);
     try {
@@ -32,6 +32,7 @@ export class OsrmRouteEstimator implements IRouteEstimator {
       return {
         distanciaKm: Math.round((ruta.distance / 1000) * 100) / 100,
         duracionMin: Math.round(ruta.duration / 60),
+        geometria: ruta.geometry ?? null,
       };
     } catch {
       return this.fallback.estimar(o, d);

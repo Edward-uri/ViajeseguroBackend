@@ -15,6 +15,7 @@ export const viajesRoutes: Router = Router();
 viajesRoutes.use(authMiddleware);
 
 viajesRoutes.post('/', c.crearViajeController);
+viajesRoutes.post('/estimar', c.estimarViajeController);
 viajesRoutes.get('/mios', c.listarMisViajesController);
 viajesRoutes.get('/pendientes', requireRole('conductor'), c.listarPendientesController);
 viajesRoutes.get('/asignados', requireRole('conductor'), c.listarAsignadosController);

@@ -24,6 +24,7 @@ import { conductorUseCases } from '../../conductores/infrastructure/dependencies
 import { listarViajesPendientes } from '../application/listarViajesPendientes.js';
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
 import { rechazarViaje } from '../application/rechazarViaje.js';
+import { estimarViaje } from '../application/estimarViaje.js';
 import { asignaciones, vehiculos as flotillaVehiculos } from '../../flotillas/infrastructure/dependencies.js';
 import { ZonaAdminPostgresRepository } from './ZonaAdminPostgresRepository.js';
 import { listarZonasAdmin } from '../application/listarZonasAdmin.js';
@@ -52,7 +53,8 @@ const autorizacionVehiculo = {
 
 export const viajeUseCases = {
   getTarifario: getTarifario({ zonas }),
-  crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier }),
+  crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier, rutas }),
+  estimarViaje: estimarViaje({ tarifas, municipios: municipioRepository, rutas }),
   getViaje: getViaje({ viajes }),
   listarMisViajes: listarMisViajes({ viajes }),
   cancelarViaje: cancelarViaje({ viajes, notifier }),

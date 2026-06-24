@@ -18,10 +18,18 @@ export const crearViajeController: RequestHandler = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+export const estimarViajeController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const dto = S.CrearViajeSchema.parse(req.body);
+    res.json(await viajeUseCases.estimarViaje(dto));
+  } catch (e) { next(e); }
+};
+
 export const getViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
-    res.json(await viajeUseCases.getViaje(Number(req.params.id), req.user.sub));
+    res.json(await viajeUseCases.getViaje(S.IdParamSchema.parse(req.params.id), req.user.sub));
   } catch (e) { next(e); }
 };
 
@@ -36,7 +44,7 @@ export const cancelarViajeController: RequestHandler = async (req, res, next) =>
   try {
     if (!req.user) throw new UnauthorizedError();
     const dto = S.CancelarViajeSchema.parse(req.body);
-    res.json(await viajeUseCases.cancelarViaje(Number(req.params.id), req.user.sub, dto.motivo ?? null));
+    res.json(await viajeUseCases.cancelarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub, dto.motivo ?? null));
   } catch (e) { next(e); }
 };
 
@@ -44,21 +52,21 @@ export const aceptarViajeController: RequestHandler = async (req, res, next) => 
   try {
     if (!req.user) throw new UnauthorizedError();
     const dto = S.AceptarViajeSchema.parse(req.body);
-    res.json(await viajeUseCases.aceptarViaje(Number(req.params.id), req.user.sub, dto.idVehiculo));
+    res.json(await viajeUseCases.aceptarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub, dto.idVehiculo));
   } catch (e) { next(e); }
 };
 
 export const iniciarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
-    res.json(await viajeUseCases.iniciarViaje(Number(req.params.id), req.user.sub));
+    res.json(await viajeUseCases.iniciarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub));
   } catch (e) { next(e); }
 };
 
 export const completarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
-    res.json(await viajeUseCases.completarViaje(Number(req.params.id), req.user.sub));
+    res.json(await viajeUseCases.completarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub));
   } catch (e) { next(e); }
 };
 
@@ -66,7 +74,7 @@ export const evaluarViajeController: RequestHandler = async (req, res, next) => 
   try {
     if (!req.user) throw new UnauthorizedError();
     const dto = S.EvaluacionSchema.parse(req.body);
-    res.json(await viajeUseCases.evaluarViaje(Number(req.params.id), req.user.sub, dto));
+    res.json(await viajeUseCases.evaluarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub, dto));
   } catch (e) { next(e); }
 };
 
@@ -95,7 +103,7 @@ export const listarAsignadosController: RequestHandler = async (req, res, next) 
 export const rechazarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
-    await viajeUseCases.rechazarViaje(Number(req.params.id), req.user.sub);
+    await viajeUseCases.rechazarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub);
     res.status(204).end();
   } catch (e) { next(e); }
 };

@@ -35,6 +35,9 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().email().default('noreply@codigoverse.space'),
   EMAIL_FROM_NAME: z.string().min(1).default('Jala'),
   BREVO_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
+  ADMIN_PANEL_URL: z.string().url().default('http://localhost:5173'),
+  BREVO_INVITE_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
+  INVITE_TTL_DAYS: z.coerce.number().int().positive().default(7),
 
   SOCKET_CORS_ORIGIN: z.string().default('*'),
   FCM_SERVICE_ACCOUNT: z.string().min(1).optional(),

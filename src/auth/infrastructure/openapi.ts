@@ -14,6 +14,8 @@ import {
   LogoutSchema,
   SetPasswordSchema,
   LoginPasswordSchema,
+  CrearInvitacionSchema,
+  AceptarInvitacionSchema,
 } from './schemas.js';
 
 const MensajeSchema = z.object({ message: z.string() }).openapi('Mensaje');
@@ -139,5 +141,80 @@ openapiRegistry.registerPath({
     200: res('Sesión iniciada', SessionResponseSchema),
     400: err('Datos inválidos'),
     401: err('Correo o contraseña inválidos'),
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Invitaciones de administradores
+// ---------------------------------------------------------------------------
+
+const InvitacionCreadaSchema = z.object({
+  idInvitacion: z.number().int(),
+  correo: z.string().email(),
+  estado: z.string(),
+  expiraEn: z.string().datetime(),
+}).openapi('InvitacionCreada');
+
+const InvitacionesListaSchema = z.object({
+  data: z.array(z.object({
+    idInvitacion: z.number().int(),
+    correo: z.string().email(),
+    estado: z.string(),
+    expiraEn: z.string().datetime(),
+    invitadoPor: z.number().int(),
+    createdAt: z.string().datetime(),
+  })),
+}).openapi('InvitacionesLista');
+
+openapiRegistry.registerPath({
+  method: 'post',
+  path: '/api/admin/invitaciones',
+  tags: ['Admin'],
+  summary: 'Invita a un nuevo admin por correo (crea/reenvía + email)',
+  security: [{ bearerAuth: [] }],
+  request: { body: body(CrearInvitacionSchema) },
+  responses: {
+    201: res('Invitación creada', InvitacionCreadaSchema),
+    403: err('Sin rol admin'),
+    409: err('El correo ya está registrado'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'get',
+  path: '/api/admin/invitaciones',
+  tags: ['Admin'],
+  summary: 'Lista las invitaciones de admin',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    200: res('Lista de invitaciones', InvitacionesListaSchema),
+    403: err('Sin rol admin'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'delete',
+  path: '/api/admin/invitaciones/{id}',
+  tags: ['Admin'],
+  summary: 'Revoca una invitación pendiente',
+  security: [{ bearerAuth: [] }],
+  responses: {
+    204: { description: 'Revocada' },
+    403: err('Sin rol admin'),
+    404: err('No encontrada'),
+    409: err('Ya aceptada'),
+  },
+});
+
+openapiRegistry.registerPath({
+  method: 'post',
+  path: '/api/auth/invitaciones/aceptar',
+  tags: ['Admin'],
+  summary: 'Acepta la invitación: fija contraseña, crea el admin y abre sesión',
+  request: { body: body(AceptarInvitacionSchema) },
+  responses: {
+    200: res('Admin creado + sesión', SessionResponseSchema),
+    400: err('Token inválido/vencido/revocado o password débil'),
+    409: err('El correo ya fue tomado'),
   },
 });

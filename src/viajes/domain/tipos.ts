@@ -1,3 +1,8 @@
+export interface RutaGeoJSON {
+  type: 'LineString';
+  coordinates: [number, number][]; // [lng, lat] (orden GeoJSON/OSRM)
+}
+
 export type EstadoViaje = 'solicitado' | 'aceptado' | 'en_curso' | 'completado' | 'cancelado';
 export type TipoServicio = 'viaje' | 'envio';
 export type CanceladoPor = 'pasajero' | 'conductor' | 'sistema';

@@ -1,8 +1,10 @@
 import { pool, withTransaction } from '../../core/db.js';
+import type { PoolClient } from 'pg';
 import { User, UserBuilder, type EstadoCuenta, type RolUsuario } from '../domain/User.js';
 import type { Persona } from '../domain/Persona.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 import { TelefonoDuplicadoError } from '../domain/errors.js';
+import { CorreoYaRegistradoError } from '../../auth/domain/errors.js';
 
 interface UsuarioRow {
   id_usuario: string | number;
@@ -66,6 +68,28 @@ export class UserPostgresRepository implements IUserRepository {
       [idUsuario],
     );
     return mapUserRow(rows[0]);
+  }
+
+  async createAdmin(
+    { correo, passwordHash }: { correo: string; passwordHash: string },
+    client?: PoolClient,
+  ): Promise<User> {
+    const exec = client ?? pool;
+    try {
+      const { rows } = await exec.query<UsuarioRow>(
+        `INSERT INTO usuarios
+           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES (NULL, $1, 'admin', 'activo', false, true, NULL, $2)
+         RETURNING *`,
+        [correo, passwordHash],
+      );
+      const created = mapUserRow(rows[0]);
+      if (!created) throw new Error('No se pudo crear el admin');
+      return created;
+    } catch (err) {
+      if ((err as { code?: string }).code === '23505') throw new CorreoYaRegistradoError();
+      throw err;
+    }
   }
 
   async createUserWithPersona(

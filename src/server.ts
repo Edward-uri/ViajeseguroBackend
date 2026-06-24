@@ -14,6 +14,7 @@ import { flotillasRoutes } from './flotillas/infrastructure/routes/flotillasRout
 import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVehiculosRoutes.js';
 import { viajesRoutes, tarifasRoutes, dispositivosRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
 import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
+import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
 
 export function buildApp(): Express {
   const app = express();
@@ -43,6 +44,7 @@ export function buildApp(): Express {
   app.use('/api/admin', adminVehiculosRoutes);
   app.use('/api/municipios', tarifasRoutes);
   app.use('/api/admin', zonasAdminRoutes);
+  app.use('/api/admin', adminInvitacionesRoutes);
   app.use('/api/viajes', viajesRoutes);
   app.use('/api/dispositivos', dispositivosRoutes);
 

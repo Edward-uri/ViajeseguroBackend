@@ -2,6 +2,10 @@ import type { User } from '../User.js';
 import type { Persona } from '../Persona.js';
 
 export interface IUserRepository {
+  createAdmin(
+    args: { correo: string; passwordHash: string },
+    client?: import('pg').PoolClient,
+  ): Promise<User>;
   findByTelefono(telefono: string): Promise<User | null>;
   findByCorreo(correo: string): Promise<User | null>;
   findById(idUsuario: number): Promise<User | null>;

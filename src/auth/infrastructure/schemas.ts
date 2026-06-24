@@ -51,3 +51,10 @@ export const LoginPasswordSchema = z.object({
   password: z.string().min(1),
   dispositivo: z.string().optional(),
 });
+
+export const CrearInvitacionSchema = z.object({ correo });
+export const AceptarInvitacionSchema = z.object({
+  token: z.string().min(1),
+  password: passwordPolitica,
+  dispositivo: z.string().optional(),
+});

@@ -1,33 +1,37 @@
-import type { IViajeRepository } from '../domain/repositories/IViajeRepository.js';
 import type { ITarifaCalculator } from '../domain/ports/ITarifaCalculator.js';
-import type { IEventoViajeNotifier } from '../domain/ports/IEventoViajeNotifier.js';
-import type { IMunicipioRepository } from '../../municipios/domain/repositories/IMunicipioRepository.js';
 import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
-import type { PublicViaje } from '../domain/Viaje.js';
+import type { IMunicipioRepository } from '../../municipios/domain/repositories/IMunicipioRepository.js';
+import type { RutaGeoJSON } from '../domain/tipos.js';
 import { MunicipioInvalidoError } from '../domain/errors.js';
 
-export interface CrearViajeDTO {
-  idPasajero: number;
+export interface EstimarViajeDTO {
   idMunicipio: number;
   origen: { lat: number; lng: number; texto?: string | null };
   destino: { lat: number; lng: number; texto?: string | null };
   idZonaDestino?: number;
 }
 
-export function crearViaje(deps: {
-  viajes: IViajeRepository;
+export interface EstimacionViaje {
+  distanciaKm: number;
+  duracionMin: number;
+  tarifa: number;
+  tarifaEstimada: boolean;
+  idZonaDestino: number | null;
+  ruta: RutaGeoJSON | null;
+}
+
+export function estimarViaje(deps: {
   tarifas: ITarifaCalculator;
   municipios: IMunicipioRepository;
-  notifier: IEventoViajeNotifier;
   rutas: IRouteEstimator;
 }) {
-  return async (input: CrearViajeDTO): Promise<PublicViaje> => {
+  return async (input: EstimarViajeDTO): Promise<EstimacionViaje> => {
     if (!(await deps.municipios.existeActivo(input.idMunicipio))) throw new MunicipioInvalidoError();
 
     const origen = { lat: input.origen.lat, lng: input.origen.lng };
     const destino = { lat: input.destino.lat, lng: input.destino.lng };
 
-    const { distanciaKm } = await deps.rutas.estimar(origen, destino);
+    const r = await deps.rutas.estimar(origen, destino);
     const t = await deps.tarifas.calcular({
       idMunicipio: input.idMunicipio,
       idZonaDestino: input.idZonaDestino,
@@ -35,17 +39,13 @@ export function crearViaje(deps: {
       destino,
     });
 
-    const viaje = await deps.viajes.crear({
-      idPasajero: input.idPasajero,
-      idMunicipio: input.idMunicipio,
-      origen: input.origen,
-      destino: input.destino,
-      idZonaDestino: t.idZonaDestino,
-      distanciaKm,
+    return {
+      distanciaKm: r.distanciaKm,
+      duracionMin: r.duracionMin,
       tarifa: t.tarifa,
       tarifaEstimada: t.estimada,
-    });
-    await deps.notifier.viajeSolicitado(viaje.toJSON());
-    return viaje.toJSON();
+      idZonaDestino: t.idZonaDestino,
+      ruta: r.geometria,
+    };
   };
 }

@@ -36,6 +36,24 @@ const ViajeSchema = z
 const TarifaZonaSchema = z.object({ idZona: z.number().int(), nombre: z.string(), precio: z.number() }).openapi('TarifaZona');
 const OkSchema = z.object({ ok: z.boolean() });
 
+const RutaGeoJSONSchema = z
+  .object({
+    type: z.literal('LineString'),
+    coordinates: z.array(z.tuple([z.number(), z.number()])),
+  })
+  .openapi('RutaGeoJSON');
+
+const EstimacionSchema = z
+  .object({
+    distanciaKm: z.number(),
+    duracionMin: z.number(),
+    tarifa: z.number(),
+    tarifaEstimada: z.boolean(),
+    idZonaDestino: z.number().int().nullable(),
+    ruta: RutaGeoJSONSchema.nullable(),
+  })
+  .openapi('EstimacionViaje');
+
 const ZonaAdminSchema = z
   .object({
     idZona: z.number().int(),
@@ -85,6 +103,18 @@ openapiRegistry.registerPath({
   summary: 'Pide un viaje (tarifa fija por zona destino)', security: [{ bearerAuth: [] }],
   request: { body: json(CrearViajeSchema) },
   responses: { 201: ok('Viaje creado', ViajeSchema), 400: err('Municipio inválido'), 401: err('No autenticado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'post', path: '/api/viajes/estimar', tags: ['App Pasajero'],
+  summary: 'Estima distancia, duración, tarifa firme y ruta GeoJSON antes de pedir el viaje',
+  security: [{ bearerAuth: [] }],
+  request: { body: json(CrearViajeSchema) },
+  responses: {
+    200: ok('Estimación', EstimacionSchema),
+    400: err('Municipio inválido / datos inválidos'),
+    401: err('No autenticado'),
+  },
 });
 
 openapiRegistry.registerPath({
