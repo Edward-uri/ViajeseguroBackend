@@ -16,10 +16,13 @@ export function aceptarViaje(deps: {
   notifier: IEventoViajeNotifier;
   push: IPushSender;
   autorizacion: IAutorizacionVehiculo;
+  municipioDelConductor: (idConductor: number) => Promise<number | null>;
 }) {
   return async (idViaje: number, idConductor: number, idVehiculo: number): Promise<PublicViaje> => {
     const viaje = await deps.viajes.porId(idViaje);
     if (!viaje) throw new ViajeNoEncontradoError();
+    const municipioConductor = await deps.municipioDelConductor(idConductor);
+    if (municipioConductor == null || viaje.data.idMunicipio !== municipioConductor) throw new ViajeNoEncontradoError();
     if (!puedeTransicionar(viaje.estado, 'aceptado')) throw new TransicionInvalidaError(viaje.estado, 'aceptado');
 
     if (!(await deps.autorizacion.existeVehiculo(idVehiculo))) throw new VehiculoNoEncontradoError();

@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const correo = z.string().email().max(60);
 const telefono = z.string().min(10).max(15);
-const codigo = z.string().regex(/^\d{4}$/, 'El código debe tener 4 dígitos');
+const codigo = z.string().regex(/^\d{6}$/, 'El código debe tener 6 dígitos');
 
 export const passwordPolitica = z
   .string()

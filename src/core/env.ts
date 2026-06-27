@@ -45,6 +45,21 @@ const envSchema = z.object({
   /** URL de OSRM self-hosted (red interna, ej. http://osrm:5000). Vacío = solo Haversine. */
   OSRM_URL: z.string().url().optional(),
 
+  /** URL de Redis para el rate-limiting (ej. redis://redis:6379). Sin ella: rate-limit en memoria. */
+  REDIS_URL: z.string().url().optional(),
+
+  // Rate-limiting (ventanas en minutos, max = nº de peticiones por ventana)
+  RL_GLOBAL_WINDOW_MIN: z.coerce.number().positive().default(15),
+  RL_GLOBAL_MAX: z.coerce.number().int().positive().default(100),
+  RL_OTP_SEND_BURST_WINDOW_MIN: z.coerce.number().positive().default(1),
+  RL_OTP_SEND_BURST_MAX: z.coerce.number().int().positive().default(1),
+  RL_OTP_SEND_HOURLY_WINDOW_MIN: z.coerce.number().positive().default(60),
+  RL_OTP_SEND_HOURLY_MAX: z.coerce.number().int().positive().default(5),
+  RL_OTP_VERIFY_WINDOW_MIN: z.coerce.number().positive().default(10),
+  RL_OTP_VERIFY_MAX: z.coerce.number().int().positive().default(10),
+  RL_PASSWORD_WINDOW_MIN: z.coerce.number().positive().default(15),
+  RL_PASSWORD_MAX: z.coerce.number().int().positive().default(10),
+
   /** Llave AES-256 (32 bytes en base64) para cifrar PII. Sin ella la app no arranca fuera de test. */
   CIPHER_KEY: z.string().min(1).optional(),
   /** Llave HMAC (32 bytes en base64) para el blind index. Debe ser distinta de CIPHER_KEY. */

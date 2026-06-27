@@ -15,9 +15,11 @@ import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVeh
 import { viajesRoutes, tarifasRoutes, dispositivosRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
 import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
 import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
+import { authGlobal } from './auth/infrastructure/rateLimiters.js';
 
 export function buildApp(): Express {
   const app = express();
+  app.set('trust proxy', 1);
 
   app.use(
     helmet({
@@ -35,7 +37,7 @@ export function buildApp(): Express {
   app.use('/api/docs', swaggerServe, swaggerSetup());
   app.get('/api/docs.json', openapiJsonHandler);
 
-  app.use('/api/auth', authRoutes);
+  app.use('/api/auth', authGlobal, authRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/municipios', municipioRoutes);
   app.use('/api/conductor', conductorRoutes);

@@ -1,12 +1,11 @@
 import bcrypt from 'bcryptjs';
+import { randomInt } from 'node:crypto';
 import { env } from '../../core/env.js';
 
-const DIGITS = 4;
+const DIGITS = 6;
 
 export function generarCodigo(): string {
-  let n = 0;
-  for (let i = 0; i < DIGITS; i++) n = n * 10 + Math.floor(Math.random() * 10);
-  return String(n).padStart(DIGITS, '0');
+  return String(randomInt(0, 10 ** DIGITS)).padStart(DIGITS, '0');
 }
 
 export const hashCodigo = (codigo: string): Promise<string> => bcrypt.hash(codigo, env.BCRYPT_ROUNDS);

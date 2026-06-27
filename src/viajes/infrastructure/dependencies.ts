@@ -58,7 +58,7 @@ export const viajeUseCases = {
   getViaje: getViaje({ viajes }),
   listarMisViajes: listarMisViajes({ viajes }),
   cancelarViaje: cancelarViaje({ viajes, notifier }),
-  aceptarViaje: aceptarViaje({ viajes, notifier, push, autorizacion: autorizacionVehiculo }),
+  aceptarViaje: aceptarViaje({ viajes, notifier, push, autorizacion: autorizacionVehiculo, municipioDelConductor: conductorUseCases.municipioOperativo }),
   iniciarViaje: iniciarViaje({ viajes, notifier }),
   completarViaje: completarViaje({ viajes, notifier }),
   evaluarViaje: evaluarViaje({ viajes }),
