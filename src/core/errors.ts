@@ -41,3 +41,15 @@ export class ForbiddenError extends AppError {
     super(message, 403, 'FORBIDDEN');
   }
 }
+
+export class CipherConfigError extends AppError {
+  constructor(message: string) {
+    super(message, 500, 'CIPHER_CONFIG');
+  }
+}
+
+export class CipherError extends AppError {
+  constructor(message: string) {
+    super(message, 500, 'CIPHER_ERROR');
+  }
+}

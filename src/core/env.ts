@@ -44,6 +44,11 @@ const envSchema = z.object({
 
   /** URL de OSRM self-hosted (red interna, ej. http://osrm:5000). Vacío = solo Haversine. */
   OSRM_URL: z.string().url().optional(),
+
+  /** Llave AES-256 (32 bytes en base64) para cifrar PII. Sin ella la app no arranca fuera de test. */
+  CIPHER_KEY: z.string().min(1).optional(),
+  /** Llave HMAC (32 bytes en base64) para el blind index. Debe ser distinta de CIPHER_KEY. */
+  CIPHER_INDEX_KEY: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);
