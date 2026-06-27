@@ -6,9 +6,14 @@ import { env } from '../../core/env.js';
 import { redis } from '../../infrastructure/redis.js';
 
 function storePorDefecto(): Store | undefined {
-  if (!redis) return undefined; // MemoryStore interno de express-rate-limit
+  if (!redis) return undefined; 
   const client = redis;
-  return new RedisStore({ prefix: 'rl:', sendCommand: (...args: string[]) => (client.call as (...a: string[]) => Promise<any>)(...args) });
+  try {
+    return new RedisStore({ prefix: 'rl:', sendCommand: (...args: string[]) => (client.call as (...a: string[]) => Promise<any>)(...args) });
+  } catch (err) {
+    console.warn('[rate-limit] RedisStore no disponible al arrancar, usando memoria:', err);
+    return undefined;
+  }
 }
 
 export function crearLimiter(opts: {
