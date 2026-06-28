@@ -5,7 +5,7 @@ export function renderPaginaEliminarCuenta(supportEmail: string): string {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Eliminar tu cuenta — ViajeSeguro</title>
+  <title>Eliminar tu cuenta — Jala</title>
   <style>
     :root { color-scheme: light; }
     * { box-sizing: border-box; }
@@ -47,13 +47,13 @@ export function renderPaginaEliminarCuenta(supportEmail: string): string {
   <div class="wrap">
     <header>
       <h1>Eliminar tu cuenta</h1>
-      <p>ViajeSeguro</p>
+      <p>Jala</p>
     </header>
 
     <section class="card">
       <h2>Cómo eliminar tu cuenta desde la app</h2>
       <ol>
-        <li>Abre la app de <strong>ViajeSeguro</strong>.</li>
+        <li>Abre la app de <strong>Jala</strong>.</li>
         <li>Entra a <strong>Perfil</strong> (o Ajustes).</li>
         <li>Toca <strong>Eliminar cuenta</strong>.</li>
         <li>Confirma la acción.</li>
@@ -91,7 +91,7 @@ export function renderPaginaEliminarCuenta(supportEmail: string): string {
     </section>
 
     <footer>
-      ViajeSeguro · Contacto: <a href="mailto:${supportEmail}">${supportEmail}</a>
+      Jala · Contacto: <a href="mailto:${supportEmail}">${supportEmail}</a>
     </footer>
   </div>
 </body>
