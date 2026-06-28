@@ -39,6 +39,9 @@ const envSchema = z.object({
   BREVO_INVITE_TEMPLATE_ID: z.coerce.number().int().positive().optional(),
   INVITE_TTL_DAYS: z.coerce.number().int().positive().default(7),
 
+  /** Correo de soporte mostrado en la página pública /eliminar-cuenta (requisito de Google Play). */
+  SUPPORT_EMAIL: z.string().email().default('soporte@codigoverse.space'),
+
   SOCKET_CORS_ORIGIN: z.string().default('*'),
   FCM_SERVICE_ACCOUNT: z.string().min(1).optional(),
 

@@ -16,6 +16,7 @@ import { viajesRoutes, tarifasRoutes, dispositivosRoutes } from './viajes/infras
 import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
 import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
 import { authGlobal } from './auth/infrastructure/rateLimiters.js';
+import { eliminarCuentaController } from './legal/infrastructure/eliminarCuentaController.js';
 
 export function buildApp(): Express {
   const app = express();
@@ -33,6 +34,8 @@ export function buildApp(): Express {
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok', env: env.NODE_ENV });
   });
+
+  app.get('/eliminar-cuenta', eliminarCuentaController);
 
   app.use('/api/docs', swaggerServe, swaggerSetup());
   app.get('/api/docs.json', openapiJsonHandler);
