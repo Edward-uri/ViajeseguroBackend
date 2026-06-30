@@ -24,11 +24,7 @@ const envSchema = z.object({
 
   BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(15).default(10),
 
-  AWS_REGION: z.string().min(1).default('us-east-1'),
-  AWS_S3_BUCKET: z.string().min(1),
-  /** Si se setea (ej. CDN/CloudFront), se usa como base de la URL publica. Si no, se construye `https://{bucket}.s3.{region}.amazonaws.com`. */
-  AWS_S3_PUBLIC_BASE_URL: z.string().url().optional(),
-  /** Carpeta donde LocalDocumentStorage guarda los documentos. En prod = punto de montaje del volumen de Coolify (ej. /app/uploads). Default: <cwd>/uploads. */
+  /** Carpeta donde LocalDocumentStorage guarda documentos y fotos de perfil. En prod = punto de montaje del volumen de Coolify (ej. /app/uploads). Default: <cwd>/uploads. */
   UPLOADS_DIR: z.string().min(1).optional(),
 
   BREVO_API_KEY: z.string().min(1).optional(),

@@ -8,3 +8,12 @@ export const subirArchivo = multer({
     cb(null, Boolean(MIME_PERMITIDOS[file.mimetype]));
   },
 });
+
+/** Solo imágenes (foto de perfil): jpeg / png / webp. */
+export const subirImagen = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_BYTES },
+  fileFilter: (_req, file, cb) => {
+    cb(null, file.mimetype.startsWith('image/') && Boolean(MIME_PERMITIDOS[file.mimetype]));
+  },
+});

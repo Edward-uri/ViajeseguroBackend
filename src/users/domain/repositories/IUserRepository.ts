@@ -16,13 +16,13 @@ export interface IUserRepository {
     passwordHash?: string | null;
   }): Promise<User>;
 
+  /** Guarda la key de la foto en el volumen y devuelve la key anterior (para borrarla). */
   updateProfilePhoto(args: {
     idUsuario: number;
-    fotoPerfilUrl: string;
-    fotoPerfilS3Key: string;
-  }): Promise<{ user: User; previousS3Key: string | null }>;
+    key: string;
+  }): Promise<{ user: User; previousKey: string | null }>;
 
-  softDeleteAndClearPhoto(idUsuario: number): Promise<{ previousS3Key: string | null }>;
+  softDeleteAndClearPhoto(idUsuario: number): Promise<{ previousKey: string | null }>;
 
   setPasswordHash(idUsuario: number, passwordHash: string): Promise<void>;
   passwordHashPorId(idUsuario: number): Promise<string | null>;

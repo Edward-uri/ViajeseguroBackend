@@ -1,19 +1,21 @@
-import { deleteObject } from '../../infrastructure/s3.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
-
+import type { IDocumentStorage } from '../../core/storage.js';
 
 export class DeleteAccount_UseCase {
-  constructor(private readonly userRepository: IUserRepository) {}
+  constructor(
+    private readonly userRepository: IUserRepository,
+    private readonly storage: IDocumentStorage,
+  ) {}
 
   async execute(idUsuario: number): Promise<void> {
-    const { previousS3Key } = await this.userRepository.softDeleteAndClearPhoto(idUsuario);
+    const { previousKey } = await this.userRepository.softDeleteAndClearPhoto(idUsuario);
 
-    if (previousS3Key) {
+    if (previousKey) {
       try {
-        await deleteObject(previousS3Key);
+        await this.storage.borrar(previousKey);
       } catch (err) {
-        console.error('[WARN] No se pudo borrar la foto del usuario eliminado en S3', {
-          previousS3Key,
+        console.error('[WARN] No se pudo borrar la foto del usuario eliminado del volumen', {
+          previousKey,
           err,
         });
       }

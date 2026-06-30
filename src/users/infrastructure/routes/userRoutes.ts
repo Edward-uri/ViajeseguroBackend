@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../../middleware/authMiddleware.js';
+import { subirImagen } from '../../../infrastructure/storage/multerConfig.js';
 import { getMeController } from '../controllers/getMeController.js';
-import { presignProfilePhotoController } from '../controllers/presignProfilePhotoController.js';
-import { confirmProfilePhotoController } from '../controllers/confirmProfilePhotoController.js';
+import { uploadProfilePhotoController } from '../controllers/uploadProfilePhotoController.js';
+import { getProfilePhotoController } from '../controllers/getProfilePhotoController.js';
 import { deleteAccountController } from '../controllers/deleteAccountController.js';
 import { editarPerfilController } from '../controllers/editarPerfilController.js';
 
@@ -10,6 +11,6 @@ export const userRoutes: Router = Router();
 
 userRoutes.get('/me', authMiddleware, getMeController);
 userRoutes.put('/me', authMiddleware, editarPerfilController);
-userRoutes.post('/me/photo/presign', authMiddleware, presignProfilePhotoController);
-userRoutes.put('/me/photo/confirm', authMiddleware, confirmProfilePhotoController);
+userRoutes.put('/me/photo', authMiddleware, subirImagen.single('foto'), uploadProfilePhotoController);
+userRoutes.get('/:id/photo', authMiddleware, getProfilePhotoController);
 userRoutes.delete('/me', authMiddleware, deleteAccountController);

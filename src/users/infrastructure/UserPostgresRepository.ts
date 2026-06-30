@@ -122,26 +122,25 @@ export class UserPostgresRepository implements IUserRepository {
     });
   }
 
-  async updateProfilePhoto({
-    idUsuario, fotoPerfilUrl, fotoPerfilS3Key,
-  }: { idUsuario: number; fotoPerfilUrl: string; fotoPerfilS3Key: string }):
-    Promise<{ user: User; previousS3Key: string | null }> {
+  // foto_perfil_s3_key ahora guarda la key del volumen local (legado el nombre de la columna).
+  async updateProfilePhoto({ idUsuario, key }: { idUsuario: number; key: string }):
+    Promise<{ user: User; previousKey: string | null }> {
     return withTransaction(async (client) => {
       const { rows: prev } = await client.query<{ foto_perfil_s3_key: string | null }>(
         'SELECT foto_perfil_s3_key FROM usuarios WHERE id_usuario = $1 FOR UPDATE',
         [idUsuario],
       );
       if (prev.length === 0) throw new Error('Usuario no encontrado');
-      const previousS3Key = prev[0]!.foto_perfil_s3_key;
+      const previousKey = prev[0]!.foto_perfil_s3_key;
 
       const { rows } = await client.query<UsuarioRow>(
-        `UPDATE usuarios SET foto_perfil_url = $2, foto_perfil_s3_key = $3
+        `UPDATE usuarios SET foto_perfil_url = NULL, foto_perfil_s3_key = $2
           WHERE id_usuario = $1 RETURNING *`,
-        [idUsuario, fotoPerfilUrl, fotoPerfilS3Key],
+        [idUsuario, key],
       );
       const updated = mapUserRow(rows[0]);
       if (!updated) throw new Error('No se pudo actualizar la foto de perfil');
-      return { user: updated, previousS3Key };
+      return { user: updated, previousKey };
     });
   }
 
@@ -157,14 +156,14 @@ export class UserPostgresRepository implements IUserRepository {
     return rows[0]?.password_hash ?? null;
   }
 
-  async softDeleteAndClearPhoto(idUsuario: number): Promise<{ previousS3Key: string | null }> {
+  async softDeleteAndClearPhoto(idUsuario: number): Promise<{ previousKey: string | null }> {
     return withTransaction(async (client) => {
       const { rows: prev } = await client.query<{ foto_perfil_s3_key: string | null }>(
         'SELECT foto_perfil_s3_key FROM usuarios WHERE id_usuario = $1 FOR UPDATE',
         [idUsuario],
       );
       if (prev.length === 0) throw new Error('Usuario no encontrado');
-      const previousS3Key = prev[0]!.foto_perfil_s3_key;
+      const previousKey = prev[0]!.foto_perfil_s3_key;
 
       await client.query(
         `UPDATE usuarios
@@ -172,7 +171,7 @@ export class UserPostgresRepository implements IUserRepository {
           WHERE id_usuario = $1`,
         [idUsuario],
       );
-      return { previousS3Key };
+      return { previousKey };
     });
   }
 

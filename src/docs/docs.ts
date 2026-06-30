@@ -13,8 +13,8 @@ import '../municipios/infrastructure/openapi.js';
 import '../flotillas/infrastructure/openapi.js';
 import '../viajes/infrastructure/openapi.js';
 import '../users/infrastructure/controllers/getMeController.js';
-import '../users/infrastructure/controllers/presignProfilePhotoController.js';
-import '../users/infrastructure/controllers/confirmProfilePhotoController.js';
+import '../users/infrastructure/controllers/uploadProfilePhotoController.js';
+import '../users/infrastructure/controllers/getProfilePhotoController.js';
 import '../users/infrastructure/controllers/deleteAccountController.js';
 
 openapiRegistry.registerPath({
