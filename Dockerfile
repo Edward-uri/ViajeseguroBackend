@@ -2,17 +2,19 @@
 # ---- Stage 1: build TypeScript ----
 FROM node:22-alpine AS builder
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 COPY tsconfig.json ./
 COPY src ./src
-RUN npm run build
+RUN pnpm run build
 
 # ---- Stage 2: solo deps de produccion ----
 FROM node:22-alpine AS prod-deps
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm install --omit=dev
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile --prod
 
 # ---- Stage 3: runtime liviano ----
 FROM node:22-alpine AS runtime

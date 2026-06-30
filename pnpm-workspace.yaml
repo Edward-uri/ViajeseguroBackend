@@ -1,0 +1,8 @@
+# pnpm no ejecuta scripts de build de dependencias por defecto (seguridad).
+# Aqui se aprueban explicitamente los que si lo necesitan para funcionar en runtime.
+# @scarf/scarf es solo telemetria: se deja en false.
+allowBuilds:
+  '@firebase/util': true
+  '@scarf/scarf': false
+  esbuild: true
+  protobufjs: true
