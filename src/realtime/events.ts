@@ -12,7 +12,7 @@ export interface ServerToClientEvents {
 }
 
 export interface ClientToServerEvents {
-  'conductor:online': (payload: unknown, ack?: (res: { ok: boolean }) => void) => void;
+  'conductor:online': (payload: unknown, ack?: (res: { ok: boolean; idMunicipio?: number; error?: string }) => void) => void;
   'conductor:offline': () => void;
   'conductor:ubicacion': (payload: unknown) => void;
 }

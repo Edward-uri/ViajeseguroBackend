@@ -3,7 +3,7 @@ import type { Server as HttpServer } from 'node:http';
 import { verifyAccessToken } from '../core/jwt.js';
 import { env } from '../core/env.js';
 import { usuarioRoom, conductorRoom, municipioRoom } from './rooms.js';
-import { ConductorOnlineSchema, ConductorUbicacionSchema } from './schemas.js';
+import { ConductorUbicacionSchema } from './schemas.js';
 import type {
   AppServer,
   AppSocket,
@@ -39,15 +39,15 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
 
     socket.on('conductor:online', (payload, ack) => {
       void (async () => {
-        const parsed = ConductorOnlineSchema.safeParse(payload);
-        if (user.rol !== 'conductor' || !parsed.success) return ack?.({ ok: false });
-        // El municipio se deriva del servidor, no del cliente: solo puede unirse al suyo.
+        if (user.rol !== 'conductor') return ack?.({ ok: false });
+        // El municipio se deriva del servidor (su municipio operativo), no del cliente:
+        // así el conductor siempre entra a SU room aunque la app mande un valor desactualizado.
         const municipio = await conductorUseCases.municipioOperativo(user.sub);
-        if (municipio == null || municipio !== parsed.data.idMunicipio) return ack?.({ ok: false });
+        if (municipio == null) return ack?.({ ok: false, error: 'sin_municipio' });
         const room = municipioRoom(municipio);
         void socket.join(room);
         socket.data.municipioRoom = room;
-        ack?.({ ok: true });
+        ack?.({ ok: true, idMunicipio: municipio });
       })();
     });
 
