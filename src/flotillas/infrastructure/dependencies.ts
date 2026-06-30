@@ -17,6 +17,7 @@ import { getArchivoVehiculo } from '../application/getArchivoVehiculo.js';
 import { asignarConductor } from '../application/asignarConductor.js';
 import { revocarConductor } from '../application/revocarConductor.js';
 import { listarConductoresAsignados } from '../application/listarConductoresAsignados.js';
+import { estadoVehiculo } from '../application/estadoVehiculo.js';
 
 const propietarios = new PropietarioPostgresRepository();
 export const vehiculos = new VehiculoPostgresRepository();
@@ -38,4 +39,5 @@ export const flotillaUseCases = {
   asignarConductor: asignarConductor({ vehiculos, asignaciones }),
   revocarConductor: revocarConductor({ vehiculos, asignaciones }),
   listarConductoresAsignados: listarConductoresAsignados({ vehiculos, asignaciones }),
+  estadoVehiculo: estadoVehiculo({ documentos }),
 };

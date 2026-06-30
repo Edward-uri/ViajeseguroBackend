@@ -14,8 +14,8 @@ const upload = subirArchivo.single('archivo');
 conductorRoutes.post('/documentos/licencia', upload, c.subirDocumento('licencia'));
 conductorRoutes.post('/documentos/ine-frente', upload, c.subirDocumento('ine_frente'));
 conductorRoutes.post('/documentos/ine-reverso', upload, c.subirDocumento('ine_reverso'));
-conductorRoutes.post('/documentos/tarjeta-circulacion', upload, c.subirDocumento('tarjeta_circulacion'));
-conductorRoutes.post('/documentos/foto-vehiculo', upload, c.subirDocumento('foto_vehiculo'));
+// Los documentos del vehículo (tarjeta de circulación, foto) se suben en flotillas,
+// ligados a un vehiculo real: POST /api/flotillas/vehiculos/:id/documentos/*
 
 conductorRoutes.get('/onboarding', c.getOnboardingController);
 conductorRoutes.get('/documentos/:id/archivo', c.getMiArchivoController);

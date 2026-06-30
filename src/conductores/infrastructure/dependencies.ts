@@ -16,6 +16,16 @@ import { setDisponibilidad } from '../application/setDisponibilidad.js';
 import { getDisponibilidad } from '../application/getDisponibilidad.js';
 import { getStats } from '../application/getStats.js';
 import { getGanancias } from '../application/getGanancias.js';
+import { flotillaUseCases } from '../../flotillas/infrastructure/dependencies.js';
+
+// El conductor es dueño de su moto: su vehículo PROPIO en flotillas (idPropietario = idConductor).
+async function vehiculoDelConductor(idConductor: number) {
+  const vehiculos = await flotillaUseCases.listarVehiculos({ idPropietario: idConductor });
+  const propio = vehiculos.find((v) => v.origen === 'propio');
+  return propio
+    ? { idVehiculo: propio.idVehiculo, placa: propio.placa, estadoVerificacion: propio.estadoVerificacion }
+    : null;
+}
 
 const conductores = new ConductorPostgresRepository();
 const documentos = new DocumentoConductorPostgresRepository();
@@ -28,7 +38,7 @@ const estadisticas = new EstadisticasPostgresRepository();
 export const conductorUseCases = {
   submitLicencia: submitLicencia({ conductores, municipios: municipioRepository }),
   uploadDocumento: uploadDocumento({ conductores, documentos, storage }),
-  getOnboarding: getOnboarding({ conductores, documentos }),
+  getOnboarding: getOnboarding({ conductores, documentos, vehiculoDelConductor }),
   reviewDocumento: reviewDocumento({ conductores, documentos }),
   listConductoresPendientes: listConductoresPendientes({ conductores }),
   getArchivo: getArchivo({ documentos, storage }),

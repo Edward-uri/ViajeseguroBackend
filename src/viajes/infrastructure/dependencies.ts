@@ -26,7 +26,7 @@ import { listarViajesPendientes } from '../application/listarViajesPendientes.js
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
 import { rechazarViaje } from '../application/rechazarViaje.js';
 import { estimarViaje } from '../application/estimarViaje.js';
-import { asignaciones, vehiculos as flotillaVehiculos } from '../../flotillas/infrastructure/dependencies.js';
+import { asignaciones, vehiculos as flotillaVehiculos, flotillaUseCases } from '../../flotillas/infrastructure/dependencies.js';
 import { ZonaAdminPostgresRepository } from './ZonaAdminPostgresRepository.js';
 import { listarZonasAdmin } from '../application/listarZonasAdmin.js';
 import { crearZona } from '../application/crearZona.js';
@@ -50,6 +50,8 @@ const autorizacionVehiculo = {
   existeVehiculo: async (idVehiculo: number) => (await flotillaVehiculos.findById(idVehiculo)) != null,
   conductorAutorizado: (idConductor: number, idVehiculo: number) =>
     asignaciones.conductorAutorizado(idConductor, idVehiculo),
+  vehiculoAprobado: async (idVehiculo: number) =>
+    (await flotillaUseCases.estadoVehiculo({ idVehiculo })) === 'aprobado',
 };
 
 export const viajeUseCases = {

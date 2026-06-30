@@ -8,6 +8,7 @@ import {
   TransicionInvalidaError,
   VehiculoNoEncontradoError,
   VehiculoNoAutorizadoError,
+  VehiculoNoAprobadoError,
   ConductorOcupadoError,
 } from '../domain/errors.js';
 import { puedeTransicionar } from '../domain/tipos.js';
@@ -28,6 +29,7 @@ export function aceptarViaje(deps: {
 
     if (!(await deps.autorizacion.existeVehiculo(idVehiculo))) throw new VehiculoNoEncontradoError();
     if (!(await deps.autorizacion.conductorAutorizado(idConductor, idVehiculo))) throw new VehiculoNoAutorizadoError();
+    if (!(await deps.autorizacion.vehiculoAprobado(idVehiculo))) throw new VehiculoNoAprobadoError();
     if (await deps.viajes.conductorConViajeActivo(idConductor)) throw new ConductorOcupadoError();
 
     const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'aceptado', esperado: viaje.estado, idConductor, idVehiculo });
