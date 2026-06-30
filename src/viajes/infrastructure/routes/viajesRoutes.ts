@@ -20,6 +20,7 @@ viajesRoutes.get('/mios', c.listarMisViajesController);
 viajesRoutes.get('/activo', c.getViajeActivoController);
 viajesRoutes.get('/pendientes', requireRole('conductor'), c.listarPendientesController);
 viajesRoutes.get('/asignados', requireRole('conductor'), c.listarAsignadosController);
+viajesRoutes.get('/ruta', c.rutaController);
 viajesRoutes.get('/:id', c.getViajeController);
 viajesRoutes.post('/:id/cancelar', c.cancelarViajeController);
 viajesRoutes.post('/:id/evaluacion', c.evaluarViajeController);

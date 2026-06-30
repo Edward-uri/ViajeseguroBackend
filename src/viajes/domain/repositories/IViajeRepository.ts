@@ -26,9 +26,32 @@ export interface CambiarEstadoInput {
   motivo?: string | null;
 }
 
+/** Datos de la contraparte para mostrar en el detalle del viaje (ya descifrados). */
+export interface PersonaParte {
+  nombre: string | null;
+  calificacion: number | null;
+  telefono: string | null;
+}
+export interface ConductorParte extends PersonaParte {
+  fotoUrl: string | null;
+}
+export interface VehiculoParte {
+  modelo: string | null;
+  color: string | null;
+  anio: number | null;
+  placa: string | null;
+}
+export interface ViajePartes {
+  pasajero: PersonaParte | null;
+  conductor: ConductorParte | null;
+  vehiculo: VehiculoParte | null;
+}
+
 export interface IViajeRepository {
   crear(input: CrearViajeInput): Promise<Viaje>;
   porId(idViaje: number): Promise<Viaje | null>;
+  /** Contraparte (pasajero/conductor/vehículo) descifrada, para el detalle del viaje. */
+  detalleDePartes(idPasajero: number, idConductor: number | null, idVehiculo: number | null): Promise<ViajePartes>;
   listarPorPasajero(idPasajero: number): Promise<Viaje[]>;
   /** El viaje activo del pasajero (solicitado/aceptado/en_curso), o null. */
   viajeActivoDePasajero(idPasajero: number): Promise<Viaje | null>;

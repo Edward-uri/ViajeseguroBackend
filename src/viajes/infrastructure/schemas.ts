@@ -32,6 +32,13 @@ export const DispositivoSchema = z.object({
 
 export const IdParamSchema = z.coerce.number().int().positive();
 
+export const RutaQuerySchema = z.object({
+  fromLat: z.coerce.number().min(-90).max(90),
+  fromLng: z.coerce.number().min(-180).max(180),
+  toLat: z.coerce.number().min(-90).max(90),
+  toLng: z.coerce.number().min(-180).max(180),
+});
+
 const precioZona = z.number().finite().positive().max(999999.99);
 const latZona = z.number().finite().min(-90).max(90);
 const lngZona = z.number().finite().min(-180).max(180);

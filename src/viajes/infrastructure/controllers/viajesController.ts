@@ -55,6 +55,18 @@ export const cancelarViajeController: RequestHandler = async (req, res, next) =>
   } catch (e) { next(e); }
 };
 
+export const rutaController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const q = S.RutaQuerySchema.parse(req.query);
+    const r = await viajeUseCases.rutaEntre(
+      { lat: q.fromLat, lng: q.fromLng },
+      { lat: q.toLat, lng: q.toLng },
+    );
+    res.json({ ruta: r.geometria, distanciaKm: r.distanciaKm, duracionMin: r.duracionMin });
+  } catch (e) { next(e); }
+};
+
 export const aceptarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();

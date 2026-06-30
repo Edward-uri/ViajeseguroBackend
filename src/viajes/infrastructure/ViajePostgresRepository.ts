@@ -7,7 +7,11 @@ import type {
   IViajeRepository,
   CrearViajeInput,
   CambiarEstadoInput,
+  ViajePartes,
+  PersonaParte,
+  VehiculoParte,
 } from '../domain/repositories/IViajeRepository.js';
+import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 
 interface ViajeRow {
   id_viaje: string | number;
@@ -89,6 +93,59 @@ export class ViajePostgresRepository implements IViajeRepository {
   async porId(idViaje: number): Promise<Viaje | null> {
     const { rows } = await pool.query<ViajeRow>('SELECT * FROM viajes WHERE id_viaje = $1', [idViaje]);
     return mapViaje(rows[0]);
+  }
+
+  /** Persona (nombre/teléfono/foto/calificación) descifrada, o null si no existe. */
+  private async persona(idUsuario: number): Promise<(PersonaParte & { fotoUrl: string | null }) | null> {
+    const { rows } = await pool.query(
+      `SELECT p.nombre, p.nombre_enc, p.apellido_paterno, p.apellido_paterno_enc,
+              u.telefono, u.telefono_enc, u.foto_perfil_url,
+              (SELECT AVG(calificacion) FROM evaluaciones WHERE id_evaluado = u.id_usuario) AS calificacion
+         FROM usuarios u
+         LEFT JOIN personas p ON p.id_persona = u.id_usuario
+        WHERE u.id_usuario = $1`,
+      [idUsuario],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    const d = cipherCodec.decodeDeRow('personas', row) as Record<string, unknown>;
+    const u = cipherCodec.decodeDeRow('usuarios', row) as Record<string, unknown>;
+    const val = (dec: unknown, plano: unknown) => ((dec ?? plano) == null ? null : String(dec ?? plano));
+    const nombre = val(d.nombre, row.nombre);
+    const apellido = val(d.apellido_paterno, row.apellido_paterno);
+    return {
+      nombre: [nombre, apellido].filter(Boolean).join(' ') || null,
+      telefono: val(u.telefono, row.telefono),
+      fotoUrl: row.foto_perfil_url ?? null,
+      calificacion: row.calificacion == null ? null : Math.round(Number(row.calificacion) * 10) / 10,
+    };
+  }
+
+  async detalleDePartes(idPasajero: number, idConductor: number | null, idVehiculo: number | null): Promise<ViajePartes> {
+    const [pas, con, veh] = await Promise.all([
+      this.persona(idPasajero),
+      idConductor == null ? Promise.resolve(null) : this.persona(idConductor),
+      idVehiculo == null ? Promise.resolve(null) : this.vehiculo(idVehiculo),
+    ]);
+    const pasajero = pas == null ? null : { nombre: pas.nombre, calificacion: pas.calificacion, telefono: pas.telefono };
+    return { pasajero, conductor: con, vehiculo: veh };
+  }
+
+  private async vehiculo(idVehiculo: number): Promise<VehiculoParte | null> {
+    const { rows } = await pool.query(
+      'SELECT modelo, color, anio, placa, placa_enc FROM vehiculos WHERE id_vehiculo = $1',
+      [idVehiculo],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    const d = cipherCodec.decodeDeRow('vehiculos', row) as Record<string, unknown>;
+    const placa = (d.placa ?? row.placa) as string | null;
+    return {
+      modelo: row.modelo ?? null,
+      color: row.color ?? null,
+      anio: row.anio == null ? null : Number(row.anio),
+      placa: placa == null ? null : String(placa),
+    };
   }
 
   async listarPorPasajero(idPasajero: number): Promise<Viaje[]> {
