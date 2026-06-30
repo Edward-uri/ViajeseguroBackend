@@ -20,13 +20,15 @@ RUN pnpm install --frozen-lockfile --prod
 FROM node:22-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
+ENV UPLOADS_DIR=/app/uploads
+RUN apk add --no-cache su-exec
 COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package.json ./
 COPY db ./db
 COPY scripts ./scripts
 EXPOSE 3000
-USER node
-# Migra + seed (idempotentes) y arranca. `exec` para que SIGTERM llegue a node (shutdown limpio).
-# Si la DB no esta lista, el comando falla y Coolify reinicia el contenedor hasta que lo este.
-CMD ["sh", "-c", "node scripts/migrate.mjs && node scripts/migrate.mjs --seed && exec node dist/index.js"]
+# Arranca como root SOLO para ajustar el dueño del volumen montado (Coolify lo monta como root)
+# y luego baja privilegios a 'node' con su-exec. Migra + seed (idempotentes) y arranca.
+# `exec` para que SIGTERM llegue a node (shutdown limpio). Si la DB no esta lista, Coolify reinicia.
+CMD ["sh", "-c", "mkdir -p \"$UPLOADS_DIR\" && chown node:node \"$UPLOADS_DIR\" && node scripts/migrate.mjs && node scripts/migrate.mjs --seed && exec su-exec node node dist/index.js"]
