@@ -56,10 +56,27 @@ function map(row: Row | undefined): Conductor | null {
 
 export class ConductorPostgresRepository implements IConductorRepository {
   async asegurarExiste(idConductor: number): Promise<void> {
+    // Hereda el municipio del usuario (se fija en el registro). Si no, el conductor
+    // quedaría sin municipio operativo y no recibiría viajes.
     await pool.query(
-      'INSERT INTO conductores (id_conductor) VALUES ($1) ON CONFLICT (id_conductor) DO NOTHING',
+      `INSERT INTO conductores (id_conductor, id_municipio)
+       SELECT $1, id_municipio FROM usuarios WHERE id_usuario = $1
+       ON CONFLICT (id_conductor) DO NOTHING`,
       [idConductor],
     );
+  }
+
+  /** Municipio operativo del conductor; si el suyo es null, cae al del usuario. */
+  async municipioOperativo(idConductor: number): Promise<number | null> {
+    const { rows } = await pool.query<{ municipio: string | number | null }>(
+      `SELECT COALESCE(c.id_municipio, u.id_municipio) AS municipio
+         FROM conductores c
+         JOIN usuarios u ON u.id_usuario = c.id_conductor
+        WHERE c.id_conductor = $1`,
+      [idConductor],
+    );
+    const m = rows[0]?.municipio;
+    return m == null ? null : Number(m);
   }
 
   async findById(idConductor: number): Promise<Conductor | null> {

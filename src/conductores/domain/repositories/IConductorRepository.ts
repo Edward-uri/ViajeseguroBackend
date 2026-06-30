@@ -10,6 +10,7 @@ export interface ConductorPendiente {
 export interface IConductorRepository {
   asegurarExiste(idConductor: number): Promise<void>;
   findById(idConductor: number): Promise<Conductor | null>;
+  municipioOperativo(idConductor: number): Promise<number | null>;
   upsertLicencia(args: {
     idConductor: number;
     idMunicipio: number;
