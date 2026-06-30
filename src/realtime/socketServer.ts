@@ -64,6 +64,12 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
       if (user.rol !== 'conductor' || !parsed.success) return;
       void viajeUseCases.registrarUbicacion(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
     });
+
+    socket.on('pasajero:ubicacion', (payload) => {
+      const parsed = ConductorUbicacionSchema.safeParse(payload);
+      if (!parsed.success) return;
+      void viajeUseCases.registrarUbicacionPasajero(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
+    });
   });
 
   return io;

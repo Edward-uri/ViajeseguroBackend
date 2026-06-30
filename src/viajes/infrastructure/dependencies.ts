@@ -23,6 +23,7 @@ import { completarViaje } from '../application/completarViaje.js';
 import { evaluarViaje } from '../application/evaluarViaje.js';
 import { registrarDispositivo } from '../application/registrarDispositivo.js';
 import { registrarUbicacion } from '../application/registrarUbicacion.js';
+import { registrarUbicacionPasajero } from '../application/registrarUbicacionPasajero.js';
 import { conductorUseCases } from '../../conductores/infrastructure/dependencies.js';
 import { listarViajesPendientes } from '../application/listarViajesPendientes.js';
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
@@ -73,6 +74,7 @@ export const viajeUseCases = {
   evaluarViaje: evaluarViaje({ viajes }),
   registrarDispositivo: registrarDispositivo({ dispositivos }),
   registrarUbicacion: registrarUbicacion({ viajes, notifier }),
+  registrarUbicacionPasajero: registrarUbicacionPasajero({ viajes, notifier }),
   listarViajesPendientes: listarViajesPendientes({ viajes, municipioDelConductor: conductorUseCases.municipioOperativo }),
   listarViajesAsignados: listarViajesAsignados({ viajes }),
   rechazarViaje: rechazarViaje({ viajes }),

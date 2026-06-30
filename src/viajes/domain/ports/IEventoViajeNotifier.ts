@@ -10,4 +10,6 @@ export interface IEventoViajeNotifier {
   /** Notifica al pasajero un cambio de estado puntual (sin cargar el viaje completo). */
   cambioEstadoPasajero(idPasajero: number, idViaje: number, estado: EstadoViaje): Promise<void>;
   ubicacionConductor(args: { idViaje: number; idPasajero: number; lat: number; lng: number }): Promise<void>;
+  /** Reenvía la ubicación del pasajero al conductor asignado. */
+  ubicacionPasajero(args: { idViaje: number; idConductor: number; lat: number; lng: number }): Promise<void>;
 }

@@ -31,8 +31,6 @@ export interface PersonaParte {
   nombre: string | null;
   calificacion: number | null;
   telefono: string | null;
-}
-export interface ConductorParte extends PersonaParte {
   fotoUrl: string | null;
 }
 export interface VehiculoParte {
@@ -43,7 +41,7 @@ export interface VehiculoParte {
 }
 export interface ViajePartes {
   pasajero: PersonaParte | null;
-  conductor: ConductorParte | null;
+  conductor: PersonaParte | null;
   vehiculo: VehiculoParte | null;
 }
 

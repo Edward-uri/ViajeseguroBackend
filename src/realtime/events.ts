@@ -9,12 +9,14 @@ export interface ServerToClientEvents {
   'viaje:cambio_estado': (payload: { idViaje: number; estado: EstadoViaje }) => void;
   'viaje:no_disponible': (payload: { idViaje: number }) => void;
   'viaje:ubicacion_conductor': (payload: { idViaje: number; lat: number; lng: number }) => void;
+  'viaje:ubicacion_pasajero': (payload: { idViaje: number; lat: number; lng: number }) => void;
 }
 
 export interface ClientToServerEvents {
   'conductor:online': (payload: unknown, ack?: (res: { ok: boolean; idMunicipio?: number; error?: string }) => void) => void;
   'conductor:offline': () => void;
   'conductor:ubicacion': (payload: unknown) => void;
+  'pasajero:ubicacion': (payload: unknown) => void;
 }
 
 export type InterServerEvents = Record<string, never>;

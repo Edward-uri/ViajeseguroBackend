@@ -96,7 +96,7 @@ export class ViajePostgresRepository implements IViajeRepository {
   }
 
   /** Persona (nombre/teléfono/foto/calificación) descifrada, o null si no existe. */
-  private async persona(idUsuario: number): Promise<(PersonaParte & { fotoUrl: string | null }) | null> {
+  private async persona(idUsuario: number): Promise<PersonaParte | null> {
     const { rows } = await pool.query(
       `SELECT p.nombre, p.nombre_enc, p.apellido_paterno, p.apellido_paterno_enc,
               u.telefono, u.telefono_enc, u.foto_perfil_url,
@@ -127,8 +127,7 @@ export class ViajePostgresRepository implements IViajeRepository {
       idConductor == null ? Promise.resolve(null) : this.persona(idConductor),
       idVehiculo == null ? Promise.resolve(null) : this.vehiculo(idVehiculo),
     ]);
-    const pasajero = pas == null ? null : { nombre: pas.nombre, calificacion: pas.calificacion, telefono: pas.telefono };
-    return { pasajero, conductor: con, vehiculo: veh };
+    return { pasajero: pas, conductor: con, vehiculo: veh };
   }
 
   private async vehiculo(idVehiculo: number): Promise<VehiculoParte | null> {

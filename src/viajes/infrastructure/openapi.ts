@@ -40,12 +40,9 @@ const PersonaParteSchema = z
     nombre: z.string().nullable(),
     calificacion: z.number().nullable(),
     telefono: z.string().nullable().openapi({ description: 'Solo presente en viaje activo (aceptado/en_curso); null al terminar.' }),
+    fotoUrl: z.string().nullable().openapi({ description: 'Ruta relativa con token (mismo trato que fotoPerfilUrl).' }),
   })
   .openapi('PersonaParte');
-
-const ConductorParteSchema = PersonaParteSchema.extend({
-  fotoUrl: z.string().nullable().openapi({ description: 'Ruta relativa con token (mismo trato que fotoPerfilUrl).' }),
-}).openapi('ConductorParte');
 
 const VehiculoParteSchema = z
   .object({
@@ -59,7 +56,7 @@ const VehiculoParteSchema = z
 /** Detalle enriquecido: el viaje + datos de la contraparte (para GET /{id} y /activo). */
 const ViajeDetalleSchema = ViajeSchema.extend({
   pasajero: PersonaParteSchema.nullable(),
-  conductor: ConductorParteSchema.nullable(),
+  conductor: PersonaParteSchema.nullable(),
   vehiculo: VehiculoParteSchema.nullable(),
 }).openapi('ViajeDetalle');
 
