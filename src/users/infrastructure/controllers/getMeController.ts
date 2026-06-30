@@ -3,7 +3,7 @@ import { getMeUseCase } from '../dependencies.js';
 import { UnauthorizedError } from '../../../core/errors.js';
 import {
   openapiRegistry,
-  PublicUserSchema,
+  MeResponseSchema,
   ErrorResponseSchema,
   wrapData,
 } from '../../../docs/openapiRegistry.js';
@@ -18,7 +18,7 @@ openapiRegistry.registerPath({
   responses: {
     200: {
       description: 'Perfil del usuario',
-      content: { 'application/json': { schema: wrapData(PublicUserSchema) } },
+      content: { 'application/json': { schema: wrapData(MeResponseSchema) } },
     },
     401: {
       description: 'Token ausente, invalido o expirado',

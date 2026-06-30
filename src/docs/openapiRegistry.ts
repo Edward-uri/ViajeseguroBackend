@@ -30,6 +30,23 @@ export const PublicUserSchema = z
   })
   .openapi('PublicUser');
 
+/** Datos personales (descifrados) que devuelve GET /api/users/me en el bloque `persona`. */
+export const PersonaPerfilSchema = z
+  .object({
+    nombre: z.string().nullable().openapi({ example: 'Juan' }),
+    apellidoPaterno: z.string().nullable().openapi({ example: 'Pérez' }),
+    apellidoMaterno: z.string().nullable().openapi({ example: 'López' }),
+    fechaNacimiento: z.string().nullable().openapi({ example: '1990-05-14' }),
+    correo: z.string().email().nullable().openapi({ example: 'juan@correo.com' }),
+    telefono: z.string().nullable().openapi({ example: '9611234567' }),
+  })
+  .openapi('PersonaPerfil');
+
+/** Respuesta de GET /api/users/me: el usuario público + el bloque `persona`. */
+export const MeResponseSchema = PublicUserSchema.extend({
+  persona: PersonaPerfilSchema,
+}).openapi('MeResponse');
+
 export const ErrorResponseSchema = z
   .object({
     error: z.object({
