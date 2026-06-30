@@ -127,6 +127,12 @@ openapiRegistry.registerPath({
 });
 
 openapiRegistry.registerPath({
+  method: 'get', path: '/api/viajes/activo', tags: ['App Pasajero'],
+  summary: 'Viaje activo del pasajero (solicitado/aceptado/en_curso) o null', security: [{ bearerAuth: [] }],
+  responses: { 200: ok('Viaje activo o null', z.object({ data: ViajeSchema.nullable() })), 401: err('No autenticado') },
+});
+
+openapiRegistry.registerPath({
   method: 'get', path: '/api/viajes/{id}', tags: ['App Pasajero'],
   summary: 'Detalle de un viaje (dueño o conductor asignado)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId },

@@ -29,6 +29,8 @@ export interface IViajeRepository {
   crear(input: CrearViajeInput): Promise<Viaje>;
   porId(idViaje: number): Promise<Viaje | null>;
   listarPorPasajero(idPasajero: number): Promise<Viaje[]>;
+  /** El viaje activo del pasajero (solicitado/aceptado/en_curso), o null. */
+  viajeActivoDePasajero(idPasajero: number): Promise<Viaje | null>;
   cambiarEstado(input: CambiarEstadoInput): Promise<Viaje>;
   guardarUbicacion(idViaje: number, lat: number, lng: number): Promise<void>;
   crearEvaluacion(args: {

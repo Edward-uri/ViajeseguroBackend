@@ -40,6 +40,13 @@ export const listarMisViajesController: RequestHandler = async (req, res, next) 
   } catch (e) { next(e); }
 };
 
+export const getViajeActivoController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    res.json({ data: await viajeUseCases.getViajeActivo(req.user.sub) });
+  } catch (e) { next(e); }
+};
+
 export const cancelarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();

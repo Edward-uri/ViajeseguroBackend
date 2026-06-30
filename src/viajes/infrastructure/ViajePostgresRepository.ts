@@ -95,6 +95,17 @@ export class ViajePostgresRepository implements IViajeRepository {
     return rows.map((r) => mapViaje(r)!);
   }
 
+  async viajeActivoDePasajero(idPasajero: number): Promise<Viaje | null> {
+    const { rows } = await pool.query<ViajeRow>(
+      `SELECT * FROM viajes
+        WHERE id_pasajero = $1 AND estado IN ('solicitado','aceptado','en_curso')
+        ORDER BY fecha_solicitud DESC
+        LIMIT 1`,
+      [idPasajero],
+    );
+    return mapViaje(rows[0]);
+  }
+
   async cambiarEstado(input: CambiarEstadoInput): Promise<Viaje> {
     return withTransaction(async (client) => {
       const sets: string[] = ['estado = $2'];
