@@ -24,6 +24,9 @@ COPY --from=prod-deps /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY package.json ./
 COPY db ./db
+COPY scripts ./scripts
 EXPOSE 3000
 USER node
-CMD ["node", "dist/index.js"]
+# Migra + seed (idempotentes) y arranca. `exec` para que SIGTERM llegue a node (shutdown limpio).
+# Si la DB no esta lista, el comando falla y Coolify reinicia el contenedor hasta que lo este.
+CMD ["sh", "-c", "node scripts/migrate.mjs && node scripts/migrate.mjs --seed && exec node dist/index.js"]
