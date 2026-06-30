@@ -30,6 +30,7 @@ interface ViajeRow {
   fecha_fin: Date | null;
   cancelado_por: CanceladoPor | null;
   motivo_cancelacion: string | null;
+  expira_en: Date | null;
 }
 
 const num = (v: string | number | null): number | null => (v == null ? null : Number(v));
@@ -57,6 +58,7 @@ function mapViaje(row: ViajeRow | undefined): Viaje | null {
     fechaFin: row.fecha_fin,
     canceladoPor: row.cancelado_por,
     motivoCancelacion: row.motivo_cancelacion,
+    expiraEn: row.expira_en,
   });
 }
 

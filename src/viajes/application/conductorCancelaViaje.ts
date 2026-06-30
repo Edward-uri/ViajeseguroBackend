@@ -18,6 +18,9 @@ export function conductorCancelaViaje(deps: { viajes: IViajeRepository; notifier
     });
     // No volver a ofrecérselo a quien lo soltó.
     await deps.viajes.rechazar(idViaje, idConductor);
+    // Avisar al pasajero que su viaje volvió a "buscando conductor".
+    await deps.notifier.cambioEstado(actualizado.toJSON());
+    // Reponerlo en la lista de los conductores del municipio.
     await deps.notifier.viajeSolicitado(actualizado.toJSON());
     return actualizado.toJSON();
   };

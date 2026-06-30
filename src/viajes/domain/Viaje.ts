@@ -25,6 +25,7 @@ export interface ViajeData {
   fechaFin: Date | null;
   canceladoPor: CanceladoPor | null;
   motivoCancelacion: string | null;
+  expiraEn: Date | null;
 }
 
 export interface PublicViaje {
@@ -48,6 +49,8 @@ export interface PublicViaje {
   fechaFin: Date | null;
   canceladoPor: CanceladoPor | null;
   motivoCancelacion: string | null;
+  /** Cuándo expira la solicitud (solo relevante en estado 'solicitado'); null si no aplica. */
+  expiraEn: Date | null;
 }
 
 export class Viaje {
@@ -81,6 +84,7 @@ export class Viaje {
       fechaFin: d.fechaFin,
       canceladoPor: d.canceladoPor,
       motivoCancelacion: d.motivoCancelacion,
+      expiraEn: d.expiraEn,
     };
   }
 }
