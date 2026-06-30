@@ -17,6 +17,8 @@ export interface CrearViajeInput {
 export interface CambiarEstadoInput {
   idViaje: number;
   nuevo: EstadoViaje;
+  /** Estado actual esperado: el UPDATE solo aplica si coincide (cierra carreras de aceptación). */
+  esperado: EstadoViaje;
   idConductor?: number;
   idVehiculo?: number;
   canceladoPor?: CanceladoPor;
@@ -40,4 +42,8 @@ export interface IViajeRepository {
   listarPendientesPorMunicipio(idMunicipio: number, idConductor: number): Promise<Viaje[]>;
   rechazar(idViaje: number, idConductor: number): Promise<void>;
   listarPorConductor(idConductor: number): Promise<Viaje[]>;
+  /** ¿El conductor ya tiene un viaje aceptado o en curso? */
+  conductorConViajeActivo(idConductor: number): Promise<boolean>;
+  /** ¿El pasajero ya tiene un viaje solicitado, aceptado o en curso? */
+  pasajeroConViajeActivo(idPasajero: number): Promise<boolean>;
 }

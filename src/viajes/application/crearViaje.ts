@@ -4,7 +4,7 @@ import type { IEventoViajeNotifier } from '../domain/ports/IEventoViajeNotifier.
 import type { IMunicipioRepository } from '../../municipios/domain/repositories/IMunicipioRepository.js';
 import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
 import type { PublicViaje } from '../domain/Viaje.js';
-import { MunicipioInvalidoError } from '../domain/errors.js';
+import { MunicipioInvalidoError, PasajeroConViajeActivoError } from '../domain/errors.js';
 
 export interface CrearViajeDTO {
   idPasajero: number;
@@ -24,6 +24,7 @@ export function crearViaje(deps: {
 }) {
   return async (input: CrearViajeDTO): Promise<PublicViaje> => {
     if (!(await deps.municipios.existeActivo(input.idMunicipio))) throw new MunicipioInvalidoError();
+    if (await deps.viajes.pasajeroConViajeActivo(input.idPasajero)) throw new PasajeroConViajeActivoError();
 
     const origen = { lat: input.origen.lat, lng: input.origen.lng };
     const destino = { lat: input.destino.lat, lng: input.destino.lng };

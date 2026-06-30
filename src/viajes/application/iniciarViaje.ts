@@ -10,7 +10,7 @@ export function iniciarViaje(deps: { viajes: IViajeRepository; notifier: IEvento
     if (!viaje) throw new ViajeNoEncontradoError();
     if (viaje.idConductor !== idConductor) throw new NoEsTuViajeError();
     if (!puedeTransicionar(viaje.estado, 'en_curso')) throw new TransicionInvalidaError(viaje.estado, 'en_curso');
-    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'en_curso' });
+    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'en_curso', esperado: viaje.estado });
     await deps.notifier.cambioEstado(actualizado.toJSON());
     return actualizado.toJSON();
   };

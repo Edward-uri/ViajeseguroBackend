@@ -24,6 +24,10 @@ export class SocketEventoViajeNotifier implements IEventoViajeNotifier {
     if (v.idConductor != null) this.io?.to(conductorRoom(v.idConductor)).emit('viaje:cambio_estado', payload);
   }
 
+  async viajeYaNoDisponible(idMunicipio: number, idViaje: number): Promise<void> {
+    this.io?.to(municipioRoom(idMunicipio)).emit('viaje:no_disponible', { idViaje });
+  }
+
   async ubicacionConductor(args: { idViaje: number; idPasajero: number; lat: number; lng: number }): Promise<void> {
     this.io?.to(usuarioRoom(args.idPasajero)).emit('viaje:ubicacion_conductor', { idViaje: args.idViaje, lat: args.lat, lng: args.lng });
   }

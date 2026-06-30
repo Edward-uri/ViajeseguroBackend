@@ -7,6 +7,7 @@ export interface ServerToClientEvents {
   'viaje:solicitado': (viaje: PublicViaje) => void;
   'viaje:aceptado': (viaje: PublicViaje) => void;
   'viaje:cambio_estado': (payload: { idViaje: number; estado: EstadoViaje }) => void;
+  'viaje:no_disponible': (payload: { idViaje: number }) => void;
   'viaje:ubicacion_conductor': (payload: { idViaje: number; lat: number; lng: number }) => void;
 }
 

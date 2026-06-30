@@ -21,3 +21,9 @@ export class VehiculoNoEncontradoError extends AppError {
 export class VehiculoNoAutorizadoError extends AppError {
   constructor() { super('No puedes aceptar viajes con este vehículo', 403, 'VEHICULO_NO_AUTORIZADO'); }
 }
+export class ConductorOcupadoError extends ConflictError {
+  constructor() { super('Ya tienes un viaje activo; termínalo antes de aceptar otro'); }
+}
+export class PasajeroConViajeActivoError extends ConflictError {
+  constructor() { super('Ya tienes un viaje en curso'); }
+}

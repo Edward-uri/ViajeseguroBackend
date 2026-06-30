@@ -1,5 +1,6 @@
 import { pool, withTransaction } from '../../core/db.js';
 import { Viaje } from '../domain/Viaje.js';
+import { TransicionInvalidaError } from '../domain/errors.js';
 import type { EstadoViaje, TipoServicio, CanceladoPor } from '../domain/tipos.js';
 import type {
   IViajeRepository,
@@ -111,12 +112,15 @@ export class ViajePostgresRepository implements IViajeRepository {
         if (input.canceladoPor) { sets.push(`cancelado_por = $${i++}`); params.push(input.canceladoPor); }
         sets.push(`motivo_cancelacion = $${i++}`); params.push(input.motivo ?? null);
       }
+      const esperadoIdx = i++;
+      params.push(input.esperado);
+      // Guarda de estado: si otro proceso ya cambió el viaje, el UPDATE no matchea (rowCount 0).
       const { rows } = await client.query<ViajeRow>(
-        `UPDATE viajes SET ${sets.join(', ')} WHERE id_viaje = $1 RETURNING *`,
+        `UPDATE viajes SET ${sets.join(', ')} WHERE id_viaje = $1 AND estado = $${esperadoIdx} RETURNING *`,
         params,
       );
       const viaje = mapViaje(rows[0]);
-      if (!viaje) throw new Error('Viaje no encontrado al cambiar estado');
+      if (!viaje) throw new TransicionInvalidaError(input.esperado, input.nuevo);
       await client.query('INSERT INTO viaje_estado_historial (id_viaje, estado) VALUES ($1, $2)', [input.idViaje, input.nuevo]);
       return viaje;
     });
@@ -166,5 +170,21 @@ export class ViajePostgresRepository implements IViajeRepository {
       [idConductor],
     );
     return rows.map((r) => mapViaje(r)!);
+  }
+
+  async conductorConViajeActivo(idConductor: number): Promise<boolean> {
+    const { rowCount } = await pool.query(
+      `SELECT 1 FROM viajes WHERE id_conductor=$1 AND estado IN ('aceptado','en_curso') LIMIT 1`,
+      [idConductor],
+    );
+    return rowCount === 1;
+  }
+
+  async pasajeroConViajeActivo(idPasajero: number): Promise<boolean> {
+    const { rowCount } = await pool.query(
+      `SELECT 1 FROM viajes WHERE id_pasajero=$1 AND estado IN ('solicitado','aceptado','en_curso') LIMIT 1`,
+      [idPasajero],
+    );
+    return rowCount === 1;
   }
 }

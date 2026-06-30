@@ -10,8 +10,11 @@ export function cancelarViaje(deps: { viajes: IViajeRepository; notifier: IEvent
     if (!viaje) throw new ViajeNoEncontradoError();
     if (viaje.idPasajero !== idPasajero) throw new NoEsTuViajeError();
     if (!puedeTransicionar(viaje.estado, 'cancelado')) throw new TransicionInvalidaError(viaje.estado, 'cancelado');
-    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'cancelado', canceladoPor: 'pasajero', motivo: motivo ?? null });
+    const estabaSolicitado = viaje.estado === 'solicitado';
+    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'cancelado', esperado: viaje.estado, canceladoPor: 'pasajero', motivo: motivo ?? null });
     await deps.notifier.cambioEstado(actualizado.toJSON());
+    // Si aún estaba pendiente, quítalo de la lista de los conductores del municipio.
+    if (estabaSolicitado) await deps.notifier.viajeYaNoDisponible(viaje.data.idMunicipio, idViaje);
     return actualizado.toJSON();
   };
 }

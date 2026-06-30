@@ -8,6 +8,7 @@ import {
   TransicionInvalidaError,
   VehiculoNoEncontradoError,
   VehiculoNoAutorizadoError,
+  ConductorOcupadoError,
 } from '../domain/errors.js';
 import { puedeTransicionar } from '../domain/tipos.js';
 
@@ -27,9 +28,11 @@ export function aceptarViaje(deps: {
 
     if (!(await deps.autorizacion.existeVehiculo(idVehiculo))) throw new VehiculoNoEncontradoError();
     if (!(await deps.autorizacion.conductorAutorizado(idConductor, idVehiculo))) throw new VehiculoNoAutorizadoError();
+    if (await deps.viajes.conductorConViajeActivo(idConductor)) throw new ConductorOcupadoError();
 
-    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'aceptado', idConductor, idVehiculo });
+    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'aceptado', esperado: viaje.estado, idConductor, idVehiculo });
     await deps.notifier.viajeAceptado(actualizado.toJSON());
+    await deps.notifier.viajeYaNoDisponible(viaje.data.idMunicipio, idViaje);
     await deps.push.enviar({ idUsuario: viaje.idPasajero, titulo: 'Tu conductor va en camino', cuerpo: 'Un conductor aceptó tu viaje.' });
     return actualizado.toJSON();
   };

@@ -10,7 +10,7 @@ export function completarViaje(deps: { viajes: IViajeRepository; notifier: IEven
     if (!viaje) throw new ViajeNoEncontradoError();
     if (viaje.idConductor !== idConductor) throw new NoEsTuViajeError();
     if (!puedeTransicionar(viaje.estado, 'completado')) throw new TransicionInvalidaError(viaje.estado, 'completado');
-    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'completado' });
+    const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'completado', esperado: viaje.estado });
     await deps.notifier.cambioEstado(actualizado.toJSON());
     return actualizado.toJSON();
   };
