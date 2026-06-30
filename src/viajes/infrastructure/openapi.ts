@@ -31,8 +31,37 @@ const ViajeSchema = z
     tarifa: z.number(),
     tarifaEstimada: z.boolean(),
     estado: z.enum(['solicitado', 'aceptado', 'en_curso', 'completado', 'cancelado']),
+    expiraEn: z.string().datetime().nullable().openapi({ description: 'Cuándo expira la solicitud (solo en estado solicitado).' }),
   })
   .openapi('Viaje');
+
+const PersonaParteSchema = z
+  .object({
+    nombre: z.string().nullable(),
+    calificacion: z.number().nullable(),
+    telefono: z.string().nullable().openapi({ description: 'Solo presente en viaje activo (aceptado/en_curso); null al terminar.' }),
+  })
+  .openapi('PersonaParte');
+
+const ConductorParteSchema = PersonaParteSchema.extend({
+  fotoUrl: z.string().nullable().openapi({ description: 'Ruta relativa con token (mismo trato que fotoPerfilUrl).' }),
+}).openapi('ConductorParte');
+
+const VehiculoParteSchema = z
+  .object({
+    modelo: z.string().nullable(),
+    color: z.string().nullable(),
+    anio: z.number().int().nullable(),
+    placa: z.string().nullable(),
+  })
+  .openapi('VehiculoParte');
+
+/** Detalle enriquecido: el viaje + datos de la contraparte (para GET /{id} y /activo). */
+const ViajeDetalleSchema = ViajeSchema.extend({
+  pasajero: PersonaParteSchema.nullable(),
+  conductor: ConductorParteSchema.nullable(),
+  vehiculo: VehiculoParteSchema.nullable(),
+}).openapi('ViajeDetalle');
 
 const TarifaZonaSchema = z.object({ idZona: z.number().int(), nombre: z.string(), precio: z.number() }).openapi('TarifaZona');
 const OkSchema = z.object({ ok: z.boolean() });
@@ -43,6 +72,21 @@ const RutaGeoJSONSchema = z
     coordinates: z.array(z.tuple([z.number(), z.number()])),
   })
   .openapi('RutaGeoJSON');
+
+const RutaResultSchema = z
+  .object({
+    ruta: RutaGeoJSONSchema.nullable().openapi({ description: 'GeoJSON LineString por calles; null si OSRM no responde.' }),
+    distanciaKm: z.number(),
+    duracionMin: z.number(),
+  })
+  .openapi('RutaResult');
+
+const RutaQuery = z.object({
+  fromLat: z.string().openapi({ example: '16.62' }),
+  fromLng: z.string().openapi({ example: '-93.10' }),
+  toLat: z.string().openapi({ example: '16.63' }),
+  toLng: z.string().openapi({ example: '-93.09' }),
+});
 
 const EstimacionSchema = z
   .object({
@@ -129,19 +173,27 @@ openapiRegistry.registerPath({
 openapiRegistry.registerPath({
   method: 'get', path: '/api/viajes/activo', tags: ['App Pasajero'],
   summary: 'Viaje activo del pasajero (solicitado/aceptado/en_curso) o null', security: [{ bearerAuth: [] }],
-  responses: { 200: ok('Viaje activo o null', z.object({ data: ViajeSchema.nullable() })), 401: err('No autenticado') },
+  responses: { 200: ok('Viaje activo o null', z.object({ data: ViajeDetalleSchema.nullable() })), 401: err('No autenticado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/viajes/ruta', tags: ['Compartido'],
+  summary: 'Ruta por calles entre dos puntos (OSRM). Para pintar avance y ETA en el viaje.',
+  security: [{ bearerAuth: [] }],
+  request: { query: RutaQuery },
+  responses: { 200: ok('Ruta', RutaResultSchema), 401: err('No autenticado') },
 });
 
 openapiRegistry.registerPath({
   method: 'get', path: '/api/viajes/{id}', tags: ['App Pasajero'],
-  summary: 'Detalle de un viaje (dueño o conductor asignado)', security: [{ bearerAuth: [] }],
+  summary: 'Detalle enriquecido de un viaje (dueño o conductor asignado): incluye datos de la contraparte', security: [{ bearerAuth: [] }],
   request: { params: ParamsId },
-  responses: { 200: ok('Viaje', ViajeSchema), 403: err('No es tu viaje'), 404: err('No encontrado') },
+  responses: { 200: ok('Viaje', ViajeDetalleSchema), 403: err('No es tu viaje'), 404: err('No encontrado') },
 });
 
 openapiRegistry.registerPath({
   method: 'post', path: '/api/viajes/{id}/cancelar', tags: ['App Pasajero'],
-  summary: 'Cancela un viaje (solicitado/aceptado)', security: [{ bearerAuth: [] }],
+  summary: 'Cancela un viaje (solicitado/aceptado/en_curso)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId, body: json(CancelarViajeSchema) },
   responses: { 200: ok('Viaje cancelado', ViajeSchema), 409: err('Transición inválida') },
 });
@@ -184,6 +236,13 @@ openapiRegistry.registerPath({
   summary: 'Rechaza un viaje (lo oculta de mis pendientes; sigue disponible para otros)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId },
   responses: { 204: { description: 'Viaje rechazado' }, 401: err('No autenticado'), 403: err('Rol no autorizado'), 404: err('Viaje no encontrado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'post', path: '/api/viajes/{id}/soltar', tags: ['App Conductor'],
+  summary: 'Suelta un viaje aceptado (vuelve al pool) o cancela uno en curso', security: [{ bearerAuth: [] }],
+  request: { params: ParamsId },
+  responses: { 200: ok('Viaje liberado o cancelado', ViajeSchema), 403: err('No es tu viaje'), 409: err('Transición inválida') },
 });
 
 openapiRegistry.registerPath({
