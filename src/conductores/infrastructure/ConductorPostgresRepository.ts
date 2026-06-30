@@ -1,6 +1,26 @@
 import { pool } from '../../core/db.js';
+import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 import { Conductor, ConductorBuilder } from '../domain/Conductor.js';
 import type { IConductorRepository, ConductorPendiente } from '../domain/repositories/IConductorRepository.js';
+
+/** Descifra un telefono guardado en usuarios.telefono_enc (con fallback al plano en transición). */
+function descifrarTelefono(telEnc: string | null, telPlano: string | null): string | null {
+  const dec = cipherCodec.decodeDeRow('usuarios', { telefono_enc: telEnc });
+  return ((dec.telefono as string | null) ?? telPlano) ?? null;
+}
+
+/** Descifra y concatena "nombre apellido_paterno" desde personas (fallback al plano). */
+function descifrarNombre(r: {
+  nombre_enc: string | null; apellido_paterno_enc: string | null;
+  nombre: string | null; apellido_paterno: string | null;
+}): string {
+  const dec = cipherCodec.decodeDeRow('personas', {
+    nombre_enc: r.nombre_enc, apellido_paterno_enc: r.apellido_paterno_enc,
+  });
+  const n = ((dec.nombre as string | null) ?? r.nombre) ?? '';
+  const a = ((dec.apellido_paterno as string | null) ?? r.apellido_paterno) ?? '';
+  return `${n} ${a}`.trim();
+}
 
 function fechaToStr(v: unknown): string | null {
   if (v == null) return null;
@@ -24,10 +44,11 @@ interface Row {
 
 function map(row: Row | undefined): Conductor | null {
   if (!row) return null;
+  const dec = cipherCodec.decodeDeRow('conductores', row as unknown as Record<string, unknown>);
   return new ConductorBuilder()
     .idConductor(Number(row.id_conductor))
     .idMunicipio(row.id_municipio == null ? null : Number(row.id_municipio))
-    .licencia(row.licencia)
+    .licencia((dec.licencia as string | null) ?? row.licencia)
     .licenciaFechaExpedicion(fechaToStr(row.licencia_fecha_expedicion))
     .licenciaFechaVencimiento(fechaToStr(row.licencia_fecha_vencimiento))
     .build();
@@ -49,16 +70,18 @@ export class ConductorPostgresRepository implements IConductorRepository {
   async upsertLicencia(a: {
     idConductor: number; idMunicipio: number; licencia: string; fechaExpedicion: string; fechaVencimiento: string;
   }): Promise<Conductor> {
+    const enc = cipherCodec.encodeParaInsert('conductores', { licencia: a.licencia });
     const { rows } = await pool.query<Row>(
-      `INSERT INTO conductores (id_conductor, id_municipio, licencia, licencia_fecha_expedicion, licencia_fecha_vencimiento)
-       VALUES ($1, $2, $3, $4, $5)
+      `INSERT INTO conductores (id_conductor, id_municipio, licencia_enc, licencia_bidx, licencia_fecha_expedicion, licencia_fecha_vencimiento)
+       VALUES ($1, $2, $3, $4, $5, $6)
        ON CONFLICT (id_conductor) DO UPDATE SET
          id_municipio = EXCLUDED.id_municipio,
-         licencia = EXCLUDED.licencia,
+         licencia_enc = EXCLUDED.licencia_enc,
+         licencia_bidx = EXCLUDED.licencia_bidx,
          licencia_fecha_expedicion = EXCLUDED.licencia_fecha_expedicion,
          licencia_fecha_vencimiento = EXCLUDED.licencia_fecha_vencimiento
        RETURNING *`,
-      [a.idConductor, a.idMunicipio, a.licencia, a.fechaExpedicion, a.fechaVencimiento],
+      [a.idConductor, a.idMunicipio, enc.licencia_enc, enc.licencia_bidx, a.fechaExpedicion, a.fechaVencimiento],
     );
     return map(rows[0])!;
   }
@@ -73,23 +96,27 @@ export class ConductorPostgresRepository implements IConductorRepository {
   }
 
   async listarConPendientes(): Promise<ConductorPendiente[]> {
-    const { rows } = await pool.query<{ id_conductor: string | number; nombre: string; telefono: string; pendientes: string | number }>(
+    const { rows } = await pool.query<{
+      id_conductor: string | number;
+      nombre_enc: string | null; apellido_paterno_enc: string | null; nombre: string | null; apellido_paterno: string | null;
+      telefono_enc: string | null; telefono: string | null; pendientes: string | number;
+    }>(
       `SELECT c.id_conductor,
-              p.nombre || ' ' || p.apellido_paterno AS nombre,
-              u.telefono,
+              p.nombre_enc, p.apellido_paterno_enc, p.nombre, p.apellido_paterno,
+              u.telefono_enc, u.telefono,
               COUNT(*) FILTER (WHERE d.estado = 'pendiente') AS pendientes
          FROM conductores c
          JOIN usuarios u ON u.id_usuario = c.id_conductor
          JOIN personas p ON p.id_persona = c.id_conductor
          JOIN documentos_conductor d ON d.id_conductor = c.id_conductor
-        GROUP BY c.id_conductor, p.nombre, p.apellido_paterno, u.telefono
+        GROUP BY c.id_conductor, p.nombre_enc, p.apellido_paterno_enc, p.nombre, p.apellido_paterno, u.telefono_enc, u.telefono
        HAVING COUNT(*) FILTER (WHERE d.estado = 'pendiente') > 0
         ORDER BY c.id_conductor`,
     );
     return rows.map((r) => ({
       idConductor: Number(r.id_conductor),
-      nombre: r.nombre,
-      telefono: r.telefono,
+      nombre: descifrarNombre(r),
+      telefono: descifrarTelefono(r.telefono_enc, r.telefono) as string,
       documentosPendientes: Number(r.pendientes),
     }));
   }

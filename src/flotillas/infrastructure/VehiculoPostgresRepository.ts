@@ -1,11 +1,29 @@
 import { pool } from '../../core/db.js';
+import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 import { Vehiculo, VehiculoBuilder } from '../domain/Vehiculo.js';
 import type { IVehiculoRepository, VehiculoPendiente } from '../domain/repositories/IVehiculoRepository.js';
+
+function descifrarTelefono(telEnc: string | null, telPlano: string | null): string | null {
+  const dec = cipherCodec.decodeDeRow('usuarios', { telefono_enc: telEnc });
+  return ((dec.telefono as string | null) ?? telPlano) ?? null;
+}
+
+function descifrarNombre(r: {
+  nombre_enc: string | null; apellido_paterno_enc: string | null;
+  nombre: string | null; apellido_paterno: string | null;
+}): string {
+  const dec = cipherCodec.decodeDeRow('personas', {
+    nombre_enc: r.nombre_enc, apellido_paterno_enc: r.apellido_paterno_enc,
+  });
+  const n = ((dec.nombre as string | null) ?? r.nombre) ?? '';
+  const a = ((dec.apellido_paterno as string | null) ?? r.apellido_paterno) ?? '';
+  return `${n} ${a}`.trim();
+}
 
 interface Row {
   id_vehiculo: string | number;
   id_propietario: string | number;
-  placa: string;
+  placa: string | null;
   modelo: string | null;
   color: string | null;
   anio: number | null;
@@ -14,10 +32,11 @@ interface Row {
 
 function map(row: Row | undefined): Vehiculo | null {
   if (!row) return null;
+  const dec = cipherCodec.decodeDeRow('vehiculos', row as unknown as Record<string, unknown>);
   return new VehiculoBuilder()
     .idVehiculo(Number(row.id_vehiculo))
     .idPropietario(Number(row.id_propietario))
-    .placa(row.placa)
+    .placa(((dec.placa as string | null) ?? row.placa) as string)
     .modelo(row.modelo)
     .color(row.color)
     .anio(row.anio == null ? null : Number(row.anio))
@@ -29,11 +48,12 @@ export class VehiculoPostgresRepository implements IVehiculoRepository {
   async crear(a: {
     idPropietario: number; placa: string; modelo: string | null; color: string | null; anio: number | null; idMunicipio: number;
   }): Promise<Vehiculo> {
+    const enc = cipherCodec.encodeParaInsert('vehiculos', { placa: a.placa });
     const { rows } = await pool.query<Row>(
-      `INSERT INTO vehiculos (id_propietario, placa, modelo, color, anio, id_municipio)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO vehiculos (id_propietario, placa_enc, placa_bidx, modelo, color, anio, id_municipio)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [a.idPropietario, a.placa, a.modelo, a.color, a.anio, a.idMunicipio],
+      [a.idPropietario, enc.placa_enc, enc.placa_bidx, a.modelo, a.color, a.anio, a.idMunicipio],
     );
     return map(rows[0])!;
   }
@@ -72,25 +92,29 @@ export class VehiculoPostgresRepository implements IVehiculoRepository {
   }
 
   async listarConPendientes(): Promise<VehiculoPendiente[]> {
-    const { rows } = await pool.query<{ id_vehiculo: string | number; placa: string; propietario: string; telefono: string; pendientes: string | number }>(
+    const { rows } = await pool.query<{
+      id_vehiculo: string | number; placa_enc: string | null; placa: string | null;
+      nombre_enc: string | null; apellido_paterno_enc: string | null; nombre: string | null; apellido_paterno: string | null;
+      telefono_enc: string | null; telefono: string | null; pendientes: string | number;
+    }>(
       `SELECT v.id_vehiculo,
-              v.placa,
-              p.nombre || ' ' || p.apellido_paterno AS propietario,
-              u.telefono,
+              v.placa_enc, v.placa,
+              p.nombre_enc, p.apellido_paterno_enc, p.nombre, p.apellido_paterno,
+              u.telefono_enc, u.telefono,
               COUNT(*) FILTER (WHERE d.estado = 'pendiente') AS pendientes
          FROM vehiculos v
          JOIN usuarios u ON u.id_usuario = v.id_propietario
          JOIN personas p ON p.id_persona = v.id_propietario
          JOIN documentos_vehiculo d ON d.id_vehiculo = v.id_vehiculo
-        GROUP BY v.id_vehiculo, v.placa, p.nombre, p.apellido_paterno, u.telefono
+        GROUP BY v.id_vehiculo, v.placa_enc, v.placa, p.nombre_enc, p.apellido_paterno_enc, p.nombre, p.apellido_paterno, u.telefono_enc, u.telefono
        HAVING COUNT(*) FILTER (WHERE d.estado = 'pendiente') > 0
         ORDER BY v.id_vehiculo`,
     );
     return rows.map((r) => ({
       idVehiculo: Number(r.id_vehiculo),
-      placa: r.placa,
-      propietario: r.propietario,
-      telefono: r.telefono,
+      placa: ((cipherCodec.decodeDeRow('vehiculos', { placa_enc: r.placa_enc }).placa as string | null) ?? r.placa) as string,
+      propietario: descifrarNombre(r),
+      telefono: descifrarTelefono(r.telefono_enc, r.telefono) as string,
       documentosPendientes: Number(r.pendientes),
     }));
   }

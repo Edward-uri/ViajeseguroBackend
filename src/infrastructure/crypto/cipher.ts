@@ -1,6 +1,7 @@
 import { env } from '../../core/env.js';
 import { AesGcmCipher } from './AesGcmCipher.js';
 import { CipherConfigError } from '../../core/errors.js';
+import { CipherCodec } from '../../core/crypto/CipherCodec.js';
 import type { ICipher } from '../../core/crypto/ICipher.js';
 
 const TEST_ENC_KEY = Buffer.alloc(32, 7);
@@ -26,3 +27,6 @@ export const cipher: ICipher = buildCipher({
   indexKey: env.CIPHER_INDEX_KEY,
   allowTestDefault: env.NODE_ENV === 'test',
 });
+
+/** Codec compartido: cifra/descifra filas y calcula blind index según SENSITIVE_FIELDS. */
+export const cipherCodec = new CipherCodec(cipher);

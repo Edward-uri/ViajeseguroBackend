@@ -5,11 +5,12 @@ import type { Persona } from '../domain/Persona.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 import { TelefonoDuplicadoError } from '../domain/errors.js';
 import { CorreoYaRegistradoError } from '../../auth/domain/errors.js';
+import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 
 interface UsuarioRow {
   id_usuario: string | number;
   telefono: string | null;
-  correo_electronico: string;
+  correo_electronico: string | null;
   telefono_verificado: boolean;
   correo_verificado: boolean;
   rol: RolUsuario;
@@ -24,10 +25,14 @@ interface UsuarioRow {
 
 function mapUserRow(row: UsuarioRow | undefined): User | null {
   if (!row) return null;
+  // Descifra correo/telefono desde *_enc; durante la transición cae a la columna plana.
+  const dec = cipherCodec.decodeDeRow('usuarios', row as unknown as Record<string, unknown>);
+  const correo = (dec.correo_electronico as string | null) ?? row.correo_electronico;
+  const telefono = (dec.telefono as string | null) ?? row.telefono;
   return new UserBuilder()
     .idUsuario(typeof row.id_usuario === 'string' ? Number(row.id_usuario) : row.id_usuario)
-    .telefono(row.telefono)
-    .correoElectronico(row.correo_electronico)
+    .telefono(telefono)
+    .correoElectronico(correo as string)
     .rol(row.rol)
     .estadoCuenta(row.estado_cuenta)
     .telefonoVerificado(row.telefono_verificado)
@@ -43,18 +48,27 @@ function mapUserRow(row: UsuarioRow | undefined): User | null {
 
 export class UserPostgresRepository implements IUserRepository {
   async findByTelefono(telefono: string): Promise<User | null> {
-    const { rows } = await pool.query<UsuarioRow>(
-      'SELECT * FROM usuarios WHERE telefono = $1 LIMIT 1',
-      [telefono],
+    const bidx = cipherCodec.bidx('usuarios', 'telefono', telefono);
+    let { rows } = await pool.query<UsuarioRow>(
+      'SELECT * FROM usuarios WHERE telefono_bidx = $1 LIMIT 1',
+      [bidx],
     );
+    if (!rows[0]) {
+      // Fallback transición: filas aún no cifradas por el backfill.
+      ({ rows } = await pool.query<UsuarioRow>('SELECT * FROM usuarios WHERE telefono = $1 LIMIT 1', [telefono]));
+    }
     return mapUserRow(rows[0]);
   }
 
   async findByCorreo(correo: string): Promise<User | null> {
-    const { rows } = await pool.query<UsuarioRow>(
-      'SELECT * FROM usuarios WHERE correo_electronico = $1 LIMIT 1',
-      [correo],
+    const bidx = cipherCodec.bidx('usuarios', 'correo_electronico', correo);
+    let { rows } = await pool.query<UsuarioRow>(
+      'SELECT * FROM usuarios WHERE correo_electronico_bidx = $1 LIMIT 1',
+      [bidx],
     );
+    if (!rows[0]) {
+      ({ rows } = await pool.query<UsuarioRow>('SELECT * FROM usuarios WHERE correo_electronico = $1 LIMIT 1', [correo]));
+    }
     return mapUserRow(rows[0]);
   }
 
@@ -75,13 +89,15 @@ export class UserPostgresRepository implements IUserRepository {
     client?: PoolClient,
   ): Promise<User> {
     const exec = client ?? pool;
+    const enc = cipherCodec.encodeParaInsert('usuarios', { correo_electronico: correo, telefono: null });
     try {
       const { rows } = await exec.query<UsuarioRow>(
         `INSERT INTO usuarios
-           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
-         VALUES (NULL, $1, 'admin', 'activo', false, true, NULL, $2)
+           (correo_electronico_enc, correo_electronico_bidx, telefono_enc, telefono_bidx,
+            rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, 'admin', 'activo', false, true, NULL, $5)
          RETURNING *`,
-        [correo, passwordHash],
+        [enc.correo_electronico_enc, enc.correo_electronico_bidx, enc.telefono_enc, enc.telefono_bidx, passwordHash],
       );
       const created = mapUserRow(rows[0]);
       if (!created) throw new Error('No se pudo crear el admin');
@@ -96,26 +112,37 @@ export class UserPostgresRepository implements IUserRepository {
     { user, persona, passwordHash }: { user: User; persona: Persona; passwordHash?: string | null },
   ): Promise<User> {
     return withTransaction(async (client) => {
+      const enc = cipherCodec.encodeParaInsert('usuarios', {
+        correo_electronico: user.correoElectronico,
+        telefono: user.telefono,
+      });
       const { rows: uRows } = await client.query<UsuarioRow>(
         `INSERT INTO usuarios
-           (telefono, correo_electronico, rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+           (correo_electronico_enc, correo_electronico_bidx, telefono_enc, telefono_bidx,
+            rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING *`,
         [
-          user.telefono, user.correoElectronico, user.rol, user.estadoCuenta,
-          user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
+          enc.correo_electronico_enc, enc.correo_electronico_bidx, enc.telefono_enc, enc.telefono_bidx,
+          user.rol, user.estadoCuenta, user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
         ],
       );
       const created = mapUserRow(uRows[0]);
       if (!created || created.idUsuario === null) throw new Error('No se pudo crear el usuario');
 
+      const encP = cipherCodec.encodeParaInsert('personas', {
+        nombre: persona.nombre,
+        apellido_paterno: persona.apellidoPaterno,
+        apellido_materno: persona.apellidoMaterno,
+        fecha_nacimiento: persona.fechaNacimiento,
+      });
       await client.query(
         `INSERT INTO personas
-           (id_persona, nombre, apellido_paterno, apellido_materno, id_sexo, fecha_nacimiento)
+           (id_persona, nombre_enc, apellido_paterno_enc, apellido_materno_enc, id_sexo, fecha_nacimiento_enc)
          VALUES ($1, $2, $3, $4, $5, $6)`,
         [
-          created.idUsuario, persona.nombre, persona.apellidoPaterno,
-          persona.apellidoMaterno, persona.idSexo, persona.fechaNacimiento,
+          created.idUsuario, encP.nombre_enc, encP.apellido_paterno_enc,
+          encP.apellido_materno_enc, persona.idSexo, encP.fecha_nacimiento_enc,
         ],
       );
       return created;
@@ -165,11 +192,18 @@ export class UserPostgresRepository implements IUserRepository {
       if (prev.length === 0) throw new Error('Usuario no encontrado');
       const previousKey = prev[0]!.foto_perfil_s3_key;
 
+      // Anonimización: correo/teléfono pasan a tombstone cifrado y dejan de ser buscables (bidx null).
+      const anon = cipherCodec.anonimizar('usuarios', { correo_electronico: '', telefono: '' });
       await client.query(
-        `UPDATE usuarios
-            SET estado_cuenta = 'eliminado', foto_perfil_url = NULL, foto_perfil_s3_key = NULL
+        `UPDATE usuarios SET
+            estado_cuenta = 'eliminado',
+            foto_perfil_url = NULL, foto_perfil_s3_key = NULL,
+            correo_electronico = NULL, telefono = NULL,
+            correo_electronico_enc = $2, correo_electronico_bidx = $3,
+            telefono_enc = $4, telefono_bidx = $5,
+            password_hash = NULL
           WHERE id_usuario = $1`,
-        [idUsuario],
+        [idUsuario, anon.correo_electronico_enc, anon.correo_electronico_bidx, anon.telefono_enc, anon.telefono_bidx],
       );
       return { previousKey };
     });
@@ -188,27 +222,36 @@ export class UserPostgresRepository implements IUserRepository {
   ): Promise<User> {
     try {
       return await withTransaction(async (client) => {
+        const encP = cipherCodec.encodeParaInsert('personas', {
+          nombre: campos.nombre ?? null,
+          apellido_paterno: campos.apellidoPaterno ?? null,
+          apellido_materno: campos.apellidoMaterno ?? null,
+          fecha_nacimiento: campos.fechaNacimiento ?? null,
+        });
+        // COALESCE($, <campo>_enc): si el campo no viene, conserva el cifrado actual.
         await client.query(
           `UPDATE personas SET
-             nombre           = COALESCE($2, nombre),
-             apellido_paterno = COALESCE($3, apellido_paterno),
-             apellido_materno = COALESCE($4, apellido_materno),
-             id_sexo          = COALESCE($5, id_sexo),
-             fecha_nacimiento = COALESCE($6, fecha_nacimiento)
+             nombre = NULL, apellido_paterno = NULL, apellido_materno = NULL, fecha_nacimiento = NULL,
+             nombre_enc           = COALESCE($2, nombre_enc),
+             apellido_paterno_enc = COALESCE($3, apellido_paterno_enc),
+             apellido_materno_enc = COALESCE($4, apellido_materno_enc),
+             id_sexo              = COALESCE($5, id_sexo),
+             fecha_nacimiento_enc = COALESCE($6, fecha_nacimiento_enc)
            WHERE id_persona = $1`,
           [
             idUsuario,
-            campos.nombre ?? null,
-            campos.apellidoPaterno ?? null,
-            campos.apellidoMaterno ?? null,
+            encP.nombre_enc,
+            encP.apellido_paterno_enc,
+            encP.apellido_materno_enc,
             campos.idSexo ?? null,
-            campos.fechaNacimiento ?? null,
+            encP.fecha_nacimiento_enc,
           ],
         );
         if (campos.telefono !== undefined) {
+          const enc = cipherCodec.encodeParaInsert('usuarios', { telefono: campos.telefono });
           await client.query(
-            'UPDATE usuarios SET telefono = $2 WHERE id_usuario = $1',
-            [idUsuario, campos.telefono],
+            'UPDATE usuarios SET telefono = NULL, telefono_enc = $2, telefono_bidx = $3 WHERE id_usuario = $1',
+            [idUsuario, enc.telefono_enc, enc.telefono_bidx],
           );
         }
         return idUsuario;

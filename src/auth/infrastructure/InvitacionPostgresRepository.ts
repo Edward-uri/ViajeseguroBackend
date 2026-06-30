@@ -1,12 +1,13 @@
 import { pool } from '../../core/db.js';
 import type { PoolClient } from 'pg';
+import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 import type {
   IInvitacionRepository, InvitacionRow, EstadoInvitacion,
 } from '../domain/repositories/IInvitacionRepository.js';
 
 interface Row {
   id_invitacion: string | number;
-  correo: string;
+  correo: string | null;
   token_hash: string;
   invitado_por: string | number;
   estado: EstadoInvitacion;
@@ -16,9 +17,10 @@ interface Row {
 }
 
 function mapRow(r: Row): InvitacionRow {
+  const dec = cipherCodec.decodeDeRow('invitaciones_admin', r as unknown as Record<string, unknown>);
   return {
     idInvitacion: Number(r.id_invitacion),
-    correo: r.correo,
+    correo: ((dec.correo as string | null) ?? r.correo) as string,
     tokenHash: r.token_hash,
     invitadoPor: Number(r.invitado_por),
     estado: r.estado,
@@ -30,10 +32,17 @@ function mapRow(r: Row): InvitacionRow {
 
 export class InvitacionPostgresRepository implements IInvitacionRepository {
   async pendientePorCorreo(correo: string): Promise<InvitacionRow | null> {
-    const { rows } = await pool.query<Row>(
-      `SELECT * FROM invitaciones_admin WHERE correo = $1 AND estado = 'pendiente' LIMIT 1`,
-      [correo],
+    const bidx = cipherCodec.bidx('invitaciones_admin', 'correo', correo);
+    let { rows } = await pool.query<Row>(
+      `SELECT * FROM invitaciones_admin WHERE correo_bidx = $1 AND estado = 'pendiente' LIMIT 1`,
+      [bidx],
     );
+    if (!rows[0]) {
+      ({ rows } = await pool.query<Row>(
+        `SELECT * FROM invitaciones_admin WHERE correo = $1 AND estado = 'pendiente' LIMIT 1`,
+        [correo],
+      ));
+    }
     return rows[0] ? mapRow(rows[0]) : null;
   }
 
@@ -51,10 +60,11 @@ export class InvitacionPostgresRepository implements IInvitacionRepository {
       );
       return mapRow(rows[0]!);
     }
+    const enc = cipherCodec.encodeParaInsert('invitaciones_admin', { correo });
     const { rows } = await pool.query<Row>(
-      `INSERT INTO invitaciones_admin (correo, token_hash, invitado_por, expira_en)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [correo, tokenHash, invitadoPor, expiraEn],
+      `INSERT INTO invitaciones_admin (correo_enc, correo_bidx, token_hash, invitado_por, expira_en)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [enc.correo_enc, enc.correo_bidx, tokenHash, invitadoPor, expiraEn],
     );
     return mapRow(rows[0]!);
   }

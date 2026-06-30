@@ -4,15 +4,21 @@ import { env } from './core/env.js';
 import { pool } from './core/db.js';
 import { createSocketServer } from './realtime/socketServer.js';
 import { socketNotifier } from './viajes/infrastructure/dependencies.js';
+import { backfillCifrado } from './infrastructure/crypto/backfill.js';
 
 const app = buildApp();
 const server = http.createServer(app);
 const io = createSocketServer(server);
 socketNotifier.attach(io);
 
-server.listen(env.PORT, () => {
-  console.log(`Backend ViajeSeguro escuchando en :${env.PORT} (${env.NODE_ENV})`);
-});
+// Cifra PII pendiente (idempotente) antes de servir; un fallo no impide arrancar.
+backfillCifrado()
+  .catch((e) => console.error('[backfill] error (continuando):', e))
+  .finally(() => {
+    server.listen(env.PORT, () => {
+      console.log(`Backend ViajeSeguro escuchando en :${env.PORT} (${env.NODE_ENV})`);
+    });
+  });
 
 async function shutdown(signal: string): Promise<void> {
   console.log(`\nRecibido ${signal}, cerrando...`);
