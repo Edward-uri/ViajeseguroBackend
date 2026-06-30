@@ -63,6 +63,9 @@ const envSchema = z.object({
   CIPHER_KEY: z.string().min(1).optional(),
   /** Llave HMAC (32 bytes en base64) para el blind index. Debe ser distinta de CIPHER_KEY. */
   CIPHER_INDEX_KEY: z.string().min(1).optional(),
+
+  /** URL del modelo de zonas calientes (proxy server-to-server, evita CORS en web). */
+  ZONAS_URL: z.string().url().default('https://zonas.codigoverse.space'),
 });
 
 const parsed = envSchema.safeParse(process.env);

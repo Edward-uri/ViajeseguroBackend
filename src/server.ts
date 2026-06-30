@@ -15,6 +15,7 @@ import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVeh
 import { viajesRoutes, tarifasRoutes, dispositivosRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
 import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
 import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
+import { zonasRoutes } from './zonas/zonasRoutes.js';
 import { authGlobal } from './auth/infrastructure/rateLimiters.js';
 import { eliminarCuentaController } from './legal/infrastructure/eliminarCuentaController.js';
 
@@ -52,6 +53,7 @@ export function buildApp(): Express {
   app.use('/api/admin', adminInvitacionesRoutes);
   app.use('/api/viajes', viajesRoutes);
   app.use('/api/dispositivos', dispositivosRoutes);
+  app.use('/api/zonas', zonasRoutes);
 
   app.use(errorMiddleware);
 
