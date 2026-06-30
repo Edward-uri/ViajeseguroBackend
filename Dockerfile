@@ -31,4 +31,4 @@ EXPOSE 3000
 # Arranca como root SOLO para ajustar el dueño del volumen montado (Coolify lo monta como root)
 # y luego baja privilegios a 'node' con su-exec. Migra + seed (idempotentes) y arranca.
 # `exec` para que SIGTERM llegue a node (shutdown limpio). Si la DB no esta lista, Coolify reinicia.
-CMD ["sh", "-c", "mkdir -p \"$UPLOADS_DIR\" && chown node:node \"$UPLOADS_DIR\" && node scripts/migrate.mjs && node scripts/migrate.mjs --seed && exec su-exec node node dist/index.js"]
+CMD ["sh", "-c", "mkdir -p \"$UPLOADS_DIR\" && chown -R node:node \"$UPLOADS_DIR\" && node scripts/migrate.mjs && node scripts/migrate.mjs --seed && exec su-exec node node dist/index.js"]
