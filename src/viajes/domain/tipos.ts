@@ -12,7 +12,7 @@ export interface Coordenada { lat: number; lng: number; }
 export const TRANSICIONES: Record<EstadoViaje, EstadoViaje[]> = {
   solicitado: ['aceptado', 'cancelado'],
   aceptado: ['en_curso', 'cancelado'],
-  en_curso: ['completado'],
+  en_curso: ['completado', 'cancelado'],
   completado: [],
   cancelado: [],
 };

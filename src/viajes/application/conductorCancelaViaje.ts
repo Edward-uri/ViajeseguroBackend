@@ -5,11 +5,21 @@ import { ViajeNoEncontradoError, NoEsTuViajeError, TransicionInvalidaError } fro
 import { puedeTransicionar } from '../domain/tipos.js';
 
 export function conductorCancelaViaje(deps: { viajes: IViajeRepository; notifier: IEventoViajeNotifier }) {
-  return async (idViaje: number, idConductor: number): Promise<PublicViaje> => {
+  return async (idViaje: number, idConductor: number, motivo?: string | null): Promise<PublicViaje> => {
     const viaje = await deps.viajes.porId(idViaje);
     if (!viaje) throw new ViajeNoEncontradoError();
     if (viaje.idConductor !== idConductor) throw new NoEsTuViajeError();
-    // Solo desde 'aceptado' (no en_curso): se devuelve al pool, no se cancela.
+
+    // Desde 'en_curso' ya no se puede re-agrupar: se cancela el viaje.
+    if (viaje.estado === 'en_curso') {
+      const actualizado = await deps.viajes.cambiarEstado({
+        idViaje, nuevo: 'cancelado', esperado: 'en_curso', canceladoPor: 'conductor', motivo: motivo ?? null,
+      });
+      await deps.notifier.cambioEstado(actualizado.toJSON());
+      return actualizado.toJSON();
+    }
+
+    // Desde 'aceptado': se devuelve al pool ("soltar"), no se cancela.
     if (viaje.estado !== 'aceptado' || !puedeTransicionar(viaje.estado, 'cancelado'))
       throw new TransicionInvalidaError(viaje.estado, 'solicitado');
 
