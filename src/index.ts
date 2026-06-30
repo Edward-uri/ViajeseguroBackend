@@ -3,7 +3,7 @@ import { buildApp } from './server.js';
 import { env } from './core/env.js';
 import { pool } from './core/db.js';
 import { createSocketServer } from './realtime/socketServer.js';
-import { socketNotifier } from './viajes/infrastructure/dependencies.js';
+import { socketNotifier, viajeUseCases } from './viajes/infrastructure/dependencies.js';
 import { backfillCifrado } from './infrastructure/crypto/backfill.js';
 
 const app = buildApp();
@@ -19,6 +19,12 @@ backfillCifrado()
       console.log(`Backend ViajeSeguro escuchando en :${env.PORT} (${env.NODE_ENV})`);
     });
   });
+
+// Barre solicitudes vencidas cada 60s; un fallo no debe tumbar el proceso.
+const expiracionInterval = setInterval(() => {
+  void viajeUseCases.expirarViajes().catch((e) => console.error('[expirarViajes] error:', e));
+}, 60_000);
+expiracionInterval.unref();
 
 async function shutdown(signal: string): Promise<void> {
   console.log(`\nRecibido ${signal}, cerrando...`);

@@ -1,5 +1,6 @@
 import type { IEventoViajeNotifier } from '../domain/ports/IEventoViajeNotifier.js';
 import type { PublicViaje } from '../domain/Viaje.js';
+import type { EstadoViaje } from '../domain/tipos.js';
 import type { AppServer } from '../../realtime/events.js';
 import { usuarioRoom, conductorRoom, municipioRoom } from '../../realtime/rooms.js';
 
@@ -24,8 +25,14 @@ export class SocketEventoViajeNotifier implements IEventoViajeNotifier {
     if (v.idConductor != null) this.io?.to(conductorRoom(v.idConductor)).emit('viaje:cambio_estado', payload);
   }
 
-  async viajeYaNoDisponible(idMunicipio: number, idViaje: number): Promise<void> {
-    this.io?.to(municipioRoom(idMunicipio)).emit('viaje:no_disponible', { idViaje });
+  async viajeYaNoDisponible(idMunicipio: number, idViaje: number, idConductorExcluido?: number): Promise<void> {
+    let target = this.io?.to(municipioRoom(idMunicipio));
+    if (idConductorExcluido != null) target = target?.except(conductorRoom(idConductorExcluido));
+    target?.emit('viaje:no_disponible', { idViaje });
+  }
+
+  async cambioEstadoPasajero(idPasajero: number, idViaje: number, estado: EstadoViaje): Promise<void> {
+    this.io?.to(usuarioRoom(idPasajero)).emit('viaje:cambio_estado', { idViaje, estado });
   }
 
   async ubicacionConductor(args: { idViaje: number; idPasajero: number; lat: number; lng: number }): Promise<void> {

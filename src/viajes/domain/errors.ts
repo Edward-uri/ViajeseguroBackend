@@ -30,3 +30,6 @@ export class ConductorOcupadoError extends ConflictError {
 export class PasajeroConViajeActivoError extends ConflictError {
   constructor() { super('Ya tienes un viaje en curso'); }
 }
+export class TarifaCambiadaError extends ConflictError {
+  constructor() { super('La tarifa cambió, vuelve a estimar'); }
+}

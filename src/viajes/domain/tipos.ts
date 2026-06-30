@@ -23,3 +23,6 @@ export function puedeTransicionar(de: EstadoViaje, a: EstadoViaje): boolean {
 
 /** Cupo de un mototaxi: se cobra el mismo precio fijo por cada pasajero. */
 export const MAX_PASAJEROS = 3;
+
+/** Una solicitud sin conductor expira tras estos minutos y se cancela por el sistema. */
+export const MINUTOS_EXPIRACION_SOLICITUD = 5;

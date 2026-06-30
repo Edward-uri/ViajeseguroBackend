@@ -4,7 +4,7 @@ import type { IEventoViajeNotifier } from '../domain/ports/IEventoViajeNotifier.
 import type { IMunicipioRepository } from '../../municipios/domain/repositories/IMunicipioRepository.js';
 import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
 import type { PublicViaje } from '../domain/Viaje.js';
-import { MunicipioInvalidoError, PasajeroConViajeActivoError } from '../domain/errors.js';
+import { MunicipioInvalidoError, PasajeroConViajeActivoError, TarifaCambiadaError } from '../domain/errors.js';
 
 export interface CrearViajeDTO {
   idPasajero: number;
@@ -13,6 +13,7 @@ export interface CrearViajeDTO {
   destino: { lat: number; lng: number; texto?: string | null };
   idZonaDestino?: number;
   personas: number;
+  tarifaEstimada?: number;
 }
 
 export function crearViaje(deps: {
@@ -37,6 +38,9 @@ export function crearViaje(deps: {
       origen,
       destino,
     });
+
+    // Si el cliente mostró una tarifa y la vigente cambió, no cobrar distinto a lo visto.
+    if (input.tarifaEstimada != null && input.tarifaEstimada !== t.tarifa) throw new TarifaCambiadaError();
 
     const viaje = await deps.viajes.crear({
       idPasajero: input.idPasajero,

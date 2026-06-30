@@ -63,6 +63,13 @@ export const aceptarViajeController: RequestHandler = async (req, res, next) => 
   } catch (e) { next(e); }
 };
 
+export const soltarViajeController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    res.json(await viajeUseCases.conductorCancelaViaje(S.IdParamSchema.parse(req.params.id), req.user.sub));
+  } catch (e) { next(e); }
+};
+
 export const iniciarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();

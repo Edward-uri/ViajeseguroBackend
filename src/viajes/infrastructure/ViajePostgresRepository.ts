@@ -1,7 +1,8 @@
 import { pool, withTransaction } from '../../core/db.js';
 import { Viaje } from '../domain/Viaje.js';
-import { TransicionInvalidaError } from '../domain/errors.js';
+import { TransicionInvalidaError, ConductorOcupadoError } from '../domain/errors.js';
 import type { EstadoViaje, TipoServicio, CanceladoPor } from '../domain/tipos.js';
+import { MINUTOS_EXPIRACION_SOLICITUD } from '../domain/tipos.js';
 import type {
   IViajeRepository,
   CrearViajeInput,
@@ -65,14 +66,15 @@ export class ViajePostgresRepository implements IViajeRepository {
       const { rows } = await client.query<ViajeRow>(
         `INSERT INTO viajes
            (id_pasajero, id_municipio, tipo_servicio, origen_lat, origen_lng, origen_texto,
-            destino_lat, destino_lng, destino_texto, id_zona_destino, distancia_km, num_pasajeros, tarifa, tarifa_estimada)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+            destino_lat, destino_lng, destino_texto, id_zona_destino, distancia_km, num_pasajeros, tarifa, tarifa_estimada, expira_en)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14, NOW() + ($15 || ' minutes')::interval)
          RETURNING *`,
         [
           input.idPasajero, input.idMunicipio, input.tipoServicio ?? 'viaje',
           input.origen.lat, input.origen.lng, input.origen.texto ?? null,
           input.destino.lat, input.destino.lng, input.destino.texto ?? null,
           input.idZonaDestino, input.distanciaKm, input.numPasajeros, input.tarifa, input.tarifaEstimada,
+          String(MINUTOS_EXPIRACION_SOLICITUD),
         ],
       );
       const viaje = mapViaje(rows[0]);
@@ -115,6 +117,9 @@ export class ViajePostgresRepository implements IViajeRepository {
         sets.push('fecha_aceptacion = NOW()');
         if (input.idConductor != null) { sets.push(`id_conductor = $${i++}`); params.push(input.idConductor); }
         if (input.idVehiculo != null) { sets.push(`id_vehiculo = $${i++}`); params.push(input.idVehiculo); }
+      } else if (input.nuevo === 'solicitado') {
+        // Re-pool: el conductor suelta el viaje y vuelve a la lista sin conductor.
+        if (input.idConductor === null) sets.push('id_conductor = NULL, id_vehiculo = NULL, fecha_aceptacion = NULL');
       } else if (input.nuevo === 'en_curso') {
         sets.push('fecha_inicio = NOW()');
       } else if (input.nuevo === 'completado') {
@@ -126,10 +131,18 @@ export class ViajePostgresRepository implements IViajeRepository {
       const esperadoIdx = i++;
       params.push(input.esperado);
       // Guarda de estado: si otro proceso ya cambió el viaje, el UPDATE no matchea (rowCount 0).
-      const { rows } = await client.query<ViajeRow>(
-        `UPDATE viajes SET ${sets.join(', ')} WHERE id_viaje = $1 AND estado = $${esperadoIdx} RETURNING *`,
-        params,
-      );
+      let rows: ViajeRow[];
+      try {
+        ({ rows } = await client.query<ViajeRow>(
+          `UPDATE viajes SET ${sets.join(', ')} WHERE id_viaje = $1 AND estado = $${esperadoIdx} RETURNING *`,
+          params,
+        ));
+      } catch (e) {
+        if (e instanceof Error && (e as { code?: string }).code === '23505'
+            && String((e as { constraint?: string }).constraint).includes('uq_viaje_conductor_activo'))
+          throw new ConductorOcupadoError();
+        throw e;
+      }
       const viaje = mapViaje(rows[0]);
       if (!viaje) throw new TransicionInvalidaError(input.esperado, input.nuevo);
       await client.query('INSERT INTO viaje_estado_historial (id_viaje, estado) VALUES ($1, $2)', [input.idViaje, input.nuevo]);
@@ -197,5 +210,14 @@ export class ViajePostgresRepository implements IViajeRepository {
       [idPasajero],
     );
     return rowCount === 1;
+  }
+
+  async expirarVencidos(): Promise<{ idViaje: number; idMunicipio: number; idPasajero: number }[]> {
+    const { rows } = await pool.query<{ id_viaje: string | number; id_municipio: string | number; id_pasajero: string | number }>(
+      `UPDATE viajes SET estado='cancelado', cancelado_por='sistema', motivo_cancelacion='Sin conductor disponible'
+        WHERE estado='solicitado' AND expira_en IS NOT NULL AND expira_en < NOW()
+        RETURNING id_viaje, id_municipio, id_pasajero`,
+    );
+    return rows.map((r) => ({ idViaje: Number(r.id_viaje), idMunicipio: Number(r.id_municipio), idPasajero: Number(r.id_pasajero) }));
   }
 }

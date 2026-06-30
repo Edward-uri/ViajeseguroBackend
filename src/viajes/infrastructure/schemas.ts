@@ -13,6 +13,7 @@ export const CrearViajeSchema = z.object({
   destino: coord,
   idZonaDestino: z.number().int().positive().optional(),
   personas: z.number().int().min(1).max(MAX_PASAJEROS).default(1),
+  tarifaEstimada: z.number().finite().positive().optional(),
 });
 
 export const CancelarViajeSchema = z.object({ motivo: z.string().max(255).optional() });

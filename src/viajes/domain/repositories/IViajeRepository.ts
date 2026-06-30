@@ -19,8 +19,9 @@ export interface CambiarEstadoInput {
   nuevo: EstadoViaje;
   /** Estado actual esperado: el UPDATE solo aplica si coincide (cierra carreras de aceptación). */
   esperado: EstadoViaje;
-  idConductor?: number;
-  idVehiculo?: number;
+  /** null al volver a 'solicitado' limpia el conductor/vehículo (re-pool). */
+  idConductor?: number | null;
+  idVehiculo?: number | null;
   canceladoPor?: CanceladoPor;
   motivo?: string | null;
 }
@@ -48,4 +49,6 @@ export interface IViajeRepository {
   conductorConViajeActivo(idConductor: number): Promise<boolean>;
   /** ¿El pasajero ya tiene un viaje solicitado, aceptado o en curso? */
   pasajeroConViajeActivo(idPasajero: number): Promise<boolean>;
+  /** Cancela por sistema las solicitudes vencidas. Devuelve las afectadas. */
+  expirarVencidos(): Promise<{ idViaje: number; idMunicipio: number; idPasajero: number }[]>;
 }

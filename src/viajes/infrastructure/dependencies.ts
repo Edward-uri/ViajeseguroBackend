@@ -15,6 +15,8 @@ import { getViaje } from '../application/getViaje.js';
 import { listarMisViajes } from '../application/listarMisViajes.js';
 import { getViajeActivo } from '../application/getViajeActivo.js';
 import { cancelarViaje } from '../application/cancelarViaje.js';
+import { conductorCancelaViaje } from '../application/conductorCancelaViaje.js';
+import { expirarViajes } from '../application/expirarViajes.js';
 import { aceptarViaje } from '../application/aceptarViaje.js';
 import { iniciarViaje } from '../application/iniciarViaje.js';
 import { completarViaje } from '../application/completarViaje.js';
@@ -62,6 +64,8 @@ export const viajeUseCases = {
   listarMisViajes: listarMisViajes({ viajes }),
   getViajeActivo: getViajeActivo({ viajes }),
   cancelarViaje: cancelarViaje({ viajes, notifier }),
+  conductorCancelaViaje: conductorCancelaViaje({ viajes, notifier }),
+  expirarViajes: expirarViajes({ viajes, notifier }),
   aceptarViaje: aceptarViaje({ viajes, notifier, push, autorizacion: autorizacionVehiculo, municipioDelConductor: conductorUseCases.municipioOperativo }),
   iniciarViaje: iniciarViaje({ viajes, notifier }),
   completarViaje: completarViaje({ viajes, notifier }),

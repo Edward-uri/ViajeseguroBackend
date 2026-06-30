@@ -35,7 +35,16 @@ export const getMeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
     const { user, persona } = await getMeUseCase.execute(req.user.sub);
-    res.json({ data: { ...toServingUserJSON(user), persona } });
+    // Bloque "datos del usuario": datos personales + correo/teléfono juntos.
+    const datos = {
+      nombre: persona?.nombre ?? null,
+      apellidoPaterno: persona?.apellidoPaterno ?? null,
+      apellidoMaterno: persona?.apellidoMaterno ?? null,
+      fechaNacimiento: persona?.fechaNacimiento ?? null,
+      correo: user.correoElectronico,
+      telefono: user.telefono,
+    };
+    res.json({ data: { ...toServingUserJSON(user), persona: datos } });
   } catch (err) {
     next(err);
   }

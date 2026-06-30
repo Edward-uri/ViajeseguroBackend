@@ -34,7 +34,7 @@ export function aceptarViaje(deps: {
 
     const actualizado = await deps.viajes.cambiarEstado({ idViaje, nuevo: 'aceptado', esperado: viaje.estado, idConductor, idVehiculo });
     await deps.notifier.viajeAceptado(actualizado.toJSON());
-    await deps.notifier.viajeYaNoDisponible(viaje.data.idMunicipio, idViaje);
+    await deps.notifier.viajeYaNoDisponible(viaje.data.idMunicipio, idViaje, idConductor);
     await deps.push.enviar({ idUsuario: viaje.idPasajero, titulo: 'Tu conductor va en camino', cuerpo: 'Un conductor aceptó tu viaje.' });
     return actualizado.toJSON();
   };
