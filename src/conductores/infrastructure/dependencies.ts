@@ -17,6 +17,9 @@ import { getDisponibilidad } from '../application/getDisponibilidad.js';
 import { getStats } from '../application/getStats.js';
 import { getGanancias } from '../application/getGanancias.js';
 import { flotillaUseCases } from '../../flotillas/infrastructure/dependencies.js';
+import { DispositivoPostgresRepository } from '../../viajes/infrastructure/DispositivoPostgresRepository.js';
+import { pickPushSender } from '../../viajes/infrastructure/pushSenderFactory.js';
+import { env } from '../../core/env.js';
 
 // El conductor es dueño de su moto: su vehículo PROPIO en flotillas (idPropietario = idConductor).
 async function vehiculoDelConductor(idConductor: number) {
@@ -34,12 +37,13 @@ const storage = new LocalDocumentStorage();
 const disponibilidad = new DisponibilidadPostgresRepository();
 export const sesiones = new SesionPostgresRepository();
 const estadisticas = new EstadisticasPostgresRepository();
+const push = pickPushSender(env.FCM_SERVICE_ACCOUNT, new DispositivoPostgresRepository());
 
 export const conductorUseCases = {
   submitLicencia: submitLicencia({ conductores, municipios: municipioRepository }),
   uploadDocumento: uploadDocumento({ conductores, documentos, storage }),
   getOnboarding: getOnboarding({ conductores, documentos, vehiculoDelConductor }),
-  reviewDocumento: reviewDocumento({ conductores, documentos }),
+  reviewDocumento: reviewDocumento({ conductores, documentos, push }),
   listConductoresPendientes: listConductoresPendientes({ conductores }),
   getArchivo: getArchivo({ documentos, storage }),
   municipioOperativo: municipioOperativo({ conductores }),

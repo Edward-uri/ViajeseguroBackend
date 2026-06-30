@@ -1,11 +1,13 @@
 import type { IConductorRepository } from '../domain/repositories/IConductorRepository.js';
 import type { IDocumentoConductorRepository } from '../domain/repositories/IDocumentoConductorRepository.js';
+import type { IPushSender } from '../../viajes/domain/ports/IPushSender.js';
 import { calcularEstadoVerificacion, type EstadoVerificacion } from '../domain/tipos.js';
 import { DocumentoNoEncontradoError } from '../domain/errors.js';
 
 export function reviewDocumento(deps: {
   conductores: IConductorRepository;
   documentos: IDocumentoConductorRepository;
+  push: IPushSender;
 }) {
   return async (input: {
     idDocumento: number;
@@ -33,6 +35,38 @@ export function reviewDocumento(deps: {
         descripcion: 'Documentos aprobados',
       });
     }
+
+    // Avisa al conductor el resultado de la revisión (best-effort: no rompe la revisión).
+    void notificar(deps.push, doc.idConductor, input.estado, estadoVerificacion, input.motivoRechazo);
+
     return { documento: actualizado.toJSON(), estadoVerificacion };
   };
+}
+
+async function notificar(
+  push: IPushSender,
+  idConductor: number,
+  estado: 'aprobado' | 'rechazado',
+  estadoVerificacion: EstadoVerificacion,
+  motivoRechazo: string | null,
+): Promise<void> {
+  let titulo: string;
+  let cuerpo: string;
+  if (estado === 'rechazado') {
+    titulo = 'Documento rechazado';
+    cuerpo = motivoRechazo
+      ? `Uno de tus documentos fue rechazado: ${motivoRechazo}. Vuelve a subirlo.`
+      : 'Uno de tus documentos fue rechazado. Vuelve a subirlo desde la app.';
+  } else if (estadoVerificacion === 'aprobado') {
+    titulo = '¡Documentos aprobados!';
+    cuerpo = 'Ya puedes registrar tu vehículo y empezar a recibir viajes.';
+  } else {
+    titulo = 'Documento aprobado';
+    cuerpo = 'Uno de tus documentos fue aprobado. Te avisamos cuando estén todos.';
+  }
+  try {
+    await push.enviar({ idUsuario: idConductor, titulo, cuerpo, data: { tipo: 'revision_documentos', estadoVerificacion } });
+  } catch {
+    // Best-effort: si el push falla, la revisión ya quedó registrada.
+  }
 }
