@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { MAX_PASAJEROS } from '../domain/tipos.js';
 
 const coord = z.object({
   lat: z.number().min(-90).max(90),
@@ -11,6 +12,7 @@ export const CrearViajeSchema = z.object({
   origen: coord,
   destino: coord,
   idZonaDestino: z.number().int().positive().optional(),
+  personas: z.number().int().min(1).max(MAX_PASAJEROS).default(1),
 });
 
 export const CancelarViajeSchema = z.object({ motivo: z.string().max(255).optional() });

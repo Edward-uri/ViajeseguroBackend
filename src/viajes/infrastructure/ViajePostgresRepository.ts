@@ -18,6 +18,7 @@ interface ViajeRow {
   destino_lat: string | null; destino_lng: string | null; destino_texto: string | null;
   id_zona_destino: string | number | null;
   distancia_km: string | null;
+  num_pasajeros: string | number;
   tarifa: string;
   tarifa_estimada: boolean;
   estado: EstadoViaje;
@@ -44,6 +45,7 @@ function mapViaje(row: ViajeRow | undefined): Viaje | null {
     destinoLat: num(row.destino_lat), destinoLng: num(row.destino_lng), destinoTexto: row.destino_texto,
     idZonaDestino: row.id_zona_destino == null ? null : Number(row.id_zona_destino),
     distanciaKm: num(row.distancia_km),
+    numPasajeros: Number(row.num_pasajeros),
     tarifa: Number(row.tarifa),
     tarifaEstimada: row.tarifa_estimada,
     estado: row.estado,
@@ -62,14 +64,14 @@ export class ViajePostgresRepository implements IViajeRepository {
       const { rows } = await client.query<ViajeRow>(
         `INSERT INTO viajes
            (id_pasajero, id_municipio, tipo_servicio, origen_lat, origen_lng, origen_texto,
-            destino_lat, destino_lng, destino_texto, id_zona_destino, distancia_km, tarifa, tarifa_estimada)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+            destino_lat, destino_lng, destino_texto, id_zona_destino, distancia_km, num_pasajeros, tarifa, tarifa_estimada)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
          RETURNING *`,
         [
           input.idPasajero, input.idMunicipio, input.tipoServicio ?? 'viaje',
           input.origen.lat, input.origen.lng, input.origen.texto ?? null,
           input.destino.lat, input.destino.lng, input.destino.texto ?? null,
-          input.idZonaDestino, input.distanciaKm, input.tarifa, input.tarifaEstimada,
+          input.idZonaDestino, input.distanciaKm, input.numPasajeros, input.tarifa, input.tarifaEstimada,
         ],
       );
       const viaje = mapViaje(rows[0]);

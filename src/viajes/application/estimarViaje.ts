@@ -9,11 +9,14 @@ export interface EstimarViajeDTO {
   origen: { lat: number; lng: number; texto?: string | null };
   destino: { lat: number; lng: number; texto?: string | null };
   idZonaDestino?: number;
+  personas: number;
 }
 
 export interface EstimacionViaje {
   distanciaKm: number;
   duracionMin: number;
+  personas: number;
+  tarifaPorPersona: number;
   tarifa: number;
   tarifaEstimada: boolean;
   idZonaDestino: number | null;
@@ -34,6 +37,7 @@ export function estimarViaje(deps: {
     const r = await deps.rutas.estimar(origen, destino);
     const t = await deps.tarifas.calcular({
       idMunicipio: input.idMunicipio,
+      personas: input.personas,
       idZonaDestino: input.idZonaDestino,
       origen,
       destino,
@@ -42,6 +46,8 @@ export function estimarViaje(deps: {
     return {
       distanciaKm: r.distanciaKm,
       duracionMin: r.duracionMin,
+      personas: input.personas,
+      tarifaPorPersona: t.tarifaPorPersona,
       tarifa: t.tarifa,
       tarifaEstimada: t.estimada,
       idZonaDestino: t.idZonaDestino,

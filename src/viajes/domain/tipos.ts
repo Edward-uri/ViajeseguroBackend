@@ -21,6 +21,5 @@ export function puedeTransicionar(de: EstadoViaje, a: EstadoViaje): boolean {
   return TRANSICIONES[de].includes(a);
 }
 
-/** Fallback de tarifa cuando no hay zona: banderazo + km * precio. */
-export const BANDERAZO = 10;
-export const PRECIO_KM = 5;
+/** Cupo de un mototaxi: se cobra el mismo precio fijo por cada pasajero. */
+export const MAX_PASAJEROS = 3;

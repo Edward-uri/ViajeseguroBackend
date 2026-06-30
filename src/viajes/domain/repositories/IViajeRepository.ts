@@ -9,6 +9,7 @@ export interface CrearViajeInput {
   destino: { lat: number; lng: number; texto?: string | null };
   idZonaDestino: number | null;
   distanciaKm: number | null;
+  numPasajeros: number;
   tarifa: number;
   tarifaEstimada: boolean;
 }

@@ -1,31 +1,38 @@
 import type { Coordenada } from '../domain/tipos.js';
-import { BANDERAZO, PRECIO_KM } from '../domain/tipos.js';
 import type { ITarifaCalculator } from '../domain/ports/ITarifaCalculator.js';
-import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
 import type { IZonaTarifaRepository } from '../domain/repositories/IZonaTarifaRepository.js';
 
 export class TarifaPorZona implements ITarifaCalculator {
-  constructor(private zonas: IZonaTarifaRepository, private rutas: IRouteEstimator) {}
+  constructor(private zonas: IZonaTarifaRepository) {}
 
   async calcular(input: {
     idMunicipio: number;
+    personas: number;
     idZonaDestino?: number;
     destino?: Coordenada;
     origen?: Coordenada;
-  }): Promise<{ tarifa: number; idZonaDestino: number | null; estimada: boolean }> {
+  }): Promise<{ tarifa: number; tarifaPorPersona: number; idZonaDestino: number | null; estimada: boolean }> {
+    // El precio SIEMPRE sale fijo de la tabla de tarifas (nunca calculado por km).
+    let precio: number | null = null;
+    let idZonaDestino: number | null = null;
+    let estimada = false;
+
     if (input.idZonaDestino) {
       const t = await this.zonas.tarifaDeZona(input.idZonaDestino);
-      if (t) return { tarifa: Number(t.precio), idZonaDestino: input.idZonaDestino, estimada: false };
+      if (t) { precio = t.precio; idZonaDestino = input.idZonaDestino; }
     }
-    if (input.destino) {
+    if (precio == null && input.destino) {
       const z = await this.zonas.zonaMasCercana(input.idMunicipio, input.destino);
-      if (z) return { tarifa: Number(z.precio), idZonaDestino: z.idZona, estimada: false };
+      if (z) { precio = z.precio; idZonaDestino = z.idZona; }
     }
-    if (input.origen && input.destino) {
-      const { distanciaKm } = await this.rutas.estimar(input.origen, input.destino);
-      const tarifa = Math.round((BANDERAZO + distanciaKm * PRECIO_KM) * 100) / 100;
-      return { tarifa, idZonaDestino: null, estimada: true };
+    if (precio == null) {
+      // Sin zona resuelta -> precio fijo por defecto del municipio (municipios.tarifa_default).
+      precio = await this.zonas.tarifaDefault(input.idMunicipio);
+      if (precio == null) throw new Error(`municipio ${input.idMunicipio} sin tarifa_default`);
+      estimada = true;
     }
-    return { tarifa: BANDERAZO, idZonaDestino: null, estimada: true };
+
+    // Mismo precio por cada pasajero. El valor de tabla ya es fijo -> sin decimales inventados.
+    return { tarifa: precio * input.personas, tarifaPorPersona: precio, idZonaDestino, estimada };
   }
 }

@@ -12,6 +12,7 @@ export interface CrearViajeDTO {
   origen: { lat: number; lng: number; texto?: string | null };
   destino: { lat: number; lng: number; texto?: string | null };
   idZonaDestino?: number;
+  personas: number;
 }
 
 export function crearViaje(deps: {
@@ -30,6 +31,7 @@ export function crearViaje(deps: {
     const { distanciaKm } = await deps.rutas.estimar(origen, destino);
     const t = await deps.tarifas.calcular({
       idMunicipio: input.idMunicipio,
+      personas: input.personas,
       idZonaDestino: input.idZonaDestino,
       origen,
       destino,
@@ -42,6 +44,7 @@ export function crearViaje(deps: {
       destino: input.destino,
       idZonaDestino: t.idZonaDestino,
       distanciaKm,
+      numPasajeros: input.personas,
       tarifa: t.tarifa,
       tarifaEstimada: t.estimada,
     });

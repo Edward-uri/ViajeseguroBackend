@@ -39,7 +39,7 @@ const dispositivos = new DispositivoPostgresRepository();
 const haversine = new HaversineRouteEstimator();
 // Con OSRM_URL seteada se usa ruteo real (con Haversine de fallback); sin ella, solo Haversine.
 const rutas: IRouteEstimator = env.OSRM_URL ? new OsrmRouteEstimator(env.OSRM_URL, haversine) : haversine;
-const tarifas = new TarifaPorZona(zonas, rutas);
+const tarifas = new TarifaPorZona(zonas);
 
 export const socketNotifier = new SocketEventoViajeNotifier();
 const notifier = socketNotifier;

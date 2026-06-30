@@ -27,6 +27,7 @@ const ViajeSchema = z
     destino: CoordSchema,
     idZonaDestino: z.number().int().nullable(),
     distanciaKm: z.number().nullable(),
+    numPasajeros: z.number().int(),
     tarifa: z.number(),
     tarifaEstimada: z.boolean(),
     estado: z.enum(['solicitado', 'aceptado', 'en_curso', 'completado', 'cancelado']),
@@ -47,6 +48,8 @@ const EstimacionSchema = z
   .object({
     distanciaKm: z.number(),
     duracionMin: z.number(),
+    personas: z.number().int(),
+    tarifaPorPersona: z.number(),
     tarifa: z.number(),
     tarifaEstimada: z.boolean(),
     idZonaDestino: z.number().int().nullable(),

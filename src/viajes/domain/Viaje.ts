@@ -15,6 +15,7 @@ export interface ViajeData {
   destinoTexto: string | null;
   idZonaDestino: number | null;
   distanciaKm: number | null;
+  numPasajeros: number;
   tarifa: number;
   tarifaEstimada: boolean;
   estado: EstadoViaje;
@@ -37,6 +38,7 @@ export interface PublicViaje {
   destino: { lat: number | null; lng: number | null; texto: string | null };
   idZonaDestino: number | null;
   distanciaKm: number | null;
+  numPasajeros: number;
   tarifa: number;
   tarifaEstimada: boolean;
   estado: EstadoViaje;
@@ -69,6 +71,7 @@ export class Viaje {
       destino: { lat: d.destinoLat, lng: d.destinoLng, texto: d.destinoTexto },
       idZonaDestino: d.idZonaDestino,
       distanciaKm: d.distanciaKm,
+      numPasajeros: d.numPasajeros,
       tarifa: d.tarifa,
       tarifaEstimada: d.tarifaEstimada,
       estado: d.estado,

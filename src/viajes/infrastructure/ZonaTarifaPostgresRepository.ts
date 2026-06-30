@@ -36,4 +36,12 @@ export class ZonaTarifaPostgresRepository implements IZonaTarifaRepository {
     );
     return rows[0] ? { idZona: Number(rows[0].id_zona), precio: Number(rows[0].precio) } : null;
   }
+
+  async tarifaDefault(idMunicipio: number): Promise<number | null> {
+    const { rows } = await pool.query<{ tarifa_default: string }>(
+      'SELECT tarifa_default FROM municipios WHERE id_municipio = $1',
+      [idMunicipio],
+    );
+    return rows[0] ? Number(rows[0].tarifa_default) : null;
+  }
 }
