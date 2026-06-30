@@ -9,6 +9,12 @@ export interface IUserRepository {
   findByTelefono(telefono: string): Promise<User | null>;
   findByCorreo(correo: string): Promise<User | null>;
   findById(idUsuario: number): Promise<User | null>;
+  personaPorId(idUsuario: number): Promise<{
+    nombre: string | null;
+    apellidoPaterno: string | null;
+    apellidoMaterno: string | null;
+    fechaNacimiento: string | null;
+  } | null>;
 
   createUserWithPersona(args: {
     user: User;

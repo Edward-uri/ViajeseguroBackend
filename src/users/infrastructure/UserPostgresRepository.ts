@@ -84,6 +84,31 @@ export class UserPostgresRepository implements IUserRepository {
     return mapUserRow(rows[0]);
   }
 
+  async personaPorId(idUsuario: number): Promise<{
+    nombre: string | null;
+    apellidoPaterno: string | null;
+    apellidoMaterno: string | null;
+    fechaNacimiento: string | null;
+  } | null> {
+    const { rows } = await pool.query(
+      `SELECT nombre, nombre_enc, apellido_paterno, apellido_paterno_enc,
+              apellido_materno, apellido_materno_enc, fecha_nacimiento, fecha_nacimiento_enc
+         FROM personas WHERE id_persona = $1`,
+      [idUsuario],
+    );
+    const row = rows[0];
+    if (!row) return null;
+    const d = cipherCodec.decodeDeRow('personas', row) as Record<string, unknown>;
+    const val = (dec: unknown, plano: unknown) =>
+      (dec ?? plano) == null ? null : String(dec ?? plano);
+    return {
+      nombre: val(d.nombre, row.nombre),
+      apellidoPaterno: val(d.apellido_paterno, row.apellido_paterno),
+      apellidoMaterno: val(d.apellido_materno, row.apellido_materno),
+      fechaNacimiento: val(d.fecha_nacimiento, row.fecha_nacimiento),
+    };
+  }
+
   async createAdmin(
     { correo, passwordHash }: { correo: string; passwordHash: string },
     client?: PoolClient,

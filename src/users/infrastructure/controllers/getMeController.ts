@@ -34,8 +34,8 @@ openapiRegistry.registerPath({
 export const getMeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
-    const user = await getMeUseCase.execute(req.user.sub);
-    res.json({ data: await toServingUserJSON(user) });
+    const { user, persona } = await getMeUseCase.execute(req.user.sub);
+    res.json({ data: { ...toServingUserJSON(user), persona } });
   } catch (err) {
     next(err);
   }
