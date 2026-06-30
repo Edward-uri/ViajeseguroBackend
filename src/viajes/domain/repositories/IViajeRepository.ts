@@ -59,7 +59,7 @@ export interface IViajeRepository {
     idViaje: number;
     idEvaluador: number;
     idEvaluado: number;
-    tipo: 'pasajero_a_conductor';
+    tipo: 'pasajero_a_conductor' | 'conductor_a_pasajero';
     calificacion: number;
     comentario: string | null;
   }): Promise<void>;

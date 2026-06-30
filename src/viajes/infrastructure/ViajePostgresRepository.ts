@@ -214,7 +214,7 @@ export class ViajePostgresRepository implements IViajeRepository {
 
   async crearEvaluacion(args: {
     idViaje: number; idEvaluador: number; idEvaluado: number;
-    tipo: 'pasajero_a_conductor'; calificacion: number; comentario: string | null;
+    tipo: 'pasajero_a_conductor' | 'conductor_a_pasajero'; calificacion: number; comentario: string | null;
   }): Promise<void> {
     await pool.query(
       `INSERT INTO evaluaciones (id_viaje, id_evaluador, id_evaluado, tipo, calificacion, comentario)
