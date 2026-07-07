@@ -42,8 +42,9 @@ export const PersonaPerfilSchema = z
   })
   .openapi('PersonaPerfil');
 
-/** Respuesta de GET /api/users/me: el usuario público + el bloque `persona`. */
+/** Respuesta de GET /api/users/me: el usuario público + `roles` (todos los roles del usuario) + el bloque `persona`. */
 export const MeResponseSchema = PublicUserSchema.extend({
+  roles: z.array(RolSchema),
   persona: PersonaPerfilSchema,
 }).openapi('MeResponse');
 
