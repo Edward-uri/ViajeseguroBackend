@@ -1,5 +1,6 @@
 import { pool, withTransaction } from '../../core/db.js';
 import type { PoolClient } from 'pg';
+import type { Rol } from '../../core/jwt.js';
 import { User, UserBuilder, type EstadoCuenta, type RolUsuario } from '../domain/User.js';
 import type { Persona } from '../domain/Persona.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
@@ -170,6 +171,12 @@ export class UserPostgresRepository implements IUserRepository {
           encP.apellido_materno_enc, persona.idSexo, encP.fecha_nacimiento_enc,
         ],
       );
+
+      await client.query(
+        'INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [created.idUsuario, user.rol],
+      );
+
       return created;
     });
   }
@@ -288,5 +295,20 @@ export class UserPostgresRepository implements IUserRepository {
       if ((err as { code?: string }).code === '23505') throw new TelefonoDuplicadoError();
       throw err;
     }
+  }
+
+  async getRoles(idUsuario: number): Promise<Rol[]> {
+    const { rows } = await pool.query<{ rol: Rol }>(
+      'SELECT rol FROM usuario_roles WHERE id_usuario = $1 ORDER BY rol',
+      [idUsuario],
+    );
+    return rows.map((r) => r.rol);
+  }
+
+  async addRol(idUsuario: number, rol: Rol): Promise<void> {
+    await pool.query(
+      'INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [idUsuario, rol],
+    );
   }
 }

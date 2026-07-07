@@ -1,5 +1,6 @@
 import type { User } from '../User.js';
 import type { Persona } from '../Persona.js';
+import type { Rol } from '../../../core/jwt.js';
 
 export interface IUserRepository {
   createAdmin(
@@ -44,4 +45,9 @@ export interface IUserRepository {
       telefono?: string;
     },
   ): Promise<User>;
+
+  /** Roles del usuario desde usuario_roles (fuente de verdad, ≥1 por backfill). */
+  getRoles(idUsuario: number): Promise<Rol[]>;
+  /** Agrega un rol (idempotente). */
+  addRol(idUsuario: number, rol: Rol): Promise<void>;
 }
