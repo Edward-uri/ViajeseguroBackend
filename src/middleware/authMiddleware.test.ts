@@ -25,4 +25,10 @@ describe('requireRole con roles[]', () => {
     requireRole('conductor')(reqWith({ sub: 1, rol: 'conductor' }), res, next);
     expect(next).toHaveBeenCalledWith();
   });
+
+  it('pasajero puro NO pasa un gate conductor|propietario', () => {
+    const next = vi.fn();
+    requireRole('conductor', 'propietario')(reqWith({ sub: 1, rol: 'pasajero', roles: ['pasajero'] }), res, next);
+    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+  });
 });
