@@ -25,10 +25,11 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
 };
 
 
-export function requireRole(...roles: AuthTokenPayload['rol'][]): RequestHandler {
+export function requireRole(...roles: NonNullable<AuthTokenPayload['roles']>): RequestHandler {
   return (req, _res, next) => {
     if (!req.user) return next(new UnauthorizedError());
-    if (!roles.includes(req.user.rol)) {
+    const userRoles = req.user.roles ?? [req.user.rol]; // compat: tokens pre-fase-1
+    if (!roles.some((r) => userRoles.includes(r))) {
       return next(new ForbiddenError());
     }
     next();
