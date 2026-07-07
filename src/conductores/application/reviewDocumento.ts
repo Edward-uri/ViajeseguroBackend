@@ -1,6 +1,7 @@
 import type { IConductorRepository } from '../domain/repositories/IConductorRepository.js';
 import type { IDocumentoConductorRepository } from '../domain/repositories/IDocumentoConductorRepository.js';
 import type { IPushSender } from '../../viajes/domain/ports/IPushSender.js';
+import type { IUserRepository } from '../../users/domain/repositories/IUserRepository.js';
 import { calcularEstadoVerificacion, type EstadoVerificacion } from '../domain/tipos.js';
 import { DocumentoNoEncontradoError } from '../domain/errors.js';
 
@@ -8,6 +9,7 @@ export function reviewDocumento(deps: {
   conductores: IConductorRepository;
   documentos: IDocumentoConductorRepository;
   push: IPushSender;
+  users: IUserRepository;
 }) {
   return async (input: {
     idDocumento: number;
@@ -29,6 +31,9 @@ export function reviewDocumento(deps: {
     const estadoVerificacion = calcularEstadoVerificacion(new Map(docs.map((d) => [d.tipo, d.estado])));
 
     if (estadoVerificacion === 'aprobado') {
+      // Si addRol falla, todo el review falla y el admin reintenta (idempotente):
+      // nunca debe quedar 'habilitado' sin el rol conductor.
+      await deps.users.addRol(doc.idConductor, 'conductor');
       await deps.conductores.registrarCambioEstatus({
         idConductor: doc.idConductor,
         estatus: 'habilitado',

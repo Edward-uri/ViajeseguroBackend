@@ -145,7 +145,7 @@ openapiRegistry.registerPath({
 
 openapiRegistry.registerPath({
   method: 'patch', path: '/api/admin/documentos/{id}', tags: ['Web Admin'],
-  summary: 'Aprueba o rechaza un documento', security: [{ bearerAuth: [] }],
+  summary: 'Aprueba o rechaza un documento (al aprobarse todos los documentos se otorga el rol conductor)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId, body: { content: { 'application/json': { schema: RevisarDocumentoSchema } } } },
   responses: { 200: { description: 'Documento revisado', content: { 'application/json': { schema: z.object({ documento: DocItemSchema, estadoVerificacion: z.string() }) } } }, 400: err('Datos inválidos'), 404: err('No encontrado') },
 });

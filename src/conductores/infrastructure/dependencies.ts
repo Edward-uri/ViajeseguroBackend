@@ -1,5 +1,6 @@
 import { ConductorPostgresRepository } from './ConductorPostgresRepository.js';
 import { DocumentoConductorPostgresRepository } from './DocumentoConductorPostgresRepository.js';
+import { UserPostgresRepository } from '../../users/infrastructure/UserPostgresRepository.js';
 import { LocalDocumentStorage } from '../../infrastructure/storage/LocalDocumentStorage.js';
 import { municipioRepository } from '../../municipios/infrastructure/dependencies.js';
 import { submitLicencia } from '../application/submitLicencia.js';
@@ -32,6 +33,7 @@ async function vehiculoDelConductor(idConductor: number) {
 
 const conductores = new ConductorPostgresRepository();
 const documentos = new DocumentoConductorPostgresRepository();
+const users = new UserPostgresRepository();
 // TODO prod: cambiar por S3DocumentStorage cuando se decida el almacenamiento definitivo
 const storage = new LocalDocumentStorage();
 const disponibilidad = new DisponibilidadPostgresRepository();
@@ -43,7 +45,7 @@ export const conductorUseCases = {
   submitLicencia: submitLicencia({ conductores, municipios: municipioRepository }),
   uploadDocumento: uploadDocumento({ conductores, documentos, storage }),
   getOnboarding: getOnboarding({ conductores, documentos, vehiculoDelConductor }),
-  reviewDocumento: reviewDocumento({ conductores, documentos, push }),
+  reviewDocumento: reviewDocumento({ conductores, documentos, push, users }),
   listConductoresPendientes: listConductoresPendientes({ conductores }),
   getArchivo: getArchivo({ documentos, storage }),
   municipioOperativo: municipioOperativo({ conductores }),
