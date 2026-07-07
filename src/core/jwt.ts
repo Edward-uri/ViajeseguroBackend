@@ -4,11 +4,13 @@ import { UnauthorizedError } from './errors.js';
 
 export type Rol = 'pasajero' | 'conductor' | 'propietario' | 'admin';
 
-export interface AccessPayload { sub: number; rol: Rol; type: 'access'; }
+// fase 1: `rol` (principal, derivado) viaja junto a `roles` por compatibilidad.
+export interface AccessPayload { sub: number; rol: Rol; roles: Rol[]; type: 'access'; }
 export interface RefreshPayload { sub: number; sid: number; type: 'refresh'; }
 export interface RegistrationPayload { correo: string; rol: Rol; type: 'registration'; }
 
-export type AuthTokenPayload = { sub: number; rol: Rol };
+// `roles` opcional: tokens emitidos antes del deploy solo traen `rol`.
+export type AuthTokenPayload = { sub: number; rol: Rol; roles?: Rol[] };
 
 function sign(payload: object, ttl: string): string {
   return jwt.sign(payload, env.JWT_SECRET, { expiresIn: ttl as SignOptions['expiresIn'] });
@@ -26,8 +28,13 @@ function verify<T extends { type: string }>(token: string, type: T['type']): T {
   }
 }
 
-export const signAccessToken = (p: { sub: number; rol: Rol }): string =>
-  sign({ ...p, type: 'access' }, env.ACCESS_TOKEN_TTL);
+const PRIORIDAD_ROL: Rol[] = ['admin', 'propietario', 'conductor', 'pasajero'];
+export function rolPrincipal(roles: Rol[]): Rol {
+  return PRIORIDAD_ROL.find((r) => roles.includes(r)) ?? 'pasajero';
+}
+
+export const signAccessToken = (p: { sub: number; roles: Rol[] }): string =>
+  sign({ sub: p.sub, rol: rolPrincipal(p.roles), roles: p.roles, type: 'access' }, env.ACCESS_TOKEN_TTL);
 export const verifyAccessToken = (t: string): AccessPayload => verify<AccessPayload>(t, 'access');
 
 export const signRefreshToken = (p: { sub: number; sid: number }): string =>
