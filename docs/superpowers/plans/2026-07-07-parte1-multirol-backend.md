@@ -17,6 +17,7 @@
 - Convención de imports ESM con sufijo `.js` (p. ej. `from '../core/jwt.js'`).
 - Comandos: `pnpm typecheck`, `pnpm test` (vitest), `pnpm db:migrate` (requiere la BD local del `docker-compose.yml` levantada).
 - Commits con prefijos `feat:`/`test:`/`docs:` como el historial existente.
+- **Documentación de API SIEMPRE al día:** todo cambio de contrato HTTP actualiza el registro OpenAPI (`src/docs/openapiRegistry.ts` y el `openapi.ts` del módulo tocado). En esta parte: la respuesta de `/me` y las de auth agregan `roles[]`.
 - `docs/` está en `.gitignore`: para commitear specs/planes usar `git add -f docs/superpowers/...`.
 
 ---
@@ -425,6 +426,16 @@ Leer `getMeController.ts` y agregar `roles` al objeto JSON que ya arma (donde ho
 ```json
 { "idUsuario": 7, "rol": "propietario", "roles": ["pasajero", "propietario"], "estadoCuenta": "activo" }
 ```
+
+- [ ] **Step 2.5: Actualizar OpenAPI**
+
+En `src/docs/openapiRegistry.ts` (ahí vive el enum de roles, línea ~10) y/o el schema de respuesta de `/me` del módulo users: agregar el campo `roles` como array del mismo enum. Buscar el schema con `grep -rn "PublicUser\|/users/me" src/docs src/users/infrastructure --include="*.ts"`. Shape esperado:
+
+```ts
+roles: z.array(z.enum(['pasajero', 'conductor', 'propietario', 'admin'])),
+```
+
+Verificar que Swagger (`/api/docs` con `pnpm dev`) muestra `roles` en la respuesta de `/me`.
 
 - [ ] **Step 3: Typecheck + smoke**
 
