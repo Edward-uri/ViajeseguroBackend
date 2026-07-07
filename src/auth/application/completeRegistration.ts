@@ -41,7 +41,7 @@ export function completeRegistration(deps: { users: IUserRepository; sessions: I
 
     const passwordHash = input.password ? await hashPassword(input.password) : null;
     const creado = await deps.users.createUserWithPersona({ user, persona, passwordHash });
-    const tokens = await emitirTokens(deps.sessions, creado.idUsuario!, creado.rol, input.dispositivo ?? null);
+    const tokens = await emitirTokens(deps.sessions, creado.idUsuario!, [creado.rol], input.dispositivo ?? null);
     return { ...tokens, user: creado.toPublicJSON() };
   };
 }

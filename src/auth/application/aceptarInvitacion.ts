@@ -29,7 +29,7 @@ export function aceptarInvitacion(deps: {
     });
 
     if (user.idUsuario === null) throw new Error('admin creado sin id');
-    const tokens = await emitirTokens(deps.sessions, user.idUsuario, 'admin', dispositivo ?? null);
+    const tokens = await emitirTokens(deps.sessions, user.idUsuario, ['admin'], dispositivo ?? null);
     return { ...tokens, user: user.toPublicJSON() };
   };
 }

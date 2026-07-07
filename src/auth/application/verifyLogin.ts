@@ -23,7 +23,8 @@ export function verifyLogin(deps: {
 
     const user = await deps.users.findByCorreo(correo);
     if (!user || user.idUsuario === null) throw new CredencialesError();
-    const tokens = await emitirTokens(deps.sessions, user.idUsuario, user.rol, dispositivo ?? null);
+    const roles = await deps.users.getRoles(user.idUsuario);
+    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, dispositivo ?? null);
     return { ...tokens, user: user.toPublicJSON() };
   };
 }

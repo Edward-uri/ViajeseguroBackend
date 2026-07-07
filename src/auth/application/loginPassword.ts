@@ -12,7 +12,8 @@ export function loginPassword(deps: { users: IUserRepository; sessions: ISession
     if (!user || user.idUsuario === null) throw new CredencialesError();
     const hash = await deps.users.passwordHashPorId(user.idUsuario);
     if (!hash || !(await verifyPassword(password, hash))) throw new CredencialesError();
-    const tokens = await emitirTokens(deps.sessions, user.idUsuario, user.rol, dispositivo ?? null);
+    const roles = await deps.users.getRoles(user.idUsuario);
+    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, dispositivo ?? null);
     return { ...tokens, user: user.toPublicJSON() };
   };
 }
