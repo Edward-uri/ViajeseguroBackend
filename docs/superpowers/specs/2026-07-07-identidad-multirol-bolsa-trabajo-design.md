@@ -131,6 +131,20 @@ CREATE INDEX idx_postulaciones_conductor ON postulaciones(id_conductor, estado);
 ### 5.4 Panel admin (`ViajeseguroPanelWeb`)
 - Adaptar lectura de `rol` → `roles[]` donde aplique (listados, filtros, permisos).
 
+### 5.5 Auditoría de compatibilidad de requests (transversal, por fase)
+
+Cada fase incluye revisar/ajustar las requests de las apps contra el backend cambiado. Puntos ya detectados en el escaneo inicial:
+
+| App | Archivo | Hallazgo | Acción |
+|-----|---------|----------|--------|
+| Conductor | `lib/shared/data/mappers/user_mapper.dart:10` | `json['rol'] as String` (cast estricto: crashea si falta `rol`) | Parsear `roles[]` con fallback a `rol`; nunca cast directo |
+| Conductor | `lib/features/auth/presentation/provider/register_viewmodel.dart:127,151` y `auth_api.dart:15,26,35` | Envía `rol: 'conductor'` hardcodeado en register | Cambiar a `propietario` o dejar que el backend asigne el set `{propietario,pasajero}` |
+| Pasajero | `lib/shared/data/mappers/user_mapper.dart:11` | Fallback `json['rol'] ?? 'pasajero'` (no crashea) | Añadir parseo de `roles[]` manteniendo fallback |
+| Pasajero | `lib/features/auth/data/remote/auth_api.dart:15,26` | Envía `rol` en register | Revisar contra el nuevo contrato de registro |
+| Ambas | Pantallas de perfil (`user.rol.toUpperCase()`) | Muestran rol único | Mostrar rol principal o lista de roles |
+
+Regla general: **el backend en fase 1 sigue devolviendo `rol`** (derivado) en JWT y `/me`, por lo que las apps instaladas no rompen; los cambios de parsing/requests en apps se hacen en su fase correspondiente y se prueban contra el backend de fase 1 antes de pasar a fase 2.
+
 ## 6. Flujos clave
 
 1. **Registro (app conductor):** OTP → completar → crea usuario + `propietarios` + roles `{propietario,pasajero}`. Sin licencia.
@@ -163,6 +177,8 @@ Orden de despliegue: **backend fase 1 → apps/panel → backend fase 2**.
 4. **Bolsa de trabajo** (vacantes/postulaciones/aceptar→asignación).
 5. **App pasajero**: login cruzado. **Panel admin**: `roles[]`.
 6. **Fase 2** de la migración (drop `rol`).
+
+Cada parte cierra con la **auditoría de compatibilidad** (§5.5): revisar las requests/parsers de ambas apps contra el backend cambiado y ajustar donde haga falta antes de continuar.
 
 ## 9. Fuera de alcance (YAGNI)
 
