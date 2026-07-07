@@ -5,6 +5,7 @@ import { MockOtpSender } from './MockOtpSender.js';
 import { BrevoOtpSender } from './BrevoOtpSender.js';
 import { InvitacionPostgresRepository } from './InvitacionPostgresRepository.js';
 import { pickInvitationSender } from './pickInvitationSender.js';
+import { propietarios } from '../../flotillas/infrastructure/dependencies.js';
 import { env } from '../../core/env.js';
 import { startRegistration } from '../application/startRegistration.js';
 import { verifyRegistration } from '../application/verifyRegistration.js';
@@ -33,7 +34,7 @@ const invitationSender = pickInvitationSender();
 export const authUseCases = {
   startRegistration: startRegistration({ users, otp, sender }),
   verifyRegistration: verifyRegistration({ otp }),
-  completeRegistration: completeRegistration({ users, sessions }),
+  completeRegistration: completeRegistration({ users, sessions, propietarios }),
   startLogin: startLogin({ users, otp, sender }),
   verifyLogin: verifyLogin({ users, otp, sessions }),
   refreshSession: refreshSession({ users, sessions }),

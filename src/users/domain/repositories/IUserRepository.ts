@@ -21,6 +21,7 @@ export interface IUserRepository {
     user: User;
     persona: Persona;
     passwordHash?: string | null;
+    roles: Rol[];
   }): Promise<User>;
 
   /** Guarda la key de la foto en el volumen y devuelve la key anterior (para borrarla). */

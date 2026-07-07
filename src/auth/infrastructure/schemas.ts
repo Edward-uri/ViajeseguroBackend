@@ -11,15 +11,22 @@ export const passwordPolitica = z
   .regex(/[a-z]/, 'Debe incluir al menos una minúscula')
   .regex(/[0-9]/, 'Debe incluir al menos un número');
 
+const rolRegistro = z
+  .enum(['pasajero', 'conductor', 'propietario'])
+  .describe(
+    'conductor|propietario ⇒ la cuenta se crea como propietario+pasajero; el rol conductor se obtiene al aprobar documentos',
+  )
+  .optional();
+
 export const RegisterStartSchema = z.object({
   correo,
-  rol: z.enum(['pasajero', 'conductor', 'propietario']).optional(),
+  rol: rolRegistro,
 });
 
 export const RegisterVerifySchema = z.object({
   correo,
   codigo,
-  rol: z.enum(['pasajero', 'conductor', 'propietario']).optional(),
+  rol: rolRegistro,
 });
 
 export const RegisterCompleteSchema = z.object({

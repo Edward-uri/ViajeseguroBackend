@@ -135,7 +135,7 @@ export class UserPostgresRepository implements IUserRepository {
   }
 
   async createUserWithPersona(
-    { user, persona, passwordHash }: { user: User; persona: Persona; passwordHash?: string | null },
+    { user, persona, passwordHash, roles }: { user: User; persona: Persona; passwordHash?: string | null; roles: Rol[] },
   ): Promise<User> {
     return withTransaction(async (client) => {
       const enc = cipherCodec.encodeParaInsert('usuarios', {
@@ -172,10 +172,12 @@ export class UserPostgresRepository implements IUserRepository {
         ],
       );
 
-      await client.query(
-        'INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-        [created.idUsuario, user.rol],
-      );
+      for (const rol of roles) {
+        await client.query(
+          'INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [created.idUsuario, rol],
+        );
+      }
 
       return created;
     });
