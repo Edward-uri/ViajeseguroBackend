@@ -124,6 +124,13 @@ CREATE INDEX idx_postulaciones_conductor ON postulaciones(id_conductor, estado);
 - Gestión de vehículos: alta, lista, marcar **vehículo activo**.
 - Vistas nuevas de bolsa: *Publicar vacante* / *Postulaciones recibidas* (dueño), *Bolsa de trabajo · Postular* (conductor).
 
+### 5.2.1 Upgrade pasajero→propietario (decisión 2026-07-07, Parte 5)
+
+Una cuenta solo-pasajero SÍ puede iniciar sesión en la app conductor, pero hoy vería 403 en vehículos/onboarding. Comportamiento acordado:
+- **Backend**: endpoint pequeño `POST /api/flotillas/propietarios/activar` (solo `authMiddleware`, cualquier rol): idempotente — agrega rol `propietario` a `usuario_roles` + `asegurarExiste` en `propietarios`. Responde 200.
+- **App conductor**: tras login/arranque, si `rolesEfectivos` NO contiene `propietario` ni `conductor` → pantalla simple "Esta cuenta es de pasajero. ¿Quieres registrarte como propietario?" → llama el endpoint → **refresh de tokens** (el access token viejo no trae el rol nuevo) → home normal.
+- Sin cuentas duplicadas; simétrico al onboarding progresivo de conductor.
+
 ### 5.3 App pasajero (`ViajeseguroApp`)
 - Login acepta cualquier cuenta con `pasajero` en `roles[]`; quitar gate cliente por `rol=='pasajero'`.
 - Adaptar el parseo del usuario/JWT a `roles[]`.
