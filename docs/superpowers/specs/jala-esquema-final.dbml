@@ -1,0 +1,479 @@
+// ═══════════════════════════════════════════════════════════════
+// Jala · Esquema final (proyecto multi-rol + bolsa de trabajo)
+// Para dbdiagram.io — pegar tal cual.
+// Fuente: esquema real viajeseguro_dev (migraciones 001-021) + Parte 4 (bolsa) y Parte 6 (drop usuarios.rol).
+// Leyenda: [P1..P6] = parte que lo agrega/quita · enc/bidx = columna cifrada + blind index
+// ═══════════════════════════════════════════════════════════════
+
+// ───── Enums (valores reales de la BD) ─────
+Enum rol_usuario { pasajero conductor propietario admin }
+Enum estado_cuenta { activo suspendido eliminado }
+Enum canal_otp { sms email }
+Enum proposito_otp { registro login }
+Enum tipo_documento { licencia ine_frente ine_reverso tarjeta_circulacion foto_vehiculo }
+Enum estado_documento { pendiente aprobado rechazado }
+Enum estatus_conductor { habilitado inhabilitado }
+Enum tipo_documento_vehiculo { tarjeta_circulacion foto_vehiculo permiso_municipal }
+Enum estatus_vehiculo { activo inactivo }
+Enum estado_viaje { solicitado aceptado en_curso completado cancelado }
+Enum tipo_servicio_viaje { viaje envio }
+Enum cancelado_por { pasajero conductor sistema }
+Enum tipo_evaluacion { pasajero_a_conductor conductor_a_pasajero }
+Enum plataforma_dispositivo { android ios }
+Enum origen_asignacion { propia bolsa } // P4
+Enum estado_vacante { abierta cerrada } // P4
+Enum estado_postulacion { pendiente aceptada rechazada retirada } // P4
+
+// ═══════════ IDENTIDAD Y ACCESO ═══════════
+
+Table usuarios {
+  id_usuario bigint [pk, increment]
+  telefono varchar [unique, note: 'legacy plano; ver enc/bidx']
+  correo_electronico varchar [unique, note: 'legacy plano; ver enc/bidx']
+  telefono_verificado boolean [not null]
+  correo_verificado boolean [not null]
+  rol rol_usuario [note: '⛔ P6 LA ELIMINA — usar usuario_roles']
+  estado_cuenta estado_cuenta [not null]
+  id_municipio bigint
+  password_hash varchar
+  google_sub varchar
+  foto_perfil_url varchar
+  foto_perfil_s3_key varchar
+  correo_electronico_enc text [note: 'cifrado']
+  correo_electronico_bidx text [note: 'blind index (login)']
+  telefono_enc text
+  telefono_bidx text
+  fecha_registro timestamptz [not null]
+  created_at timestamptz
+  updated_at timestamptz
+  Note: 'Cuenta única multi-rol. P6 elimina la columna rol.'
+}
+
+Table usuario_roles [headercolor: #1E8E5A] {
+  id_usuario bigint [pk]
+  rol rol_usuario [pk]
+  created_at timestamptz
+  Note: 'P1 · Fuente de verdad de autorización (JWT roles[]). Backfill: todo no-admin tiene pasajero.'
+}
+
+Table personas {
+  id_persona bigint [pk, note: '= id_usuario (1:1)']
+  nombre varchar
+  apellido_paterno varchar
+  apellido_materno varchar
+  id_sexo smallint
+  fecha_nacimiento date
+  nombre_enc text
+  apellido_paterno_enc text
+  apellido_materno_enc text
+  fecha_nacimiento_enc text
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table catalogo_sexo {
+  id_sexo smallint [pk, increment]
+  sexo varchar [unique]
+}
+
+Table sesiones {
+  id_sesion bigint [pk, increment]
+  id_usuario bigint [not null]
+  refresh_hash varchar [not null]
+  dispositivo varchar
+  expira_en timestamptz [not null]
+  revocada_en timestamptz
+  created_at timestamptz
+}
+
+Table codigos_otp {
+  id_codigo bigint [pk, increment]
+  id_usuario bigint
+  destino varchar
+  destino_enc text
+  destino_bidx text
+  canal canal_otp [not null]
+  proposito proposito_otp [not null]
+  codigo_hash varchar [not null, note: '6 dígitos hasheados']
+  expira_en timestamptz [not null]
+  intentos smallint [not null]
+  usado_en timestamptz
+  created_at timestamptz
+}
+
+Table dispositivos {
+  id_dispositivo bigint [pk, increment]
+  id_usuario bigint [not null]
+  token_fcm varchar [not null]
+  plataforma plataforma_dispositivo [not null]
+  activo boolean [not null]
+  created_at timestamptz
+}
+
+Table direcciones_usuario {
+  id_direccion bigint [pk, increment]
+  id_usuario bigint [not null]
+  etiqueta varchar
+  lat numeric
+  lng numeric
+  texto varchar
+  es_favorita boolean [not null]
+  created_at timestamptz
+}
+
+Table invitaciones_admin {
+  id_invitacion bigint [pk, increment]
+  correo varchar
+  correo_enc text
+  correo_bidx text
+  token_hash varchar [not null, note: 'single-use, sha256']
+  invitado_por bigint [not null]
+  estado varchar [not null]
+  expira_en timestamptz [not null]
+  aceptada_en timestamptz
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+// ═══════════ CONDUCTORES ═══════════
+
+Table conductores [headercolor: #1E8E5A] {
+  id_conductor bigint [pk, note: '= id_usuario (1:1)']
+  id_municipio bigint
+  id_vehiculo_activo bigint [note: '✅ P3 · selección activa; ON DELETE SET NULL; null = sin selección']
+  licencia varchar
+  licencia_enc text
+  licencia_bidx text
+  licencia_fecha_expedicion date
+  licencia_fecha_vencimiento date
+  created_at timestamptz
+  updated_at timestamptz
+  Note: 'Onboarding progresivo (P2): docs aprobados ⇒ addRol(conductor) + autoasignación del primer vehículo (P3).'
+}
+
+Table documentos_conductor {
+  id_documento bigint [pk, increment]
+  id_conductor bigint [not null]
+  tipo tipo_documento [not null]
+  archivo_key varchar [not null]
+  nombre_original varchar
+  mime_type varchar [not null]
+  tamano_bytes integer [not null]
+  estado estado_documento [not null]
+  motivo_rechazo text
+  revisado_por bigint [note: 'admin']
+  revisado_en timestamptz
+  created_at timestamptz
+  updated_at timestamptz
+  indexes { (id_conductor, tipo) [unique] }
+}
+
+Table conductor_disponibilidad {
+  id_conductor bigint [pk]
+  disponible boolean [not null]
+  lat numeric
+  lng numeric
+  actualizado_en timestamptz [not null]
+}
+
+Table conductor_sesiones {
+  id_sesion bigint [pk, increment]
+  id_conductor bigint [not null]
+  inicio timestamptz [not null]
+  fin timestamptz [note: 'null = sesión abierta; horas en línea']
+}
+
+Table conductor_cambio_estatus {
+  id_cambio bigint [pk, increment]
+  id_conductor bigint [not null]
+  estatus estatus_conductor [not null]
+  descripcion text
+  fecha timestamptz [not null]
+}
+
+// ═══════════ FLOTILLAS ═══════════
+
+Table propietarios [headercolor: #1E8E5A] {
+  id_propietario bigint [pk, note: '= id_usuario (1:1)']
+  rfc varchar
+  rfc_enc text
+  rfc_bidx text
+  razon_social varchar
+  razon_social_enc text
+  created_at timestamptz
+  updated_at timestamptz
+  Note: 'P2: creado al registrarse en app conductor · P5: o al hacer upgrade un pasajero.'
+}
+
+Table vehiculos {
+  id_vehiculo bigint [pk, increment]
+  id_propietario bigint [not null]
+  id_municipio bigint [not null]
+  placa varchar [unique]
+  placa_enc text
+  placa_bidx text
+  modelo varchar
+  color varchar
+  anio smallint
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table asignaciones_conductor_vehiculo {
+  id_asignacion bigint [pk, increment]
+  id_vehiculo bigint [not null]
+  id_conductor bigint [not null]
+  activo boolean [not null, note: 'autorización vigente (NO selección)']
+  origen origen_asignacion [note: '🟠 P4 · propia | bolsa']
+  created_at timestamptz
+  updated_at timestamptz
+  indexes { (id_vehiculo, id_conductor) [unique, note: 'WHERE activo'] }
+  Note: 'AUTORIZACIÓN M:N (quién puede manejar qué). El dueño no necesita fila. La selección activa vive en conductores.id_vehiculo_activo.'
+}
+
+Table documentos_vehiculo {
+  id_documento bigint [pk, increment]
+  id_vehiculo bigint [not null]
+  tipo tipo_documento_vehiculo [not null]
+  archivo_key varchar [not null]
+  nombre_original varchar
+  mime_type varchar [not null]
+  tamano_bytes integer [not null]
+  estado estado_documento [not null]
+  motivo_rechazo text
+  revisado_por bigint
+  revisado_en timestamptz
+  created_at timestamptz
+  updated_at timestamptz
+  indexes { (id_vehiculo, tipo) [unique] }
+}
+
+Table vehiculo_cambio_estatus {
+  id_cambio bigint [pk, increment]
+  id_vehiculo bigint [not null]
+  estatus estatus_vehiculo [not null]
+  descripcion text
+  fecha timestamptz [not null]
+}
+
+// ═══════════ BOLSA DE TRABAJO (P4 — futuro) ═══════════
+
+Table vacantes [headercolor: #D97706] {
+  id_vacante bigint [pk, increment]
+  id_propietario bigint [not null]
+  id_vehiculo bigint [not null]
+  id_municipio bigint [not null, note: 'filtro de búsqueda']
+  condiciones text
+  estado estado_vacante [not null, default: 'abierta']
+  created_at timestamptz
+  updated_at timestamptz
+  Note: '🟠 P4 · Propietario publica vacante por vehículo.'
+}
+
+Table postulaciones [headercolor: #D97706] {
+  id_postulacion bigint [pk, increment]
+  id_vacante bigint [not null]
+  id_conductor bigint [not null]
+  estado estado_postulacion [not null, default: 'pendiente']
+  mensaje text
+  created_at timestamptz
+  updated_at timestamptz
+  indexes { (id_vacante, id_conductor) [unique] }
+  Note: '🟠 P4 · Aceptar una ⇒ asignación (origen bolsa) + cierra vacante + rechaza el resto (transacción).'
+}
+
+// ═══════════ VIAJES ═══════════
+
+Table viajes {
+  id_viaje bigint [pk, increment]
+  id_pasajero bigint [not null]
+  id_conductor bigint [note: 'null hasta aceptar; UNIQUE WHERE estado IN (aceptado, en_curso)']
+  id_vehiculo bigint [note: 'P3: derivado del vehículo activo si el cliente no lo manda']
+  id_municipio bigint [not null]
+  id_zona_destino bigint
+  tipo_servicio tipo_servicio_viaje [not null]
+  origen_lat numeric
+  origen_lng numeric
+  origen_texto varchar
+  destino_lat numeric
+  destino_lng numeric
+  destino_texto varchar
+  distancia_km numeric
+  tarifa numeric [not null]
+  tarifa_estimada boolean [not null]
+  num_pasajeros smallint [not null]
+  estado estado_viaje [not null]
+  fecha_solicitud timestamptz [not null]
+  fecha_aceptacion timestamptz
+  fecha_inicio timestamptz
+  fecha_fin timestamptz
+  expira_en timestamptz
+  cancelado_por cancelado_por
+  motivo_cancelacion varchar
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table viaje_estado_historial {
+  id_historial bigint [pk, increment]
+  id_viaje bigint [not null]
+  estado estado_viaje [not null]
+  fecha timestamptz [not null]
+}
+
+Table viaje_rechazos {
+  id_viaje bigint [pk]
+  id_conductor bigint [pk]
+  fecha timestamptz [not null]
+  Note: 'No re-ofrecer el viaje a quien lo rechazó.'
+}
+
+Table rastreo_ubicacion {
+  id_rastreo bigint [pk, increment]
+  id_viaje bigint [not null]
+  lat numeric [not null]
+  lng numeric [not null]
+  fecha timestamptz [not null]
+}
+
+Table evaluaciones {
+  id_evaluacion bigint [pk, increment]
+  id_viaje bigint [not null]
+  id_evaluador bigint [not null]
+  id_evaluado bigint [not null]
+  tipo tipo_evaluacion [not null]
+  calificacion smallint [not null]
+  comentario text
+  fecha timestamptz [not null]
+}
+
+// ═══════════ GEOGRAFÍA Y TARIFAS ═══════════
+
+Table municipios {
+  id_municipio bigint [pk, increment]
+  nombre varchar [not null]
+  estado varchar [not null]
+  activo boolean [not null]
+  tarifa_default numeric [not null]
+  created_at timestamptz
+  updated_at timestamptz
+}
+
+Table zonas {
+  id_zona bigint [pk, increment]
+  id_municipio bigint [not null]
+  nombre varchar [not null]
+  lat_centro numeric
+  lng_centro numeric
+  activo boolean [not null]
+}
+
+Table tarifas {
+  id_tarifa bigint [pk, increment]
+  id_municipio bigint [not null]
+  id_zona bigint [not null]
+  precio numeric [not null]
+  vigente boolean [not null]
+}
+
+// ═══════════ RELACIONES ═══════════
+
+// Identidad (extensiones 1:1 del mismo id_usuario)
+Ref: personas.id_persona - usuarios.id_usuario
+Ref: propietarios.id_propietario - usuarios.id_usuario
+Ref: conductores.id_conductor - usuarios.id_usuario
+Ref: usuario_roles.id_usuario > usuarios.id_usuario
+Ref: personas.id_sexo > catalogo_sexo.id_sexo
+Ref: sesiones.id_usuario > usuarios.id_usuario
+Ref: codigos_otp.id_usuario > usuarios.id_usuario
+Ref: dispositivos.id_usuario > usuarios.id_usuario
+Ref: direcciones_usuario.id_usuario > usuarios.id_usuario
+Ref: invitaciones_admin.invitado_por > usuarios.id_usuario
+Ref: usuarios.id_municipio > municipios.id_municipio
+
+// Conductores
+Ref: conductores.id_municipio > municipios.id_municipio
+Ref: conductores.id_vehiculo_activo > vehiculos.id_vehiculo // P3 · SET NULL
+Ref: documentos_conductor.id_conductor > conductores.id_conductor
+Ref: documentos_conductor.revisado_por > usuarios.id_usuario
+Ref: conductor_disponibilidad.id_conductor - conductores.id_conductor
+Ref: conductor_sesiones.id_conductor > conductores.id_conductor
+Ref: conductor_cambio_estatus.id_conductor > conductores.id_conductor
+
+// Flotillas
+Ref: vehiculos.id_propietario > propietarios.id_propietario
+Ref: vehiculos.id_municipio > municipios.id_municipio
+Ref: asignaciones_conductor_vehiculo.id_vehiculo > vehiculos.id_vehiculo
+Ref: asignaciones_conductor_vehiculo.id_conductor > conductores.id_conductor
+Ref: documentos_vehiculo.id_vehiculo > vehiculos.id_vehiculo
+Ref: documentos_vehiculo.revisado_por > usuarios.id_usuario
+Ref: vehiculo_cambio_estatus.id_vehiculo > vehiculos.id_vehiculo
+
+// Bolsa (P4)
+Ref: vacantes.id_propietario > propietarios.id_propietario
+Ref: vacantes.id_vehiculo > vehiculos.id_vehiculo
+Ref: vacantes.id_municipio > municipios.id_municipio
+Ref: postulaciones.id_vacante > vacantes.id_vacante
+Ref: postulaciones.id_conductor > conductores.id_conductor
+
+// Viajes
+Ref: viajes.id_pasajero > usuarios.id_usuario
+Ref: viajes.id_conductor > conductores.id_conductor
+Ref: viajes.id_vehiculo > vehiculos.id_vehiculo
+Ref: viajes.id_municipio > municipios.id_municipio
+Ref: viajes.id_zona_destino > zonas.id_zona
+Ref: viaje_estado_historial.id_viaje > viajes.id_viaje
+Ref: viaje_rechazos.id_viaje > viajes.id_viaje
+Ref: viaje_rechazos.id_conductor > conductores.id_conductor
+Ref: rastreo_ubicacion.id_viaje > viajes.id_viaje
+Ref: evaluaciones.id_viaje > viajes.id_viaje
+Ref: evaluaciones.id_evaluador > usuarios.id_usuario
+Ref: evaluaciones.id_evaluado > usuarios.id_usuario
+
+// Geografía
+Ref: zonas.id_municipio > municipios.id_municipio
+Ref: tarifas.id_municipio > municipios.id_municipio
+Ref: tarifas.id_zona > zonas.id_zona
+
+// ═══════════ GRUPOS ═══════════
+TableGroup identidad {
+  usuarios
+  usuario_roles
+  personas
+  catalogo_sexo
+  sesiones
+  codigos_otp
+  dispositivos
+  direcciones_usuario
+  invitaciones_admin
+}
+TableGroup conductores_grp {
+  conductores
+  documentos_conductor
+  conductor_disponibilidad
+  conductor_sesiones
+  conductor_cambio_estatus
+}
+TableGroup flotillas {
+  propietarios
+  vehiculos
+  asignaciones_conductor_vehiculo
+  documentos_vehiculo
+  vehiculo_cambio_estatus
+}
+TableGroup bolsa_p4 {
+  vacantes
+  postulaciones
+}
+TableGroup viajes_grp {
+  viajes
+  viaje_estado_historial
+  viaje_rechazos
+  rastreo_ubicacion
+  evaluaciones
+}
+TableGroup geografia {
+  municipios
+  zonas
+  tarifas
+}
