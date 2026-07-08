@@ -18,7 +18,14 @@ export const CrearViajeSchema = z.object({
 
 export const CancelarViajeSchema = z.object({ motivo: z.string().max(255).optional() });
 
-export const AceptarViajeSchema = z.object({ idVehiculo: z.number().int().positive() });
+export const AceptarViajeSchema = z.object({
+  idVehiculo: z
+    .number()
+    .int()
+    .positive()
+    .describe('Si se omite, se usa el vehículo activo del conductor')
+    .optional(),
+});
 
 export const EvaluacionSchema = z.object({
   calificacion: z.number().int().min(1).max(5),

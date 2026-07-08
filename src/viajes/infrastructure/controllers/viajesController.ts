@@ -70,6 +70,7 @@ export const rutaController: RequestHandler = async (req, res, next) => {
 export const aceptarViajeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
+    // dto.idVehiculo puede venir undefined: el use case deriva el vehículo activo del conductor.
     const dto = S.AceptarViajeSchema.parse(req.body);
     res.json(await viajeUseCases.aceptarViaje(S.IdParamSchema.parse(req.params.id), req.user.sub, dto.idVehiculo));
   } catch (e) { next(e); }
