@@ -96,7 +96,11 @@ CREATE TABLE postulaciones (
 CREATE INDEX idx_postulaciones_conductor ON postulaciones(id_conductor, estado);
 ```
 
-- Al **aceptar** una postulación: se crea `asignaciones_vehiculo(origen='bolsa')`, se cierra la vacante y se rechazan las demás postulaciones de esa vacante (en una transacción).
+- Al **aceptar** una postulación: se crea la asignación (`origen='bolsa'`), se cierra la vacante y se rechazan las demás postulaciones de esa vacante (en una transacción). Si el conductor no tiene vehículo activo, se le asigna éste (consistente con los hooks de autoasignación de P3).
+
+**Re-postulación (decisión 2026-07-07, P4-post-review):** retirar una postulación NO es definitivo — el conductor puede volver a postularse a la misma vacante. Implementación: sin migración; `crearPostulacion` hace UPSERT que "revive" la fila `retirada` a `pendiente` (nuevo mensaje, updated_at) vía `ON CONFLICT (id_vacante,id_conductor) DO UPDATE ... WHERE postulaciones.estado='retirada'`; si el conflicto es con una fila NO-retirada, sigue el 409 actual. App: botón "Postularme de nuevo" cuando el estado propio es retirada.
+
+**Regla de revocación (decisión 2026-07-07, P4):** un propietario NO puede revocar la asignación de un conductor mientras el vehículo O ese conductor tengan un viaje activo (`estado IN ('aceptado','en_curso')`) — el endpoint responde 409 con mensaje claro; solo al terminar el viaje procede. Al revocar con éxito, si `conductores.id_vehiculo_activo` apuntaba a ese vehículo se limpia a NULL (el conductor queda sin vehículo habilitado hasta elegir/conseguir otro), evitando selecciones colgantes que fallarían con 403 al aceptar.
 
 ## 4. Autorización (JWT + middleware)
 

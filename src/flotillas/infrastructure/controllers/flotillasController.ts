@@ -12,6 +12,14 @@ export const getPerfilController: RequestHandler = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+export const activarPropietarioController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    await flotillaUseCases.activarPropietario({ idUsuario: req.user.sub });
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};
+
 export const putPerfilController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();

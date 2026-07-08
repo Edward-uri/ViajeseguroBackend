@@ -1,4 +1,4 @@
-import { NotFoundError, ForbiddenError, ValidationError } from '../../core/errors.js';
+import { NotFoundError, ForbiddenError, ValidationError, AppError } from '../../core/errors.js';
 
 export class ConductorNoEncontradoError extends NotFoundError {
   constructor() { super('Conductor'); }
@@ -18,4 +18,7 @@ export class ArchivoRequeridoError extends ValidationError {
 }
 export class MunicipioNoValidoError extends ValidationError {
   constructor() { super('El municipio indicado no existe o no está activo'); }
+}
+export class AsignacionEnViajeError extends AppError {
+  constructor() { super('No puedes revocar mientras hay un viaje en curso; espera a que termine', 409, 'ASIGNACION_EN_VIAJE'); }
 }

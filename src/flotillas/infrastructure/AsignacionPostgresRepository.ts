@@ -1,25 +1,31 @@
 import { pool } from '../../core/db.js';
+import type { PoolClient } from 'pg';
 import type { IAsignacionRepository } from '../domain/repositories/IAsignacionRepository.js';
 
 export class AsignacionPostgresRepository implements IAsignacionRepository {
   /** Upsert de asignación activa. Si ya hay activa para (vehiculo, conductor), no duplica.
-   *  Si había una revocada (activo=false), la reactiva. */
-  async asignar({ idVehiculo, idConductor }: { idVehiculo: number; idConductor: number }): Promise<void> {
+   *  Si había una revocada (activo=false), la reactiva.
+   *  `client` opcional: para participar en una transacción externa (mismo client, mismo commit/rollback). */
+  async asignar(
+    { idVehiculo, idConductor, origen = 'propia' }: { idVehiculo: number; idConductor: number; origen?: 'propia' | 'bolsa' },
+    client?: PoolClient,
+  ): Promise<void> {
+    const exec = client ?? pool;
     // Reactiva una previa revocada si existe; el UPDATE no toca el índice parcial salvo que la reactive.
-    const upd = await pool.query(
+    const upd = await exec.query(
       `UPDATE asignaciones_conductor_vehiculo
-          SET activo = TRUE
+          SET activo = TRUE, origen = $3
         WHERE id_vehiculo = $1 AND id_conductor = $2 AND activo = FALSE`,
-      [idVehiculo, idConductor],
+      [idVehiculo, idConductor, origen],
     );
     if ((upd.rowCount ?? 0) > 0) return;
     // No había revocada que reactivar: inserta. ON CONFLICT sobre el índice parcial uq_asignacion_activa
     // hace idempotente el caso "ya existe activa".
-    await pool.query(
-      `INSERT INTO asignaciones_conductor_vehiculo (id_vehiculo, id_conductor)
-       VALUES ($1, $2)
+    await exec.query(
+      `INSERT INTO asignaciones_conductor_vehiculo (id_vehiculo, id_conductor, origen)
+       VALUES ($1, $2, $3)
        ON CONFLICT (id_vehiculo, id_conductor) WHERE activo DO NOTHING`,
-      [idVehiculo, idConductor],
+      [idVehiculo, idConductor, origen],
     );
   }
 

@@ -12,6 +12,7 @@ import { adminConductoresRoutes } from './conductores/infrastructure/routes/admi
 import { municipioRoutes } from './municipios/infrastructure/routes/municipioRoutes.js';
 import { flotillasRoutes } from './flotillas/infrastructure/routes/flotillasRoutes.js';
 import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVehiculosRoutes.js';
+import { bolsaRoutes } from './bolsa/infrastructure/routes/bolsaRoutes.js';
 import { viajesRoutes, tarifasRoutes, dispositivosRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
 import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
 import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
@@ -48,6 +49,7 @@ export function buildApp(): Express {
   app.use('/api/admin', adminConductoresRoutes);
   app.use('/api/flotillas', flotillasRoutes);
   app.use('/api/admin', adminVehiculosRoutes);
+  app.use('/api/bolsa', bolsaRoutes);
   app.use('/api/municipios', tarifasRoutes);
   app.use('/api/admin', zonasAdminRoutes);
   app.use('/api/admin', adminInvitacionesRoutes);

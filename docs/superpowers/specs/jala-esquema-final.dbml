@@ -5,24 +5,90 @@
 // Leyenda: [P1..P6] = parte que lo agrega/quita · enc/bidx = columna cifrada + blind index
 // ═══════════════════════════════════════════════════════════════
 
-// ───── Enums (valores reales de la BD) ─────
-Enum rol_usuario { pasajero conductor propietario admin }
-Enum estado_cuenta { activo suspendido eliminado }
-Enum canal_otp { sms email }
-Enum proposito_otp { registro login }
-Enum tipo_documento { licencia ine_frente ine_reverso tarjeta_circulacion foto_vehiculo }
-Enum estado_documento { pendiente aprobado rechazado }
-Enum estatus_conductor { habilitado inhabilitado }
-Enum tipo_documento_vehiculo { tarjeta_circulacion foto_vehiculo permiso_municipal }
-Enum estatus_vehiculo { activo inactivo }
-Enum estado_viaje { solicitado aceptado en_curso completado cancelado }
-Enum tipo_servicio_viaje { viaje envio }
-Enum cancelado_por { pasajero conductor sistema }
-Enum tipo_evaluacion { pasajero_a_conductor conductor_a_pasajero }
-Enum plataforma_dispositivo { android ios }
-Enum origen_asignacion { propia bolsa } // P4
-Enum estado_vacante { abierta cerrada } // P4
-Enum estado_postulacion { pendiente aceptada rechazada retirada } // P4
+// ───── Enums (valores reales de la BD; DBML exige un valor por línea) ─────
+Enum rol_usuario {
+  pasajero
+  conductor
+  propietario
+  admin
+}
+Enum estado_cuenta {
+  activo
+  suspendido
+  eliminado
+}
+Enum canal_otp {
+  sms
+  email
+}
+Enum proposito_otp {
+  registro
+  login
+}
+Enum tipo_documento {
+  licencia
+  ine_frente
+  ine_reverso
+  tarjeta_circulacion
+  foto_vehiculo
+}
+Enum estado_documento {
+  pendiente
+  aprobado
+  rechazado
+}
+Enum estatus_conductor {
+  habilitado
+  inhabilitado
+}
+Enum tipo_documento_vehiculo {
+  tarjeta_circulacion
+  foto_vehiculo
+  permiso_municipal
+}
+Enum estatus_vehiculo {
+  activo
+  inactivo
+}
+Enum estado_viaje {
+  solicitado
+  aceptado
+  en_curso
+  completado
+  cancelado
+}
+Enum tipo_servicio_viaje {
+  viaje
+  envio
+}
+Enum cancelado_por {
+  pasajero
+  conductor
+  sistema
+}
+Enum tipo_evaluacion {
+  pasajero_a_conductor
+  conductor_a_pasajero
+}
+Enum plataforma_dispositivo {
+  android
+  ios
+}
+// P4 (futuros)
+Enum origen_asignacion {
+  propia
+  bolsa
+}
+Enum estado_vacante {
+  abierta
+  cerrada
+}
+Enum estado_postulacion {
+  pendiente
+  aceptada
+  rechazada
+  retirada
+}
 
 // ═══════════ IDENTIDAD Y ACCESO ═══════════
 

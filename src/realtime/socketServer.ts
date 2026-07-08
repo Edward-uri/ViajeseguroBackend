@@ -34,7 +34,7 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
 
   io.on('connection', (socket: AppSocket) => {
     const user = socket.data.user;
-    const roles = user.roles ?? [user.rol]; // compat: tokens pre-fase-1
+    const roles = user.roles;
     void socket.join(usuarioRoom(user.sub));
     if (roles.includes('conductor')) void socket.join(conductorRoom(user.sub));
 

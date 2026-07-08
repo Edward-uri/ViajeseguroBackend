@@ -44,9 +44,7 @@ export const getMeController: RequestHandler = async (req, res, next) => {
       correo: user.correoElectronico,
       telefono: user.telefono,
     };
-    // fase 1: 'rol' aquí es la columna legacy de usuarios; el 'rol' del token es el principal derivado de roles[].
-    // Al hacer DROP COLUMN (fase 2), servir rolPrincipal(roles).
-    res.json({ data: { ...toServingUserJSON(user), roles, persona: datos } });
+    res.json({ data: { ...toServingUserJSON(user, roles), persona: datos } });
   } catch (err) {
     next(err);
   }

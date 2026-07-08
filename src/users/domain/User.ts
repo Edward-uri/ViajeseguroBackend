@@ -32,12 +32,11 @@ export class User {
     public esPropietario: boolean = false,
   ) {}
 
-  toPublicJSON(): PublicUser {
+  toPublicJSON(): Omit<PublicUser, 'rol'> {
     return {
       idUsuario: this.idUsuario,
       telefono: this.telefono,
       correoElectronico: this.correoElectronico,
-      rol: this.rol,
       estadoCuenta: this.estadoCuenta,
       telefonoVerificado: this.telefonoVerificado,
       tienePassword: this.tienePassword,

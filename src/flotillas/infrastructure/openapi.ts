@@ -50,6 +50,12 @@ const archivoRes = { description: 'Binario del archivo', content: { 'application
 
 // ---- Web Flotillas ----
 openapiRegistry.registerPath({
+  method: 'post', path: '/api/flotillas/propietarios/activar', tags: ['Web Flotillas'],
+  summary: 'Activa el rol propietario para la cuenta autenticada (idempotente; requiere refresh de sesión para reflejarse en el token)',
+  security: [{ bearerAuth: [] }],
+  responses: { 200: { description: 'Rol activado', content: { 'application/json': { schema: z.object({ ok: z.boolean() }) } } }, 401: err('No autenticado') },
+});
+openapiRegistry.registerPath({
   method: 'get', path: '/api/flotillas/perfil', tags: ['Web Flotillas'],
   summary: 'Perfil del propietario', security: [{ bearerAuth: [] }],
   responses: { 200: { description: 'Perfil', content: { 'application/json': { schema: PerfilSchema } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
@@ -125,9 +131,9 @@ openapiRegistry.registerPath({
 });
 openapiRegistry.registerPath({
   method: 'delete', path: '/api/flotillas/vehiculos/{id}/conductores/{idConductor}', tags: ['Web Flotillas'],
-  summary: 'Revoca la asignación de un conductor', security: [{ bearerAuth: [] }],
+  summary: 'Revoca la asignación de un conductor (409 si hay un viaje en curso)', security: [{ bearerAuth: [] }],
   request: { params: z.object({ id: z.string().openapi({ example: '7' }), idConductor: z.string().openapi({ example: '12' }) }) },
-  responses: { 204: { description: 'Revocado' }, 403: err('No es tu vehículo'), 404: err('No encontrado') },
+  responses: { 204: { description: 'Revocado' }, 403: err('No es tu vehículo'), 404: err('No encontrado'), 409: err('Hay un viaje en curso; espera a que termine') },
 });
 
 // ---- Web Admin ----
