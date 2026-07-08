@@ -1,6 +1,7 @@
 import type { IVehiculoRepository } from '../domain/repositories/IVehiculoRepository.js';
 import type { IDocumentoVehiculoRepository } from '../domain/repositories/IDocumentoVehiculoRepository.js';
 import type { IAsignacionRepository } from '../domain/repositories/IAsignacionRepository.js';
+import type { IConductorRepository } from '../../conductores/domain/repositories/IConductorRepository.js';
 import { calcularEstadoVerificacion, type EstadoVerificacion } from '../domain/tipos.js';
 
 export interface VehiculoResumen {
@@ -12,12 +13,14 @@ export interface VehiculoResumen {
   idMunicipio: number;
   estadoVerificacion: EstadoVerificacion;
   origen: 'propio' | 'asignado';
+  activo: boolean;
 }
 
 export function listarVehiculos(deps: {
   vehiculos: IVehiculoRepository;
   documentos: IDocumentoVehiculoRepository;
   asignaciones: IAsignacionRepository;
+  conductores: Pick<IConductorRepository, 'getVehiculoActivo'>;
 }) {
   return async ({ idPropietario }: { idPropietario: number }): Promise<VehiculoResumen[]> => {
     const propios = await deps.vehiculos.listarPorPropietario(idPropietario);
@@ -33,6 +36,8 @@ export function listarVehiculos(deps: {
       ...asignados.map((v) => ({ v, origen: 'asignado' as const })),
     ];
 
+    const idVehiculoActivo = await deps.conductores.getVehiculoActivo(idPropietario);
+
     return Promise.all(
       filas.map(async ({ v, origen }) => {
         const docs = await deps.documentos.listarPorVehiculo(v.idVehiculo);
@@ -46,6 +51,7 @@ export function listarVehiculos(deps: {
           idMunicipio: v.idMunicipio,
           estadoVerificacion: estado,
           origen,
+          activo: v.idVehiculo === idVehiculoActivo,
         };
       }),
     );

@@ -14,6 +14,7 @@ flotillasRoutes.put('/perfil', c.putPerfilController);
 
 flotillasRoutes.post('/vehiculos', c.registrarVehiculoController);
 flotillasRoutes.get('/vehiculos', c.listarVehiculosController);
+flotillasRoutes.patch('/vehiculos/activo', c.setVehiculoActivoController);
 flotillasRoutes.get('/vehiculos/:id', c.getVehiculoController);
 flotillasRoutes.patch('/vehiculos/:id', c.editarVehiculoController);
 

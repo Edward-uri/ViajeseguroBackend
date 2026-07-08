@@ -19,6 +19,7 @@ import { asignarConductor } from '../application/asignarConductor.js';
 import { revocarConductor } from '../application/revocarConductor.js';
 import { listarConductoresAsignados } from '../application/listarConductoresAsignados.js';
 import { estadoVehiculo } from '../application/estadoVehiculo.js';
+import { setVehiculoActivoUseCase } from '../application/setVehiculoActivoUseCase.js';
 
 export const propietarios = new PropietarioPostgresRepository();
 export const vehiculos = new VehiculoPostgresRepository();
@@ -31,7 +32,7 @@ export const flotillaUseCases = {
   getPerfil: getPerfil({ propietarios }),
   upsertPerfil: upsertPerfil({ propietarios }),
   registrarVehiculo: registrarVehiculo({ propietarios, vehiculos, municipios: municipioRepository, conductores }),
-  listarVehiculos: listarVehiculos({ vehiculos, documentos, asignaciones }),
+  listarVehiculos: listarVehiculos({ vehiculos, documentos, asignaciones, conductores }),
   getVehiculo: getVehiculo({ vehiculos, documentos }),
   editarVehiculo: editarVehiculo({ vehiculos, municipios: municipioRepository }),
   uploadDocumentoVehiculo: uploadDocumentoVehiculo({ vehiculos, documentos, storage }),
@@ -42,4 +43,5 @@ export const flotillaUseCases = {
   revocarConductor: revocarConductor({ vehiculos, asignaciones }),
   listarConductoresAsignados: listarConductoresAsignados({ vehiculos, asignaciones }),
   estadoVehiculo: estadoVehiculo({ documentos }),
+  setVehiculoActivo: setVehiculoActivoUseCase({ asignaciones, conductores }),
 };
