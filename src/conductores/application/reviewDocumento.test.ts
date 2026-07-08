@@ -5,8 +5,12 @@ function makeDoc(idDocumento: number, idConductor: number, estado = 'pendiente')
   return { idDocumento, idConductor, tipo: 'licencia', estado };
 }
 
-function makeDeps(docsPorConductor: { tipo: string; estado: string }[]) {
-  const conductores = { registrarCambioEstatus: vi.fn(async () => {}) };
+function makeDeps(docsPorConductor: { tipo: string; estado: string }[], opts?: { activo?: number | null; vehiculosPropios?: { idVehiculo: number }[] }) {
+  const conductores = {
+    registrarCambioEstatus: vi.fn(async () => {}),
+    getVehiculoActivo: vi.fn(async () => (opts?.activo === undefined ? null : opts.activo)),
+    setVehiculoActivo: vi.fn(async () => {}),
+  };
   const documentos = {
     findById: vi.fn(async (id: number) => makeDoc(id, 1)),
     revisar: vi.fn(async () => ({ toJSON: () => ({ idDocumento: 1 }) })),
@@ -14,7 +18,8 @@ function makeDeps(docsPorConductor: { tipo: string; estado: string }[]) {
   };
   const push = { enviar: vi.fn(async () => {}) };
   const users = { addRol: vi.fn(async () => {}) };
-  return { conductores, documentos, push, users } as any;
+  const vehiculos = { listarPorPropietario: vi.fn(async () => opts?.vehiculosPropios ?? []) };
+  return { conductores, documentos, push, users, vehiculos } as any;
 }
 
 const TODOS_APROBADOS = [
@@ -64,5 +69,38 @@ describe('reviewDocumento otorga rol conductor', () => {
 
     expect(deps.users.addRol).not.toHaveBeenCalled();
     expect(deps.conductores.registrarCambioEstatus).not.toHaveBeenCalled();
+  });
+});
+
+describe('reviewDocumento autoasigna primer vehiculo propio', () => {
+  it('todos aprobados + tiene vehiculos propios + activo NULL: setVehiculoActivo con el MENOR idVehiculo', async () => {
+    const deps = makeDeps(TODOS_APROBADOS, {
+      activo: null,
+      vehiculosPropios: [{ idVehiculo: 9 }, { idVehiculo: 4 }],
+    });
+
+    await reviewDocumento(deps)({
+      idDocumento: 1,
+      estado: 'aprobado',
+      motivoRechazo: null,
+      adminId: 9,
+    });
+
+    expect(deps.conductores.setVehiculoActivo).toHaveBeenCalledWith(1, 4);
+  });
+
+  it('todos aprobados + sin vehiculos propios: NO llama setVehiculoActivo y no falla', async () => {
+    const deps = makeDeps(TODOS_APROBADOS, { activo: null, vehiculosPropios: [] });
+
+    await expect(
+      reviewDocumento(deps)({
+        idDocumento: 1,
+        estado: 'aprobado',
+        motivoRechazo: null,
+        adminId: 9,
+      }),
+    ).resolves.toBeDefined();
+
+    expect(deps.conductores.setVehiculoActivo).not.toHaveBeenCalled();
   });
 });
