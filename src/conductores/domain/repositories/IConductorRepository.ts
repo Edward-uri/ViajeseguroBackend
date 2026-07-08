@@ -24,4 +24,6 @@ export interface IConductorRepository {
     descripcion: string | null;
   }): Promise<void>;
   listarConPendientes(): Promise<ConductorPendiente[]>;
+  getVehiculoActivo(idConductor: number): Promise<number | null>;
+  setVehiculoActivo(idConductor: number, idVehiculo: number | null): Promise<void>;
 }

@@ -137,4 +137,20 @@ export class ConductorPostgresRepository implements IConductorRepository {
       documentosPendientes: Number(r.pendientes),
     }));
   }
+
+  async getVehiculoActivo(idConductor: number): Promise<number | null> {
+    const { rows } = await pool.query<{ id_vehiculo_activo: string | null }>(
+      'SELECT id_vehiculo_activo FROM conductores WHERE id_conductor = $1',
+      [idConductor],
+    );
+    const v = rows[0]?.id_vehiculo_activo;
+    return v == null ? null : Number(v);
+  }
+
+  async setVehiculoActivo(idConductor: number, idVehiculo: number | null): Promise<void> {
+    await pool.query(
+      'UPDATE conductores SET id_vehiculo_activo = $2 WHERE id_conductor = $1',
+      [idConductor, idVehiculo],
+    );
+  }
 }

@@ -2,6 +2,7 @@ import { PropietarioPostgresRepository } from './PropietarioPostgresRepository.j
 import { VehiculoPostgresRepository } from './VehiculoPostgresRepository.js';
 import { DocumentoVehiculoPostgresRepository } from './DocumentoVehiculoPostgresRepository.js';
 import { AsignacionPostgresRepository } from './AsignacionPostgresRepository.js';
+import { ConductorPostgresRepository } from '../../conductores/infrastructure/ConductorPostgresRepository.js';
 import { LocalDocumentStorage } from '../../infrastructure/storage/LocalDocumentStorage.js';
 import { municipioRepository } from '../../municipios/infrastructure/dependencies.js';
 import { getPerfil } from '../application/getPerfil.js';
@@ -24,11 +25,12 @@ export const vehiculos = new VehiculoPostgresRepository();
 const documentos = new DocumentoVehiculoPostgresRepository();
 const storage = new LocalDocumentStorage();
 export const asignaciones = new AsignacionPostgresRepository();
+const conductores = new ConductorPostgresRepository();
 
 export const flotillaUseCases = {
   getPerfil: getPerfil({ propietarios }),
   upsertPerfil: upsertPerfil({ propietarios }),
-  registrarVehiculo: registrarVehiculo({ propietarios, vehiculos, municipios: municipioRepository }),
+  registrarVehiculo: registrarVehiculo({ propietarios, vehiculos, municipios: municipioRepository, conductores }),
   listarVehiculos: listarVehiculos({ vehiculos, documentos, asignaciones }),
   getVehiculo: getVehiculo({ vehiculos, documentos }),
   editarVehiculo: editarVehiculo({ vehiculos, municipios: municipioRepository }),
