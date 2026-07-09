@@ -19,6 +19,7 @@ export const PublicUserSchema = z
     idUsuario: z.number().int().openapi({ example: 1 }),
     telefono: z.string().openapi({ example: '9611234567' }),
     correoElectronico: z.string().email().nullable().openapi({ example: 'juan@correo.com' }),
+    /** Derivado de `roles[]` (mayor prioridad: admin > propietario > conductor > pasajero). No es una columna propia. */
     rol: RolSchema,
     estadoCuenta: EstadoCuentaSchema,
     telefonoVerificado: z.boolean(),
@@ -58,12 +59,13 @@ export const ErrorResponseSchema = z
   })
   .openapi('ErrorResponse');
 
-/** Respuesta de los endpoints que emiten sesión (register/complete, login/verify). */
+/** Respuesta de los endpoints que emiten sesión (register/complete, login/verify, login/password, invitaciones/aceptar). */
 export const SessionResponseSchema = z
   .object({
     accessToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     refreshToken: z.string().openapi({ example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...' }),
     user: PublicUserSchema,
+    roles: z.array(RolSchema),
   })
   .openapi('SessionResponse');
 

@@ -1,12 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import { completeRegistration } from './completeRegistration.js';
+import { emitirTokens } from './sessionTokens.js';
 import { signRegistrationToken } from '../../core/jwt.js';
 
 function makeDeps() {
-  const created = { idUsuario: 42, rol: 'propietario', toPublicJSON: () => ({ idUsuario: 42, rol: 'propietario' }) };
+  const created = { idUsuario: 42, toPublicJSON: () => ({ idUsuario: 42 }) };
   return {
     created,
-    users: { createUserWithPersona: vi.fn(async (args: any) => ({ ...created, rol: args.user?.rol ?? 'propietario' })) },
+    users: { createUserWithPersona: vi.fn(async () => created) },
     sessions: { crear: vi.fn(async () => ({ idSesion: 1 })), actualizarHash: vi.fn(async () => {}) },
     propietarios: { asegurarExiste: vi.fn(async () => {}) },
   } as any;
@@ -21,7 +22,6 @@ describe('completeRegistration multi-rol', () => {
     await completeRegistration(deps)({ registrationToken: token, ...base });
     const args = deps.users.createUserWithPersona.mock.calls[0][0];
     expect(args.roles.sort()).toEqual(['pasajero', 'propietario']);
-    expect(args.user.rol).toBe('propietario'); // columna legacy
     expect(deps.propietarios.asegurarExiste).toHaveBeenCalledWith(42);
   });
 
@@ -39,7 +39,14 @@ describe('completeRegistration multi-rol', () => {
     await completeRegistration(deps)({ registrationToken: token, ...base });
     const args = deps.users.createUserWithPersona.mock.calls[0][0];
     expect(args.roles).toEqual(['pasajero']);
-    expect(args.user.rol).toBe('pasajero');
     expect(deps.propietarios.asegurarExiste).not.toHaveBeenCalled();
+  });
+
+  it('emitirTokens loguea error si usuario_roles llega vacío (guard m7)', async () => {
+    const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const sessions = { crear: vi.fn(async () => ({ idSesion: 1 })), actualizarHash: vi.fn(async () => {}) } as any;
+    await emitirTokens(sessions, 42, [], null);
+    expect(spy).toHaveBeenCalledWith(expect.stringContaining('sin filas en usuario_roles'));
+    spy.mockRestore();
   });
 });

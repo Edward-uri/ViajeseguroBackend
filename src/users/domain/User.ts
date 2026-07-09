@@ -1,11 +1,12 @@
-export type RolUsuario = 'pasajero' | 'conductor' | 'propietario' | 'admin';
+import type { Rol } from '../../core/jwt.js';
+
 export type EstadoCuenta = 'activo' | 'suspendido' | 'eliminado';
 
 export interface PublicUser {
   idUsuario: number | null;
   telefono: string | null;
   correoElectronico: string;
-  rol: RolUsuario;
+  rol: Rol;
   estadoCuenta: EstadoCuenta;
   telefonoVerificado: boolean;
   tienePassword: boolean;
@@ -20,7 +21,6 @@ export class User {
     public idUsuario: number | null,
     public telefono: string | null,
     public correoElectronico: string,
-    public rol: RolUsuario,
     public estadoCuenta: EstadoCuenta,
     public telefonoVerificado: boolean,
     public correoVerificado: boolean,
@@ -52,7 +52,6 @@ export class UserBuilder {
   private _id: number | null = null;
   private _telefono: string | null = null;
   private _correo?: string;
-  private _rol: RolUsuario = 'pasajero';
   private _estado: EstadoCuenta = 'activo';
   private _telVerif = false;
   private _correoVerif = false;
@@ -66,7 +65,6 @@ export class UserBuilder {
   idUsuario(v: number | null): this { this._id = v; return this; }
   telefono(v: string | null): this { this._telefono = v; return this; }
   correoElectronico(v: string): this { this._correo = v; return this; }
-  rol(v: RolUsuario): this { this._rol = v; return this; }
   estadoCuenta(v: EstadoCuenta): this { this._estado = v; return this; }
   telefonoVerificado(v: boolean): this { this._telVerif = v; return this; }
   correoVerificado(v: boolean): this { this._correoVerif = v; return this; }
@@ -80,7 +78,7 @@ export class UserBuilder {
   build(): User {
     if (!this._correo) throw new Error('User.correoElectronico es requerido');
     return new User(
-      this._id, this._telefono, this._correo, this._rol, this._estado,
+      this._id, this._telefono, this._correo, this._estado,
       this._telVerif, this._correoVerif, this._idMunicipio, this._fotoUrl, this._fotoKey, this._fechaRegistro, this._tienePassword, this._esPropietario,
     );
   }

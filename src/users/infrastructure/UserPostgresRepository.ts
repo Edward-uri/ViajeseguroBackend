@@ -1,7 +1,7 @@
 import { pool, withTransaction } from '../../core/db.js';
 import type { PoolClient } from 'pg';
 import type { Rol } from '../../core/jwt.js';
-import { User, UserBuilder, type EstadoCuenta, type RolUsuario } from '../domain/User.js';
+import { User, UserBuilder, type EstadoCuenta } from '../domain/User.js';
 import type { Persona } from '../domain/Persona.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 import { TelefonoDuplicadoError } from '../domain/errors.js';
@@ -14,7 +14,6 @@ interface UsuarioRow {
   correo_electronico: string | null;
   telefono_verificado: boolean;
   correo_verificado: boolean;
-  rol: RolUsuario;
   estado_cuenta: EstadoCuenta;
   id_municipio: string | number | null;
   foto_perfil_url: string | null;
@@ -34,7 +33,6 @@ function mapUserRow(row: UsuarioRow | undefined): User | null {
     .idUsuario(typeof row.id_usuario === 'string' ? Number(row.id_usuario) : row.id_usuario)
     .telefono(telefono)
     .correoElectronico(correo as string)
-    .rol(row.rol)
     .estadoCuenta(row.estado_cuenta)
     .telefonoVerificado(row.telefono_verificado)
     .correoVerificado(row.correo_verificado)
@@ -120,13 +118,17 @@ export class UserPostgresRepository implements IUserRepository {
       const { rows } = await exec.query<UsuarioRow>(
         `INSERT INTO usuarios
            (correo_electronico_enc, correo_electronico_bidx, telefono_enc, telefono_bidx,
-            rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
-         VALUES ($1, $2, $3, $4, 'admin', 'activo', false, true, NULL, $5)
+            estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, 'activo', false, true, NULL, $5)
          RETURNING *`,
         [enc.correo_electronico_enc, enc.correo_electronico_bidx, enc.telefono_enc, enc.telefono_bidx, passwordHash],
       );
       const created = mapUserRow(rows[0]);
       if (!created) throw new Error('No se pudo crear el admin');
+      await exec.query(
+        `INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, 'admin') ON CONFLICT DO NOTHING`,
+        [created.idUsuario],
+      );
       return created;
     } catch (err) {
       if ((err as { code?: string }).code === '23505') throw new CorreoYaRegistradoError();
@@ -145,12 +147,12 @@ export class UserPostgresRepository implements IUserRepository {
       const { rows: uRows } = await client.query<UsuarioRow>(
         `INSERT INTO usuarios
            (correo_electronico_enc, correo_electronico_bidx, telefono_enc, telefono_bidx,
-            rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [
           enc.correo_electronico_enc, enc.correo_electronico_bidx, enc.telefono_enc, enc.telefono_bidx,
-          user.rol, user.estadoCuenta, user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
+          user.estadoCuenta, user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
         ],
       );
       const created = mapUserRow(uRows[0]);

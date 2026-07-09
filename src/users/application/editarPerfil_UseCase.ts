@@ -1,5 +1,6 @@
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 import type { User } from '../domain/User.js';
+import type { Rol } from '../../core/jwt.js';
 
 export class EditarPerfil_UseCase {
   constructor(private readonly userRepository: IUserRepository) {}
@@ -14,7 +15,9 @@ export class EditarPerfil_UseCase {
       fechaNacimiento?: string | null;
       telefono?: string;
     },
-  ): Promise<User> {
-    return this.userRepository.actualizarPerfil(idUsuario, campos);
+  ): Promise<{ user: User; roles: Rol[] }> {
+    const user = await this.userRepository.actualizarPerfil(idUsuario, campos);
+    const roles = await this.userRepository.getRoles(idUsuario);
+    return { user, roles };
   }
 }

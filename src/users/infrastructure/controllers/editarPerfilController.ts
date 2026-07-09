@@ -51,8 +51,8 @@ export const editarPerfilController: RequestHandler = async (req, res, next) => 
     if (!parsed.success) {
       throw new ValidationError('Datos invalidos', parsed.error.flatten().fieldErrors);
     }
-    const user = await editarPerfilUseCase.execute(req.user.sub, parsed.data);
-    res.json({ data: await toServingUserJSON(user) });
+    const { user, roles } = await editarPerfilUseCase.execute(req.user.sub, parsed.data);
+    res.json({ data: toServingUserJSON(user, roles) });
   } catch (err) {
     next(err);
   }

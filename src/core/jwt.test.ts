@@ -11,11 +11,11 @@ describe('rolPrincipal', () => {
 });
 
 describe('access token con roles[]', () => {
-  it('firma y verifica sub, rol derivado y roles', () => {
+  it('firma y verifica sub y roles, sin rol en el payload', () => {
     const token = signAccessToken({ sub: 7, roles: ['propietario', 'pasajero'] });
     const payload = verifyAccessToken(token);
     expect(payload.sub).toBe(7);
     expect(payload.roles).toEqual(['propietario', 'pasajero']);
-    expect(payload.rol).toBe('propietario'); // compat fase 1
+    expect(payload).not.toHaveProperty('rol');
   });
 });

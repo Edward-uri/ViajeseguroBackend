@@ -11,6 +11,9 @@ export async function emitirTokens(
   roles: Rol[],
   dispositivo: string | null,
 ): Promise<{ accessToken: string; refreshToken: string }> {
+  if (roles.length === 0) {
+    console.error(`[auth] usuario ${idUsuario} sin filas en usuario_roles al emitir tokens — integridad rota`);
+  }
   const expiraEn = new Date(Date.now() + DIAS_REFRESH * 86_400_000);
   const placeholder = await bcrypt.hash('pending', env.BCRYPT_ROUNDS);
   const { idSesion } = await sessions.crear({ idUsuario, refreshHash: placeholder, dispositivo, expiraEn });

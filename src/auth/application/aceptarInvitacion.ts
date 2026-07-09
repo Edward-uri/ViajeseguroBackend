@@ -2,6 +2,8 @@ import type { IUserRepository } from '../../users/domain/repositories/IUserRepos
 import type { ISessionRepository } from '../domain/repositories/ISessionRepository.js';
 import type { IInvitacionRepository } from '../domain/repositories/IInvitacionRepository.js';
 import type { PublicUser } from '../../users/domain/User.js';
+import type { Rol } from '../../core/jwt.js';
+import { rolPrincipal } from '../../core/jwt.js';
 import { withTransaction } from '../../core/db.js';
 import { hashPassword } from '../domain/password.js';
 import { hashToken } from '../domain/inviteToken.js';
@@ -15,7 +17,7 @@ export function aceptarInvitacion(deps: {
 }) {
   return async ({ token, password, dispositivo }:
     { token: string; password: string; dispositivo?: string | null }):
-    Promise<{ accessToken: string; refreshToken: string; user: PublicUser }> => {
+    Promise<{ accessToken: string; refreshToken: string; user: PublicUser; roles: Rol[] }> => {
     const inv = await deps.invitaciones.porTokenHashVigente(hashToken(token));
     if (!inv) throw new InvitacionInvalidaError();
 
@@ -29,7 +31,8 @@ export function aceptarInvitacion(deps: {
     });
 
     if (user.idUsuario === null) throw new Error('admin creado sin id');
-    const tokens = await emitirTokens(deps.sessions, user.idUsuario, ['admin'], dispositivo ?? null);
-    return { ...tokens, user: user.toPublicJSON() };
+    const roles: Rol[] = ['admin'];
+    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, dispositivo ?? null);
+    return { ...tokens, user: { ...user.toPublicJSON(), rol: rolPrincipal(roles) }, roles };
   };
 }
