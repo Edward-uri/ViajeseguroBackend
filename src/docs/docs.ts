@@ -4,14 +4,12 @@ import swaggerUi from 'swagger-ui-express';
 import { openapiRegistry } from './openapiRegistry.js';
 import { env } from '../core/env.js';
 
-// IMPORTANTE: importar los controllers *aqui* (efecto colateral) para que
-// se registren sus paths antes de generar el spec.
-// Si se agrega un nuevo controller con OpenAPI, agregar el import aqui.
 import '../auth/infrastructure/openapi.js';
 import '../conductores/infrastructure/openapi.js';
 import '../municipios/infrastructure/openapi.js';
 import '../flotillas/infrastructure/openapi.js';
 import '../viajes/infrastructure/openapi.js';
+import '../bolsa/infrastructure/openapi.js';
 import '../users/infrastructure/controllers/getMeController.js';
 import '../users/infrastructure/controllers/uploadProfilePhotoController.js';
 import '../users/infrastructure/controllers/getProfilePhotoController.js';
@@ -76,6 +74,11 @@ function buildSpec() {
         name: 'Web Flotillas',
         description:
           'Endpoints de gestión de flotilla (propietarios): registro de vehículos y carga de documentos del vehículo para revisión. Los consume tanto un panel web de propietarios como la app del conductor (un conductor dueño de motos).',
+      },
+      {
+        name: 'Bolsa de Trabajo',
+        description:
+          'Endpoints de la bolsa de trabajo: propietarios publican vacantes para sus vehículos y conductores buscan y postulan a ellas.',
       },
     ],
   });

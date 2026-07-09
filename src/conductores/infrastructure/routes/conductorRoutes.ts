@@ -5,7 +5,7 @@ import * as c from '../controllers/conductorController.js';
 
 export const conductorRoutes: Router = Router();
 
-conductorRoutes.use(authMiddleware, requireRole('conductor'));
+conductorRoutes.use(authMiddleware, requireRole('conductor', 'propietario'));
 conductorRoutes.post('/onboarding/licencia', c.submitLicenciaController);
 conductorRoutes.post('/disponibilidad', c.setDisponibilidadController);
 conductorRoutes.get('/disponibilidad', c.getDisponibilidadController);

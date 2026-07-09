@@ -1,3 +1,4 @@
+import { ConductorPostgresRepository } from '../../conductores/infrastructure/ConductorPostgresRepository.js';
 import { ViajePostgresRepository } from './ViajePostgresRepository.js';
 import { ZonaTarifaPostgresRepository } from './ZonaTarifaPostgresRepository.js';
 import { DispositivoPostgresRepository } from './DispositivoPostgresRepository.js';
@@ -37,6 +38,7 @@ import { actualizarZona } from '../application/actualizarZona.js';
 import { desactivarZona } from '../application/desactivarZona.js';
 
 const viajes = new ViajePostgresRepository();
+const conductores = new ConductorPostgresRepository();
 const zonas = new ZonaTarifaPostgresRepository();
 const zonasAdmin = new ZonaAdminPostgresRepository();
 const dispositivos = new DispositivoPostgresRepository();
@@ -68,7 +70,7 @@ export const viajeUseCases = {
   cancelarViaje: cancelarViaje({ viajes, notifier }),
   conductorCancelaViaje: conductorCancelaViaje({ viajes, notifier }),
   expirarViajes: expirarViajes({ viajes, notifier }),
-  aceptarViaje: aceptarViaje({ viajes, notifier, push, autorizacion: autorizacionVehiculo, municipioDelConductor: conductorUseCases.municipioOperativo }),
+  aceptarViaje: aceptarViaje({ viajes, notifier, push, autorizacion: autorizacionVehiculo, conductores, municipioDelConductor: conductorUseCases.municipioOperativo }),
   iniciarViaje: iniciarViaje({ viajes, notifier }),
   completarViaje: completarViaje({ viajes, notifier }),
   evaluarViaje: evaluarViaje({ viajes }),

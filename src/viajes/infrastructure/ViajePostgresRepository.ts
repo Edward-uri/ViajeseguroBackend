@@ -262,6 +262,14 @@ export class ViajePostgresRepository implements IViajeRepository {
     return rowCount === 1;
   }
 
+  async conductorOVehiculoConViajeActivo(idConductor: number, idVehiculo: number): Promise<boolean> {
+    const { rows } = await pool.query(
+      `SELECT EXISTS(SELECT 1 FROM viajes WHERE estado IN ('aceptado','en_curso') AND (id_conductor=$1 OR id_vehiculo=$2)) AS existe`,
+      [idConductor, idVehiculo],
+    );
+    return rows[0].existe;
+  }
+
   async pasajeroConViajeActivo(idPasajero: number): Promise<boolean> {
     const { rowCount } = await pool.query(
       `SELECT 1 FROM viajes WHERE id_pasajero=$1 AND estado IN ('solicitado','aceptado','en_curso') LIMIT 1`,

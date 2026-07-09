@@ -1,13 +1,17 @@
 import type { IConductorRepository } from '../domain/repositories/IConductorRepository.js';
 import type { IDocumentoConductorRepository } from '../domain/repositories/IDocumentoConductorRepository.js';
+import type { IVehiculoRepository } from '../../flotillas/domain/repositories/IVehiculoRepository.js';
 import type { IPushSender } from '../../viajes/domain/ports/IPushSender.js';
+import type { IUserRepository } from '../../users/domain/repositories/IUserRepository.js';
 import { calcularEstadoVerificacion, type EstadoVerificacion } from '../domain/tipos.js';
 import { DocumentoNoEncontradoError } from '../domain/errors.js';
 
 export function reviewDocumento(deps: {
   conductores: IConductorRepository;
   documentos: IDocumentoConductorRepository;
+  vehiculos: IVehiculoRepository;
   push: IPushSender;
+  users: IUserRepository;
 }) {
   return async (input: {
     idDocumento: number;
@@ -29,11 +33,29 @@ export function reviewDocumento(deps: {
     const estadoVerificacion = calcularEstadoVerificacion(new Map(docs.map((d) => [d.tipo, d.estado])));
 
     if (estadoVerificacion === 'aprobado') {
+      // Si addRol falla, todo el review falla y el admin reintenta (idempotente):
+      // nunca debe quedar 'habilitado' sin el rol conductor.
+      await deps.users.addRol(doc.idConductor, 'conductor');
       await deps.conductores.registrarCambioEstatus({
         idConductor: doc.idConductor,
         estatus: 'habilitado',
         descripcion: 'Documentos aprobados',
       });
+
+      // Autoasignación: si el nuevo conductor ya tenía vehículos propios (ex-propietario
+      // que ahora gana el rol) y todavía no tiene vehículo activo, se le asigna el más
+      // antiguo. No-fatal: nunca debe impedir que el conductor quede habilitado.
+      try {
+        if ((await deps.conductores.getVehiculoActivo(doc.idConductor)) === null) {
+          const propios = await deps.vehiculos.listarPorPropietario(doc.idConductor);
+          if (propios.length > 0) {
+            const primero = propios.reduce((min, v) => (v.idVehiculo < min.idVehiculo ? v : min));
+            await deps.conductores.setVehiculoActivo(doc.idConductor, primero.idVehiculo);
+          }
+        }
+      } catch (err) {
+        console.error('[reviewDocumento] autoasignación de vehículo activo falló:', err);
+      }
     }
 
     // Avisa al conductor el resultado de la revisión (best-effort: no rompe la revisión).

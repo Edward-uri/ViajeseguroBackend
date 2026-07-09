@@ -33,7 +33,7 @@ const archivoRes = { description: 'Binario del archivo', content: { 'application
 // ---- App Conductor ----
 openapiRegistry.registerPath({
   method: 'post', path: '/api/conductor/onboarding/licencia', tags: ['App Conductor'],
-  summary: 'Guarda los datos de la licencia del conductor', security: [{ bearerAuth: [] }],
+  summary: 'Guarda los datos de la licencia del conductor (rol conductor o propietario)', security: [{ bearerAuth: [] }],
   request: { body: { content: { 'application/json': { schema: LicenciaSchema } } } },
   responses: { 200: { description: 'Licencia guardada', content: { 'application/json': { schema: z.object({ idConductor: z.number(), idMunicipio: z.number() }).passthrough() } } }, 400: err('Municipio inválido'), 401: err('No autenticado'), 403: err('Rol no autorizado') },
 });
@@ -48,7 +48,7 @@ const SUBIDAS: Array<[string, string]> = [
 for (const [path, doc] of SUBIDAS) {
   openapiRegistry.registerPath({
     method: 'post', path, tags: ['App Conductor'],
-    summary: `Sube ${doc} (multipart/form-data, campo "archivo")`, security: [{ bearerAuth: [] }],
+    summary: `Sube ${doc} (multipart/form-data, campo "archivo"; rol conductor o propietario)`, security: [{ bearerAuth: [] }],
     request: { body: { content: { 'multipart/form-data': { schema: SoloArchivoSchema } } } },
     responses: { 201: { description: 'Documento subido (pendiente)', content: { 'application/json': { schema: DocItemSchema } } }, 400: err('Archivo inválido'), 401: err('No autenticado'), 403: err('Rol no autorizado') },
   });
@@ -56,7 +56,7 @@ for (const [path, doc] of SUBIDAS) {
 
 openapiRegistry.registerPath({
   method: 'get', path: '/api/conductor/onboarding', tags: ['App Conductor'],
-  summary: 'Estado del alta del conductor + documentos', security: [{ bearerAuth: [] }],
+  summary: 'Estado del alta del conductor + documentos (rol conductor o propietario)', security: [{ bearerAuth: [] }],
   responses: { 200: { description: 'Estado del onboarding', content: { 'application/json': { schema: OnboardingSchema } } }, 401: err('No autenticado'), 403: err('Rol no autorizado') },
 });
 
@@ -145,7 +145,7 @@ openapiRegistry.registerPath({
 
 openapiRegistry.registerPath({
   method: 'patch', path: '/api/admin/documentos/{id}', tags: ['Web Admin'],
-  summary: 'Aprueba o rechaza un documento', security: [{ bearerAuth: [] }],
+  summary: 'Aprueba o rechaza un documento (al aprobarse todos los documentos se otorga el rol conductor)', security: [{ bearerAuth: [] }],
   request: { params: ParamsId, body: { content: { 'application/json': { schema: RevisarDocumentoSchema } } } },
   responses: { 200: { description: 'Documento revisado', content: { 'application/json': { schema: z.object({ documento: DocItemSchema, estadoVerificacion: z.string() }) } } }, 400: err('Datos inválidos'), 404: err('No encontrado') },
 });

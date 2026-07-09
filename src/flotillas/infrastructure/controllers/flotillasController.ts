@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { flotillaUseCases } from '../dependencies.js';
-import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, AsignarConductorSchema } from '../schemas.js';
+import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, AsignarConductorSchema, SetVehiculoActivoSchema } from '../schemas.js';
 import type { TipoDocumentoVehiculo } from '../../domain/tipos.js';
 import { ArchivoRequeridoError } from '../../domain/errors.js';
 import { UnauthorizedError } from '../../../core/errors.js';
@@ -9,6 +9,14 @@ export const getPerfilController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
     res.json(await flotillaUseCases.getPerfil({ idPropietario: req.user.sub }));
+  } catch (e) { next(e); }
+};
+
+export const activarPropietarioController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    await flotillaUseCases.activarPropietario({ idUsuario: req.user.sub });
+    res.json({ ok: true });
   } catch (e) { next(e); }
 };
 
@@ -113,6 +121,14 @@ export const listarConductoresAsignadosController: RequestHandler = async (req, 
     if (!req.user) throw new UnauthorizedError();
     const idVehiculo = Number(req.params.id);
     res.json({ data: await flotillaUseCases.listarConductoresAsignados({ idVehiculo, idPropietario: req.user.sub }) });
+  } catch (e) { next(e); }
+};
+
+export const setVehiculoActivoController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const dto = SetVehiculoActivoSchema.parse(req.body);
+    res.json(await flotillaUseCases.setVehiculoActivo({ idConductor: req.user.sub, idVehiculo: dto.idVehiculo }));
   } catch (e) { next(e); }
 };
 

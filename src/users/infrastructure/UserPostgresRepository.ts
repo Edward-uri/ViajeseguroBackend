@@ -1,6 +1,7 @@
 import { pool, withTransaction } from '../../core/db.js';
 import type { PoolClient } from 'pg';
-import { User, UserBuilder, type EstadoCuenta, type RolUsuario } from '../domain/User.js';
+import type { Rol } from '../../core/jwt.js';
+import { User, UserBuilder, type EstadoCuenta } from '../domain/User.js';
 import type { Persona } from '../domain/Persona.js';
 import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
 import { TelefonoDuplicadoError } from '../domain/errors.js';
@@ -13,7 +14,6 @@ interface UsuarioRow {
   correo_electronico: string | null;
   telefono_verificado: boolean;
   correo_verificado: boolean;
-  rol: RolUsuario;
   estado_cuenta: EstadoCuenta;
   id_municipio: string | number | null;
   foto_perfil_url: string | null;
@@ -33,7 +33,6 @@ function mapUserRow(row: UsuarioRow | undefined): User | null {
     .idUsuario(typeof row.id_usuario === 'string' ? Number(row.id_usuario) : row.id_usuario)
     .telefono(telefono)
     .correoElectronico(correo as string)
-    .rol(row.rol)
     .estadoCuenta(row.estado_cuenta)
     .telefonoVerificado(row.telefono_verificado)
     .correoVerificado(row.correo_verificado)
@@ -119,13 +118,17 @@ export class UserPostgresRepository implements IUserRepository {
       const { rows } = await exec.query<UsuarioRow>(
         `INSERT INTO usuarios
            (correo_electronico_enc, correo_electronico_bidx, telefono_enc, telefono_bidx,
-            rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
-         VALUES ($1, $2, $3, $4, 'admin', 'activo', false, true, NULL, $5)
+            estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, 'activo', false, true, NULL, $5)
          RETURNING *`,
         [enc.correo_electronico_enc, enc.correo_electronico_bidx, enc.telefono_enc, enc.telefono_bidx, passwordHash],
       );
       const created = mapUserRow(rows[0]);
       if (!created) throw new Error('No se pudo crear el admin');
+      await exec.query(
+        `INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, 'admin') ON CONFLICT DO NOTHING`,
+        [created.idUsuario],
+      );
       return created;
     } catch (err) {
       if ((err as { code?: string }).code === '23505') throw new CorreoYaRegistradoError();
@@ -134,7 +137,7 @@ export class UserPostgresRepository implements IUserRepository {
   }
 
   async createUserWithPersona(
-    { user, persona, passwordHash }: { user: User; persona: Persona; passwordHash?: string | null },
+    { user, persona, passwordHash, roles }: { user: User; persona: Persona; passwordHash?: string | null; roles: Rol[] },
   ): Promise<User> {
     return withTransaction(async (client) => {
       const enc = cipherCodec.encodeParaInsert('usuarios', {
@@ -144,12 +147,12 @@ export class UserPostgresRepository implements IUserRepository {
       const { rows: uRows } = await client.query<UsuarioRow>(
         `INSERT INTO usuarios
            (correo_electronico_enc, correo_electronico_bidx, telefono_enc, telefono_bidx,
-            rol, estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            estado_cuenta, telefono_verificado, correo_verificado, id_municipio, password_hash)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [
           enc.correo_electronico_enc, enc.correo_electronico_bidx, enc.telefono_enc, enc.telefono_bidx,
-          user.rol, user.estadoCuenta, user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
+          user.estadoCuenta, user.telefonoVerificado, user.correoVerificado, user.idMunicipio, passwordHash ?? null,
         ],
       );
       const created = mapUserRow(uRows[0]);
@@ -170,6 +173,14 @@ export class UserPostgresRepository implements IUserRepository {
           encP.apellido_materno_enc, persona.idSexo, encP.fecha_nacimiento_enc,
         ],
       );
+
+      for (const rol of roles) {
+        await client.query(
+          'INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [created.idUsuario, rol],
+        );
+      }
+
       return created;
     });
   }
@@ -288,5 +299,20 @@ export class UserPostgresRepository implements IUserRepository {
       if ((err as { code?: string }).code === '23505') throw new TelefonoDuplicadoError();
       throw err;
     }
+  }
+
+  async getRoles(idUsuario: number): Promise<Rol[]> {
+    const { rows } = await pool.query<{ rol: Rol }>(
+      'SELECT rol FROM usuario_roles WHERE id_usuario = $1 ORDER BY rol',
+      [idUsuario],
+    );
+    return rows.map((r) => r.rol);
+  }
+
+  async addRol(idUsuario: number, rol: Rol): Promise<void> {
+    await pool.query(
+      'INSERT INTO usuario_roles (id_usuario, rol) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [idUsuario, rol],
+    );
   }
 }

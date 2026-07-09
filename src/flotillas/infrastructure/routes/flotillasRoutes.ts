@@ -5,6 +5,11 @@ import * as c from '../controllers/flotillasController.js';
 
 export const flotillasRoutes: Router = Router();
 
+// Activar propietario es la puerta de entrada al rol (cualquier cuenta autenticada puede
+// pedirlo), así que se monta ANTES del gate de abajo: requireRole('conductor','propietario')
+// se aplica solo a las rutas registradas después de un app.use() sin path (orden de Express).
+flotillasRoutes.post('/propietarios/activar', authMiddleware, c.activarPropietarioController);
+
 // Gestionar flotilla es una capacidad, no una identidad: el conductor dueño de motos
 // la usa desde su app, y un propietario dedicado (que no maneja) también. Scoped por ownership.
 flotillasRoutes.use(authMiddleware, requireRole('conductor', 'propietario'));
@@ -14,6 +19,7 @@ flotillasRoutes.put('/perfil', c.putPerfilController);
 
 flotillasRoutes.post('/vehiculos', c.registrarVehiculoController);
 flotillasRoutes.get('/vehiculos', c.listarVehiculosController);
+flotillasRoutes.patch('/vehiculos/activo', c.setVehiculoActivoController);
 flotillasRoutes.get('/vehiculos/:id', c.getVehiculoController);
 flotillasRoutes.patch('/vehiculos/:id', c.editarVehiculoController);
 

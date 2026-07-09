@@ -1,5 +1,6 @@
 import type { User } from '../User.js';
 import type { Persona } from '../Persona.js';
+import type { Rol } from '../../../core/jwt.js';
 
 export interface IUserRepository {
   createAdmin(
@@ -20,6 +21,7 @@ export interface IUserRepository {
     user: User;
     persona: Persona;
     passwordHash?: string | null;
+    roles: Rol[];
   }): Promise<User>;
 
   /** Guarda la key de la foto en el volumen y devuelve la key anterior (para borrarla). */
@@ -44,4 +46,9 @@ export interface IUserRepository {
       telefono?: string;
     },
   ): Promise<User>;
+
+  /** Roles del usuario desde usuario_roles (fuente de verdad, ≥1 por backfill). */
+  getRoles(idUsuario: number): Promise<Rol[]>;
+  /** Agrega un rol (idempotente). */
+  addRol(idUsuario: number, rol: Rol): Promise<void>;
 }

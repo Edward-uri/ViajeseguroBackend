@@ -68,6 +68,8 @@ export interface IViajeRepository {
   listarPorConductor(idConductor: number): Promise<Viaje[]>;
   /** ¿El conductor ya tiene un viaje aceptado o en curso? */
   conductorConViajeActivo(idConductor: number): Promise<boolean>;
+  /** ¿Hay un viaje aceptado o en curso para este conductor o este vehículo? Usado por flotillas al revocar. */
+  conductorOVehiculoConViajeActivo(idConductor: number, idVehiculo: number): Promise<boolean>;
   /** ¿El pasajero ya tiene un viaje solicitado, aceptado o en curso? */
   pasajeroConViajeActivo(idPasajero: number): Promise<boolean>;
   /** Cancela por sistema las solicitudes vencidas. Devuelve las afectadas. */

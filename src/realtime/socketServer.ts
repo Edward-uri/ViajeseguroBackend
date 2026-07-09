@@ -34,12 +34,13 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
 
   io.on('connection', (socket: AppSocket) => {
     const user = socket.data.user;
+    const roles = user.roles;
     void socket.join(usuarioRoom(user.sub));
-    if (user.rol === 'conductor') void socket.join(conductorRoom(user.sub));
+    if (roles.includes('conductor')) void socket.join(conductorRoom(user.sub));
 
     socket.on('conductor:online', (payload, ack) => {
       void (async () => {
-        if (user.rol !== 'conductor') return ack?.({ ok: false });
+        if (!roles.includes('conductor')) return ack?.({ ok: false });
         // El municipio se deriva del servidor (su municipio operativo), no del cliente:
         // así el conductor siempre entra a SU room aunque la app mande un valor desactualizado.
         const municipio = await conductorUseCases.municipioOperativo(user.sub);
@@ -61,7 +62,7 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
 
     socket.on('conductor:ubicacion', (payload) => {
       const parsed = ConductorUbicacionSchema.safeParse(payload);
-      if (user.rol !== 'conductor' || !parsed.success) return;
+      if (!roles.includes('conductor') || !parsed.success) return;
       void viajeUseCases.registrarUbicacion(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
     });
 

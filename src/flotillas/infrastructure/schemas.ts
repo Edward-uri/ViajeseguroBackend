@@ -26,3 +26,5 @@ export const RevisarDocumentoVehiculoSchema = z.discriminatedUnion('estado', [
 ]);
 
 export const AsignarConductorSchema = z.object({ idConductor: z.number().int().positive() });
+
+export const SetVehiculoActivoSchema = z.object({ idVehiculo: z.number().int().positive() });

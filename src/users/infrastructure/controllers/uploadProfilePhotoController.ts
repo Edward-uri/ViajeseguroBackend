@@ -49,12 +49,12 @@ export const uploadProfilePhotoController: RequestHandler = async (req, res, nex
   try {
     if (!req.user) throw new UnauthorizedError();
     if (!req.file) throw new ValidationError('Falta el archivo de imagen (campo "foto")');
-    const user = await uploadProfilePhotoUseCase({
+    const { user, roles } = await uploadProfilePhotoUseCase({
       idUsuario: req.user.sub,
       contenido: req.file.buffer,
       mimeType: req.file.mimetype,
     });
-    res.json({ data: toServingUserJSON(user) });
+    res.json({ data: toServingUserJSON(user, roles) });
   } catch (err) {
     next(err);
   }

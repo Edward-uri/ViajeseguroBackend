@@ -34,7 +34,7 @@ openapiRegistry.registerPath({
 export const getMeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
-    const { user, persona } = await getMeUseCase.execute(req.user.sub);
+    const { user, persona, roles } = await getMeUseCase.execute(req.user.sub);
     // Bloque "datos del usuario": datos personales + correo/teléfono juntos.
     const datos = {
       nombre: persona?.nombre ?? null,
@@ -44,7 +44,7 @@ export const getMeController: RequestHandler = async (req, res, next) => {
       correo: user.correoElectronico,
       telefono: user.telefono,
     };
-    res.json({ data: { ...toServingUserJSON(user), persona: datos } });
+    res.json({ data: { ...toServingUserJSON(user, roles), persona: datos } });
   } catch (err) {
     next(err);
   }

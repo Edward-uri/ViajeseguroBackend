@@ -8,13 +8,16 @@ const DIAS_REFRESH = 60;
 export async function emitirTokens(
   sessions: ISessionRepository,
   idUsuario: number,
-  rol: Rol,
+  roles: Rol[],
   dispositivo: string | null,
 ): Promise<{ accessToken: string; refreshToken: string }> {
+  if (roles.length === 0) {
+    console.error(`[auth] usuario ${idUsuario} sin filas en usuario_roles al emitir tokens — integridad rota`);
+  }
   const expiraEn = new Date(Date.now() + DIAS_REFRESH * 86_400_000);
   const placeholder = await bcrypt.hash('pending', env.BCRYPT_ROUNDS);
   const { idSesion } = await sessions.crear({ idUsuario, refreshHash: placeholder, dispositivo, expiraEn });
   const refreshToken = signRefreshToken({ sub: idUsuario, sid: idSesion });
   await sessions.actualizarHash(idSesion, await bcrypt.hash(refreshToken, env.BCRYPT_ROUNDS));
-  return { accessToken: signAccessToken({ sub: idUsuario, rol }), refreshToken };
+  return { accessToken: signAccessToken({ sub: idUsuario, roles }), refreshToken };
 }
