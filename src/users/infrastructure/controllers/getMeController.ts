@@ -7,7 +7,7 @@ import {
   ErrorResponseSchema,
   wrapData,
 } from '../../../docs/openapiRegistry.js';
-import { toServingUserJSON } from '../userView.js';
+import { toServingUserJSON, toPersonaJSON } from '../userView.js';
 
 openapiRegistry.registerPath({
   method: 'get',
@@ -35,16 +35,7 @@ export const getMeController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
     const { user, persona, roles } = await getMeUseCase.execute(req.user.sub);
-    // Bloque "datos del usuario": datos personales + correo/teléfono juntos.
-    const datos = {
-      nombre: persona?.nombre ?? null,
-      apellidoPaterno: persona?.apellidoPaterno ?? null,
-      apellidoMaterno: persona?.apellidoMaterno ?? null,
-      fechaNacimiento: persona?.fechaNacimiento ?? null,
-      correo: user.correoElectronico,
-      telefono: user.telefono,
-    };
-    res.json({ data: { ...toServingUserJSON(user, roles), persona: datos } });
+    res.json({ data: { ...toServingUserJSON(user, roles), persona: toPersonaJSON(user, persona) } });
   } catch (err) {
     next(err);
   }

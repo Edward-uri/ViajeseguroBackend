@@ -1,4 +1,5 @@
 import type { User, PublicUser } from '../domain/User.js';
+import type { PersonaPerfil } from '../domain/repositories/IUserRepository.js';
 import { rolPrincipal, type Rol } from '../../core/jwt.js';
 
 /**
@@ -15,4 +16,22 @@ export function toServingUserJSON(user: User, roles: Rol[]): PublicUser & { role
   const fotoPerfilUrl =
     user.fotoPerfilS3Key && user.idUsuario != null ? `/api/users/${user.idUsuario}/photo` : null;
   return { ...base, rol: rolPrincipal(roles), roles, fotoPerfilUrl };
+}
+
+/**
+ * Bloque "datos del usuario" de /api/users/me: datos personales (descifrados)
+ * + correo/teléfono juntos. Lo comparten el GET y el PUT para que ambos
+ * devuelvan exactamente la misma forma.
+ */
+export function toPersonaJSON(user: User, persona: PersonaPerfil | null) {
+  return {
+    nombre: persona?.nombre ?? null,
+    apellidoPaterno: persona?.apellidoPaterno ?? null,
+    apellidoMaterno: persona?.apellidoMaterno ?? null,
+    fechaNacimiento: persona?.fechaNacimiento ?? null,
+    idSexo: persona?.idSexo ?? null,
+    sexo: persona?.sexo ?? null,
+    correo: user.correoElectronico,
+    telefono: user.telefono,
+  };
 }
