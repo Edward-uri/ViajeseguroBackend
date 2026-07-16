@@ -32,7 +32,7 @@ export function aceptarInvitacion(deps: {
 
     if (user.idUsuario === null) throw new Error('admin creado sin id');
     const roles: Rol[] = ['admin'];
-    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, dispositivo ?? null);
+    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, user.idMunicipio, dispositivo ?? null);
     return { ...tokens, user: { ...user.toPublicJSON(), rol: rolPrincipal(roles) }, roles };
   };
 }

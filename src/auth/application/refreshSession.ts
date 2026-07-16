@@ -16,6 +16,6 @@ export function refreshSession(deps: { users: IUserRepository; sessions: ISessio
     const user = await deps.users.findById(sub);
     if (!user || user.idUsuario === null) throw new UnauthorizedError('Sesión inválida');
     const roles = await deps.users.getRoles(user.idUsuario);
-    return emitirTokens(deps.sessions, user.idUsuario, roles, null);
+    return emitirTokens(deps.sessions, user.idUsuario, roles, user.idMunicipio, null);
   };
 }

@@ -26,7 +26,7 @@ export function verifyLogin(deps: {
     const user = await deps.users.findByCorreo(correo);
     if (!user || user.idUsuario === null) throw new CredencialesError();
     const roles = await deps.users.getRoles(user.idUsuario);
-    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, dispositivo ?? null);
+    const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, user.idMunicipio, dispositivo ?? null);
     return { ...tokens, user: { ...user.toPublicJSON(), rol: rolPrincipal(roles) }, roles };
   };
 }

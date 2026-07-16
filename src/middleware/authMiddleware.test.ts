@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { requireRole } from './authMiddleware.js';
+import { authMiddleware, requireRole } from './authMiddleware.js';
+import { signAccessToken } from '../core/jwt.js';
 import type { Request, Response } from 'express';
 
 function reqWith(user: unknown): Request {
@@ -24,5 +25,34 @@ describe('requireRole con roles[]', () => {
     const next = vi.fn();
     requireRole('conductor', 'propietario')(reqWith({ sub: 1, roles: ['pasajero'] }), res, next);
     expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+  });
+});
+
+describe('authMiddleware: req.tenant', () => {
+  function reqConToken(token: string): Request {
+    return { headers: { authorization: `Bearer ${token}` } } as unknown as Request;
+  }
+
+  it('expone el idMunicipio del token como req.tenant', () => {
+    const req = reqConToken(signAccessToken({ sub: 5, roles: ['pasajero'], idMunicipio: 3 }));
+    const next = vi.fn();
+    authMiddleware(req, res, next);
+    expect(next).toHaveBeenCalledWith();
+    expect(req.tenant).toBe(3);
+  });
+
+  it('admin (idMunicipio null) queda como tenant null = cross-tenant', () => {
+    const req = reqConToken(signAccessToken({ sub: 1, roles: ['admin'], idMunicipio: null }));
+    const next = vi.fn();
+    authMiddleware(req, res, next);
+    expect(req.tenant).toBeNull();
+  });
+
+  it('token viejo sin claim (rollover) normaliza a null, no undefined', () => {
+    // Simula un token emitido antes del deploy del claim.
+    const req = reqConToken(signAccessToken({ sub: 2, roles: ['pasajero'], idMunicipio: undefined as unknown as null }));
+    const next = vi.fn();
+    authMiddleware(req, res, next);
+    expect(req.tenant).toBeNull();
   });
 });
