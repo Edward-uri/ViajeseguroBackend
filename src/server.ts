@@ -29,7 +29,9 @@ export function buildApp(): Express {
       contentSecurityPolicy: false,
     }),
   );
-  app.use(cors());
+  // En producción solo orígenes conocidos; en dev/test abierto. Apps nativas (sin header Origin) no pasan por CORS.
+  const corsOrigins = (env.CORS_ORIGINS ?? env.ADMIN_PANEL_URL).split(',').map((o) => o.trim());
+  app.use(cors({ origin: env.NODE_ENV === 'production' ? corsOrigins : true }));
   app.use(express.json({ limit: '1mb' }));
   if (env.NODE_ENV !== 'test') app.use(morgan('dev'));
 

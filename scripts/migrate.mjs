@@ -18,6 +18,9 @@ const client = new pg.Client({
 });
 
 await client.connect();
+// Lock global: si dos contenedores arrancan a la vez, solo uno migra; el otro espera
+// y al entrar ve todo aplicado (skip). Se libera solo al cerrar la conexión.
+await client.query('SELECT pg_advisory_lock(810214)');
 await client.query(`CREATE TABLE IF NOT EXISTS _migrations (
   nombre text PRIMARY KEY, aplicada_en timestamptz NOT NULL DEFAULT now()
 )`);
