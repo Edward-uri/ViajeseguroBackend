@@ -105,6 +105,14 @@ export const evaluarViajeController: RequestHandler = async (req, res, next) => 
   } catch (e) { next(e); }
 };
 
+export const etiquetasDeUsuarioController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const { rol } = S.EtiquetasQuerySchema.parse(req.query);
+    res.json({ data: await viajeUseCases.listarEtiquetasDeUsuario(S.IdParamSchema.parse(req.params.id), rol) });
+  } catch (e) { next(e); }
+};
+
 export const registrarDispositivoController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();

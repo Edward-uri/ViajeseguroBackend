@@ -32,6 +32,10 @@ import { rechazarViaje } from '../application/rechazarViaje.js';
 import { estimarViaje } from '../application/estimarViaje.js';
 import { asignaciones, vehiculos as flotillaVehiculos, flotillaUseCases } from '../../flotillas/infrastructure/dependencies.js';
 import { ZonaAdminPostgresRepository } from './ZonaAdminPostgresRepository.js';
+import { EtiquetaPostgresRepository } from './EtiquetaPostgresRepository.js';
+import { LlmJalaClient } from './LlmJalaClient.js';
+import { procesarEvaluacionesNlp } from '../application/procesarEvaluacionesNlp.js';
+import { listarEtiquetasDeUsuario } from '../application/listarEtiquetasDeUsuario.js';
 import { listarZonasAdmin } from '../application/listarZonasAdmin.js';
 import { crearZona } from '../application/crearZona.js';
 import { actualizarZona } from '../application/actualizarZona.js';
@@ -46,6 +50,9 @@ const haversine = new HaversineRouteEstimator();
 // Con OSRM_URL seteada se usa ruteo real (con Haversine de fallback); sin ella, solo Haversine.
 const rutas: IRouteEstimator = env.OSRM_URL ? new OsrmRouteEstimator(env.OSRM_URL, haversine) : haversine;
 const tarifas = new TarifaPorZona(zonas);
+const etiquetas = new EtiquetaPostgresRepository();
+// Sin LLM_JALA_URL el job no se agenda (ver index.ts); el placeholder nunca se usa.
+const clasificador = new LlmJalaClient(env.LLM_JALA_URL ?? 'http://llm-jala-no-configurado', env.LLM_JALA_API_KEY);
 
 export const socketNotifier = new SocketEventoViajeNotifier();
 const notifier = socketNotifier;
@@ -74,6 +81,8 @@ export const viajeUseCases = {
   iniciarViaje: iniciarViaje({ viajes, notifier }),
   completarViaje: completarViaje({ viajes, notifier }),
   evaluarViaje: evaluarViaje({ viajes }),
+  procesarEvaluacionesNlp: procesarEvaluacionesNlp({ etiquetas, clasificador }),
+  listarEtiquetasDeUsuario: listarEtiquetasDeUsuario({ etiquetas }),
   registrarDispositivo: registrarDispositivo({ dispositivos }),
   registrarUbicacion: registrarUbicacion({ viajes, notifier }),
   registrarUbicacionPasajero: registrarUbicacionPasajero({ viajes, notifier }),

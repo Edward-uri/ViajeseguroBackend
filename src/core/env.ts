@@ -66,6 +66,11 @@ const envSchema = z.object({
 
   /** URL del modelo de zonas calientes (proxy server-to-server, evita CORS en web). */
   ZONAS_URL: z.string().url().default('https://zonas.codigoverse.space'),
+
+  /** URL de LLM-JALA (clasificador NLP de evaluaciones). Sin ella, el job de etiquetas no corre. */
+  LLM_JALA_URL: z.string().url().optional(),
+  /** API key de LLM-JALA; se manda como header X-API-Key. */
+  LLM_JALA_API_KEY: z.string().min(1).optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -3,7 +3,7 @@ import type { PoolClient } from 'pg';
 import type { Rol } from '../../core/jwt.js';
 import { User, UserBuilder, type EstadoCuenta } from '../domain/User.js';
 import type { Persona } from '../domain/Persona.js';
-import type { IUserRepository } from '../domain/repositories/IUserRepository.js';
+import type { IUserRepository, PersonaPerfil } from '../domain/repositories/IUserRepository.js';
 import { TelefonoDuplicadoError } from '../domain/errors.js';
 import { CorreoYaRegistradoError } from '../../auth/domain/errors.js';
 import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
@@ -83,16 +83,15 @@ export class UserPostgresRepository implements IUserRepository {
     return mapUserRow(rows[0]);
   }
 
-  async personaPorId(idUsuario: number): Promise<{
-    nombre: string | null;
-    apellidoPaterno: string | null;
-    apellidoMaterno: string | null;
-    fechaNacimiento: string | null;
-  } | null> {
+  async personaPorId(idUsuario: number): Promise<PersonaPerfil | null> {
+    // id_sexo no se cifra (FK a catalogo_sexo); se une para devolver también la etiqueta.
     const { rows } = await pool.query(
-      `SELECT nombre, nombre_enc, apellido_paterno, apellido_paterno_enc,
-              apellido_materno, apellido_materno_enc, fecha_nacimiento, fecha_nacimiento_enc
-         FROM personas WHERE id_persona = $1`,
+      `SELECT p.nombre, p.nombre_enc, p.apellido_paterno, p.apellido_paterno_enc,
+              p.apellido_materno, p.apellido_materno_enc, p.fecha_nacimiento, p.fecha_nacimiento_enc,
+              p.id_sexo, cs.sexo
+         FROM personas p
+         LEFT JOIN catalogo_sexo cs ON cs.id_sexo = p.id_sexo
+        WHERE p.id_persona = $1`,
       [idUsuario],
     );
     const row = rows[0];
@@ -105,6 +104,8 @@ export class UserPostgresRepository implements IUserRepository {
       apellidoPaterno: val(d.apellido_paterno, row.apellido_paterno),
       apellidoMaterno: val(d.apellido_materno, row.apellido_materno),
       fechaNacimiento: val(d.fecha_nacimiento, row.fecha_nacimiento),
+      idSexo: row.id_sexo == null ? null : Number(row.id_sexo),
+      sexo: row.sexo ?? null,
     };
   }
 

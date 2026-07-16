@@ -38,6 +38,10 @@ export const PersonaPerfilSchema = z
     apellidoPaterno: z.string().nullable().openapi({ example: 'Pérez' }),
     apellidoMaterno: z.string().nullable().openapi({ example: 'López' }),
     fechaNacimiento: z.string().nullable().openapi({ example: '1990-05-14' }),
+    /** FK a catalogo_sexo. Es el mismo valor que se envía en PUT /api/users/me. */
+    idSexo: z.number().int().nullable().openapi({ example: 1 }),
+    /** Etiqueta legible del sexo: Masculino, Femenino, Otro o Prefiero no decir. */
+    sexo: z.string().nullable().openapi({ example: 'Masculino' }),
     correo: z.string().email().nullable().openapi({ example: 'juan@correo.com' }),
     telefono: z.string().nullable().openapi({ example: '9611234567' }),
   })

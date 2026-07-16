@@ -2,6 +2,18 @@ import type { User } from '../User.js';
 import type { Persona } from '../Persona.js';
 import type { Rol } from '../../../core/jwt.js';
 
+/** Datos personales descifrados de un usuario (bloque `persona` de /api/users/me). */
+export interface PersonaPerfil {
+  nombre: string | null;
+  apellidoPaterno: string | null;
+  apellidoMaterno: string | null;
+  fechaNacimiento: string | null;
+  /** FK a catalogo_sexo — es lo que se envía de vuelta en PUT /users/me. */
+  idSexo: number | null;
+  /** Etiqueta legible del sexo (catalogo_sexo.sexo), p. ej. "Masculino". */
+  sexo: string | null;
+}
+
 export interface IUserRepository {
   createAdmin(
     args: { correo: string; passwordHash: string },
@@ -10,12 +22,7 @@ export interface IUserRepository {
   findByTelefono(telefono: string): Promise<User | null>;
   findByCorreo(correo: string): Promise<User | null>;
   findById(idUsuario: number): Promise<User | null>;
-  personaPorId(idUsuario: number): Promise<{
-    nombre: string | null;
-    apellidoPaterno: string | null;
-    apellidoMaterno: string | null;
-    fechaNacimiento: string | null;
-  } | null>;
+  personaPorId(idUsuario: number): Promise<PersonaPerfil | null>;
 
   createUserWithPersona(args: {
     user: User;

@@ -3,11 +3,11 @@ import { editarPerfilUseCase } from '../dependencies.js';
 import { UnauthorizedError, ValidationError } from '../../../core/errors.js';
 import {
   openapiRegistry,
-  PublicUserSchema,
+  MeResponseSchema,
   ErrorResponseSchema,
   wrapData,
 } from '../../../docs/openapiRegistry.js';
-import { toServingUserJSON } from '../userView.js';
+import { toServingUserJSON, toPersonaJSON } from '../userView.js';
 import { EditarPerfilSchema } from '../schemas.js';
 
 openapiRegistry.registerPath({
@@ -26,8 +26,8 @@ openapiRegistry.registerPath({
   },
   responses: {
     200: {
-      description: 'Perfil actualizado',
-      content: { 'application/json': { schema: wrapData(PublicUserSchema) } },
+      description: 'Perfil actualizado (misma forma que GET /api/users/me)',
+      content: { 'application/json': { schema: wrapData(MeResponseSchema) } },
     },
     400: {
       description: 'Datos invalidos o body vacío',
@@ -51,8 +51,8 @@ export const editarPerfilController: RequestHandler = async (req, res, next) => 
     if (!parsed.success) {
       throw new ValidationError('Datos invalidos', parsed.error.flatten().fieldErrors);
     }
-    const { user, roles } = await editarPerfilUseCase.execute(req.user.sub, parsed.data);
-    res.json({ data: toServingUserJSON(user, roles) });
+    const { user, persona, roles } = await editarPerfilUseCase.execute(req.user.sub, parsed.data);
+    res.json({ data: { ...toServingUserJSON(user, roles), persona: toPersonaJSON(user, persona) } });
   } catch (err) {
     next(err);
   }

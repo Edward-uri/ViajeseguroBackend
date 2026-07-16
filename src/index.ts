@@ -26,6 +26,14 @@ const expiracionInterval = setInterval(() => {
 }, 60_000);
 expiracionInterval.unref();
 
+// Clasifica evaluaciones pendientes con LLM-JALA cada 10 min; sin LLM_JALA_URL no corre.
+if (env.LLM_JALA_URL) {
+  const nlpInterval = setInterval(() => {
+    void viajeUseCases.procesarEvaluacionesNlp().catch((e) => console.error('[nlp] error:', e));
+  }, 10 * 60_000);
+  nlpInterval.unref();
+}
+
 async function shutdown(signal: string): Promise<void> {
   console.log(`\nRecibido ${signal}, cerrando...`);
   await new Promise<void>((res) => io.close(() => res()));
