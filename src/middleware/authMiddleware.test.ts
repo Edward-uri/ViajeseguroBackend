@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { authMiddleware, requireRole } from './authMiddleware.js';
 import { signAccessToken } from '../core/jwt.js';
+import { tenantActual } from '../core/tenantContext.js';
 import type { Request, Response } from 'express';
 
 function reqWith(user: unknown): Request {
@@ -54,5 +55,16 @@ describe('authMiddleware: req.tenant', () => {
     const next = vi.fn();
     authMiddleware(req, res, next);
     expect(req.tenant).toBeNull();
+  });
+
+  it('publica el TenantContext (ALS) hacia los handlers: tenant y isAdmin', () => {
+    const req = reqConToken(signAccessToken({ sub: 5, roles: ['pasajero'], idMunicipio: 3 }));
+    let visto: unknown = 'no-corrió';
+    authMiddleware(req, res, () => { visto = tenantActual(); });
+    expect(visto).toEqual({ tenant: 3, isAdmin: false });
+
+    const reqAdmin = reqConToken(signAccessToken({ sub: 1, roles: ['admin'], idMunicipio: null }));
+    authMiddleware(reqAdmin, res, () => { visto = tenantActual(); });
+    expect(visto).toEqual({ tenant: null, isAdmin: true });
   });
 });
