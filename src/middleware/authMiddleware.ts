@@ -1,5 +1,6 @@
 import type { RequestHandler } from 'express';
 import { verifyAccessToken, type AuthTokenPayload } from '../core/jwt.js';
+import { runConTenant } from '../core/tenantContext.js';
 import { UnauthorizedError, ForbiddenError } from '../core/errors.js';
 
 declare global {
@@ -20,7 +21,8 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
   try {
     req.user = verifyAccessToken(token);
     req.tenant = req.user.idMunicipio ?? null;
-    next();
+    const isAdmin = req.user.roles?.includes('admin') ?? false;
+    runConTenant({ tenant: req.tenant, isAdmin }, () => next());
   } catch (err) {
     next(err);
   }
