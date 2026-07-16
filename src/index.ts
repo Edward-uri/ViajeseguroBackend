@@ -6,17 +6,17 @@ import { runConTenant } from './core/tenantContext.js';
 import { createSocketServer } from './realtime/socketServer.js';
 import { socketNotifier, viajeUseCases } from './viajes/infrastructure/dependencies.js';
 import { backfillCifrado } from './infrastructure/crypto/backfill.js';
+import { tenantKeys } from './infrastructure/crypto/cipher.js';
 
 const app = buildApp();
 const server = http.createServer(app);
 const io = createSocketServer(server);
 socketNotifier.attach(io);
 
-// Jobs de sistema: corren sin request → sin contexto de tenant, RLS les daría 0 filas.
 const comoSistema = (fn: () => void) => runConTenant({ tenant: null, isAdmin: true }, fn);
 
-// El backfill toca conductores/vehiculos (tablas con RLS) → corre como sistema.
 comoSistema(() => {
+  void tenantKeys.precargar().catch((e) => console.error('[tenant-keys] precarga falló (se sigue con v1):', e));
   backfillCifrado()
     .catch((e) => console.error('[backfill] error (continuando):', e))
     .finally(() => {

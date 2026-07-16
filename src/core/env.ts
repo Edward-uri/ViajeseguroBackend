@@ -61,6 +61,8 @@ const envSchema = z.object({
   RL_PASSWORD_WINDOW_MIN: z.coerce.number().positive().default(15),
   RL_PASSWORD_MAX: z.coerce.number().int().positive().default(10),
 
+  KMS_KEY_ID: z.string().min(1).optional(),
+
   /** Llave AES-256 (32 bytes en base64) para cifrar PII. Sin ella la app no arranca fuera de test. */
   CIPHER_KEY: z.string().min(1).optional(),
   /** Llave HMAC (32 bytes en base64) para el blind index. Debe ser distinta de CIPHER_KEY. */
