@@ -2,6 +2,7 @@ import http from 'node:http';
 import { buildApp } from './server.js';
 import { env } from './core/env.js';
 import { pool } from './core/db.js';
+import { runConTenant } from './core/tenantContext.js';
 import { createSocketServer } from './realtime/socketServer.js';
 import { socketNotifier, viajeUseCases } from './viajes/infrastructure/dependencies.js';
 import { backfillCifrado } from './infrastructure/crypto/backfill.js';
@@ -11,25 +12,32 @@ const server = http.createServer(app);
 const io = createSocketServer(server);
 socketNotifier.attach(io);
 
-// Cifra PII pendiente (idempotente) antes de servir; un fallo no impide arrancar.
-backfillCifrado()
-  .catch((e) => console.error('[backfill] error (continuando):', e))
-  .finally(() => {
-    server.listen(env.PORT, () => {
-      console.log(`Backend ViajeSeguro escuchando en :${env.PORT} (${env.NODE_ENV})`);
-    });
-  });
+// Jobs de sistema: corren sin request → sin contexto de tenant, RLS les daría 0 filas.
+const comoSistema = (fn: () => void) => runConTenant({ tenant: null, isAdmin: true }, fn);
 
-// Barre solicitudes vencidas cada 60s; un fallo no debe tumbar el proceso.
+// El backfill toca conductores/vehiculos (tablas con RLS) → corre como sistema.
+comoSistema(() => {
+  backfillCifrado()
+    .catch((e) => console.error('[backfill] error (continuando):', e))
+    .finally(() => {
+      server.listen(env.PORT, () => {
+        console.log(`Backend ViajeSeguro escuchando en :${env.PORT} (${env.NODE_ENV})`);
+      });
+    });
+});
+
 const expiracionInterval = setInterval(() => {
-  void viajeUseCases.expirarViajes().catch((e) => console.error('[expirarViajes] error:', e));
+  comoSistema(() => {
+    void viajeUseCases.expirarViajes().catch((e) => console.error('[expirarViajes] error:', e));
+  });
 }, 60_000);
 expiracionInterval.unref();
 
-// Clasifica evaluaciones pendientes con LLM-JALA cada 10 min; sin LLM_JALA_URL no corre.
 if (env.LLM_JALA_URL) {
   const nlpInterval = setInterval(() => {
-    void viajeUseCases.procesarEvaluacionesNlp().catch((e) => console.error('[nlp] error:', e));
+    comoSistema(() => {
+      void viajeUseCases.procesarEvaluacionesNlp().catch((e) => console.error('[nlp] error:', e));
+    });
   }, 10 * 60_000);
   nlpInterval.unref();
 }
