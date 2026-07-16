@@ -1,7 +1,3 @@
--- Centroide por zona para resolver "zona mas cercana" por GPS.
--- Ancla: cabecera de Suchiapa 16.629444, -93.091667.
--- ⚠️ Coordenadas APROXIMADAS (a nivel colonia): verificar/afinar en el panel admin.
--- Idempotente: solo rellena zonas sin coords (no pisa ajustes hechos en el panel).
 DO $$
 DECLARE muni BIGINT;
 BEGIN
