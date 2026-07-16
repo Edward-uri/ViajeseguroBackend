@@ -29,7 +29,11 @@ export const AceptarViajeSchema = z.object({
 
 export const EvaluacionSchema = z.object({
   calificacion: z.number().int().min(1).max(5),
-  comentario: z.string().max(500).optional(),
+  comentario: z.string().max(160).optional(),
+});
+
+export const EtiquetasQuerySchema = z.object({
+  rol: z.enum(['conductor', 'pasajero']),
 });
 
 export const DispositivoSchema = z.object({

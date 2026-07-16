@@ -10,6 +10,10 @@ tarifasRoutes.get('/:id/tarifas', c.getTarifarioController);
 export const dispositivosRoutes: Router = Router();
 dispositivosRoutes.post('/', authMiddleware, c.registrarDispositivoController);
 
+/** Etiquetas de reputación (top-3 inferidas por LLM-JALA). Montado en /api/usuarios. */
+export const etiquetasRoutes: Router = Router();
+etiquetasRoutes.get('/:id/etiquetas', authMiddleware, c.etiquetasDeUsuarioController);
+
 /** Viajes. Montado en /api/viajes. */
 export const viajesRoutes: Router = Router();
 viajesRoutes.use(authMiddleware);
