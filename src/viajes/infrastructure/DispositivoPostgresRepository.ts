@@ -19,4 +19,8 @@ export class DispositivoPostgresRepository implements IDispositivoRepository {
     );
     return rows.map((r) => r.token_fcm);
   }
+
+  async desactivarToken(tokenFcm: string): Promise<void> {
+    await pool.query('UPDATE dispositivos SET activo = FALSE WHERE token_fcm = $1', [tokenFcm]);
+  }
 }
