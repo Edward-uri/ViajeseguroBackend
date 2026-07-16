@@ -45,7 +45,7 @@ describe('completeRegistration multi-rol', () => {
   it('emitirTokens loguea error si usuario_roles llega vacío (guard m7)', async () => {
     const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
     const sessions = { crear: vi.fn(async () => ({ idSesion: 1 })), actualizarHash: vi.fn(async () => {}) } as any;
-    await emitirTokens(sessions, 42, [], null);
+    await emitirTokens(sessions, 42, [], null, null);
     expect(spy).toHaveBeenCalledWith(expect.stringContaining('sin filas en usuario_roles'));
     spy.mockRestore();
   });

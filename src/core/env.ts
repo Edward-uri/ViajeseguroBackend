@@ -38,6 +38,8 @@ const envSchema = z.object({
   /** Correo de soporte mostrado en la página pública /eliminar-cuenta (requisito de Google Play). */
   SUPPORT_EMAIL: z.string().email().default('soporte@codigoverse.space'),
 
+  /** Orígenes permitidos para CORS HTTP, separados por coma. Sin definir: solo ADMIN_PANEL_URL. Las apps nativas no mandan Origin y no les afecta. */
+  CORS_ORIGINS: z.string().min(1).optional(),
   SOCKET_CORS_ORIGIN: z.string().default('*'),
   FCM_SERVICE_ACCOUNT: z.string().min(1).optional(),
 

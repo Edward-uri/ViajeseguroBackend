@@ -57,7 +57,7 @@ export function completeRegistration(
       }
     }
 
-    const tokens = await emitirTokens(deps.sessions, creado.idUsuario!, roles, input.dispositivo ?? null);
+    const tokens = await emitirTokens(deps.sessions, creado.idUsuario!, roles, creado.idMunicipio, input.dispositivo ?? null);
     return { ...tokens, user: { ...creado.toPublicJSON(), rol: rolPrincipal(roles) }, roles };
   };
 }

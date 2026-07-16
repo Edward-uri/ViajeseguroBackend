@@ -6,6 +6,7 @@ declare global {
   namespace Express {
     interface Request {
       user?: AuthTokenPayload;
+      tenant?: number | null;
     }
   }
 }
@@ -18,6 +19,7 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
   const token = header.slice(7);
   try {
     req.user = verifyAccessToken(token);
+    req.tenant = req.user.idMunicipio ?? null;
     next();
   } catch (err) {
     next(err);
