@@ -155,6 +155,19 @@ export class ViajePostgresRepository implements IViajeRepository {
     return rows.map((r) => mapViaje(r)!);
   }
 
+  async destinosRecientes(idPasajero: number, limite: number): Promise<{ lat: number; lng: number; texto: string | null }[]> {
+    const { rows } = await pool.query<{ lat: string; lng: string; texto: string | null }>(
+      `SELECT destino_lat AS lat, destino_lng AS lng, destino_texto AS texto, MAX(fecha_solicitud) AS ultima
+         FROM viajes
+        WHERE id_pasajero = $1 AND destino_lat IS NOT NULL AND destino_lng IS NOT NULL
+        GROUP BY destino_lat, destino_lng, destino_texto
+        ORDER BY ultima DESC
+        LIMIT $2`,
+      [idPasajero, limite],
+    );
+    return rows.map((r) => ({ lat: Number(r.lat), lng: Number(r.lng), texto: r.texto }));
+  }
+
   async viajeActivoDePasajero(idPasajero: number): Promise<Viaje | null> {
     const { rows } = await pool.query<ViajeRow>(
       `SELECT * FROM viajes

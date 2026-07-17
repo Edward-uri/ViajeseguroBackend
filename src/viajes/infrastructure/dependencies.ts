@@ -14,6 +14,7 @@ import { getTarifario } from '../application/getTarifario.js';
 import { crearViaje } from '../application/crearViaje.js';
 import { getViaje } from '../application/getViaje.js';
 import { listarMisViajes } from '../application/listarMisViajes.js';
+import { destinosRecientes } from '../application/destinosRecientes.js';
 import { getViajeActivo } from '../application/getViajeActivo.js';
 import { cancelarViaje } from '../application/cancelarViaje.js';
 import { conductorCancelaViaje } from '../application/conductorCancelaViaje.js';
@@ -73,6 +74,7 @@ export const viajeUseCases = {
   estimarViaje: estimarViaje({ tarifas, municipios: municipioRepository, rutas }),
   getViaje: getViaje({ viajes }),
   listarMisViajes: listarMisViajes({ viajes }),
+  destinosRecientes: destinosRecientes({ viajes }),
   getViajeActivo: getViajeActivo({ viajes }),
   cancelarViaje: cancelarViaje({ viajes, notifier }),
   conductorCancelaViaje: conductorCancelaViaje({ viajes, notifier }),

@@ -51,6 +51,8 @@ export interface IViajeRepository {
   /** Contraparte (pasajero/conductor/vehículo) descifrada, para el detalle del viaje. */
   detalleDePartes(idPasajero: number, idConductor: number | null, idVehiculo: number | null): Promise<ViajePartes>;
   listarPorPasajero(idPasajero: number): Promise<Viaje[]>;
+  /** Últimos destinos distintos del pasajero (accesos rápidos en la app). */
+  destinosRecientes(idPasajero: number, limite: number): Promise<{ lat: number; lng: number; texto: string | null }[]>;
   /** El viaje activo del pasajero (solicitado/aceptado/en_curso), o null. */
   viajeActivoDePasajero(idPasajero: number): Promise<Viaje | null>;
   cambiarEstado(input: CambiarEstadoInput): Promise<Viaje>;
