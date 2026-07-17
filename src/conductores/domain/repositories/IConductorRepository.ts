@@ -24,6 +24,12 @@ export interface IConductorRepository {
     descripcion: string | null;
   }): Promise<void>;
   listarConPendientes(): Promise<ConductorPendiente[]>;
+  /** Todos los conductores con sus documentos y vehículo activo (vista admin). */
+  listarTodos(): Promise<{
+    idConductor: number; nombre: string; telefono: string | null;
+    idMunicipio: number | null; municipio: string | null; idVehiculoActivo: number | null;
+    docs: { tipo: string; estado: string }[];
+  }[]>;
   getVehiculoActivo(idConductor: number): Promise<number | null>;
   setVehiculoActivo(idConductor: number, idVehiculo: number | null): Promise<void>;
 }
