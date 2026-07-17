@@ -25,15 +25,19 @@ export function listConductoresAdmin(deps: {
     const resultado = await Promise.all(
       filas.map(async (f) => {
         const estados = new Map(f.docs.map((d) => [d.tipo as TipoDocumento, d.estado as EstadoDocumento]));
-        const ids = await deps.asignaciones.vehiculosAsignados(f.idConductor);
-        const vehiculos = (await Promise.all(ids.map((id) => deps.vehiculos.findById(id))))
-          .filter((v) => v != null)
-          .map((v) => ({
-            idVehiculo: v.idVehiculo,
-            placa: v.placa,
-            modelo: v.modelo,
-            activo: v.idVehiculo === f.idVehiculoActivo,
-          }));
+        // Un conductor tiene vehículos por dos vías: los PROPIOS (se registró como
+        // propietario de su moto) y los ASIGNADOS por otro propietario. Unimos ambos.
+        const propios = await deps.vehiculos.listarPorPropietario(f.idConductor);
+        const idsAsignados = await deps.asignaciones.vehiculosAsignados(f.idConductor);
+        const asignados = (await Promise.all(idsAsignados.map((id) => deps.vehiculos.findById(id))))
+          .filter((v) => v != null);
+        const porId = new Map([...propios, ...asignados].map((v) => [v.idVehiculo, v]));
+        const vehiculos = [...porId.values()].map((v) => ({
+          idVehiculo: v.idVehiculo,
+          placa: v.placa,
+          modelo: v.modelo,
+          activo: v.idVehiculo === f.idVehiculoActivo,
+        }));
         return {
           idConductor: f.idConductor,
           nombre: f.nombre,
