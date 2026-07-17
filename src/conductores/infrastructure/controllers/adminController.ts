@@ -9,6 +9,13 @@ export const listPendientesController: RequestHandler = async (_req, res, next) 
   } catch (e) { next(e); }
 };
 
+export const listTodosController: RequestHandler = async (req, res, next) => {
+  try {
+    const estado = typeof req.query.estado === 'string' ? req.query.estado : undefined;
+    res.json({ data: await conductorUseCases.listConductoresAdmin(estado as never) });
+  } catch (e) { next(e); }
+};
+
 export const getConductorDetalleController: RequestHandler = async (req, res, next) => {
   try {
     const idConductor = Number(req.params.id);

@@ -9,6 +9,8 @@ import { uploadDocumento } from '../application/uploadDocumento.js';
 import { getOnboarding } from '../application/getOnboarding.js';
 import { reviewDocumento } from '../application/reviewDocumento.js';
 import { listConductoresPendientes } from '../application/listConductoresPendientes.js';
+import { listConductoresAdmin } from '../application/listConductoresAdmin.js';
+import { AsignacionPostgresRepository } from '../../flotillas/infrastructure/AsignacionPostgresRepository.js';
 import { getArchivo } from '../application/getArchivo.js';
 import { municipioOperativo } from '../application/municipioOperativo.js';
 import { DisponibilidadPostgresRepository } from './DisponibilidadPostgresRepository.js';
@@ -35,6 +37,7 @@ async function vehiculoDelConductor(idConductor: number) {
 const conductores = new ConductorPostgresRepository();
 const documentos = new DocumentoConductorPostgresRepository();
 const vehiculos = new VehiculoPostgresRepository();
+const asignaciones = new AsignacionPostgresRepository();
 const users = new UserPostgresRepository();
 // TODO prod: cambiar por S3DocumentStorage cuando se decida el almacenamiento definitivo
 const storage = new LocalDocumentStorage();
@@ -49,6 +52,7 @@ export const conductorUseCases = {
   getOnboarding: getOnboarding({ conductores, documentos, vehiculoDelConductor }),
   reviewDocumento: reviewDocumento({ conductores, documentos, vehiculos, push, users }),
   listConductoresPendientes: listConductoresPendientes({ conductores }),
+  listConductoresAdmin: listConductoresAdmin({ conductores, asignaciones, vehiculos }),
   getArchivo: getArchivo({ documentos, storage }),
   municipioOperativo: municipioOperativo({ conductores }),
   setDisponibilidad: setDisponibilidad({ disponibilidad, sesiones }),

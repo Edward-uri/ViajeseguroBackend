@@ -138,6 +138,44 @@ export class ConductorPostgresRepository implements IConductorRepository {
     }));
   }
 
+  async listarTodos(): Promise<{
+    idConductor: number; nombre: string; telefono: string | null;
+    idMunicipio: number | null; municipio: string | null; idVehiculoActivo: number | null;
+    docs: { tipo: string; estado: string }[];
+  }[]> {
+    const { rows } = await pool.query<{
+      id_conductor: string | number;
+      nombre_enc: string | null; apellido_paterno_enc: string | null; nombre: string | null; apellido_paterno: string | null;
+      telefono_enc: string | null; telefono: string | null;
+      id_municipio: string | number | null; municipio: string | null;
+      id_vehiculo_activo: string | number | null; docs: { tipo: string; estado: string }[];
+    }>(
+      `SELECT c.id_conductor,
+              p.nombre_enc, p.apellido_paterno_enc, p.nombre, p.apellido_paterno,
+              u.telefono_enc, u.telefono,
+              c.id_municipio, m.nombre AS municipio, c.id_vehiculo_activo,
+              COALESCE(json_agg(json_build_object('tipo', d.tipo, 'estado', d.estado))
+                       FILTER (WHERE d.id_documento IS NOT NULL), '[]') AS docs
+         FROM conductores c
+         JOIN usuarios u ON u.id_usuario = c.id_conductor
+         JOIN personas p ON p.id_persona = c.id_conductor
+         LEFT JOIN municipios m ON m.id_municipio = c.id_municipio
+         LEFT JOIN documentos_conductor d ON d.id_conductor = c.id_conductor
+        GROUP BY c.id_conductor, p.nombre_enc, p.apellido_paterno_enc, p.nombre, p.apellido_paterno,
+                 u.telefono_enc, u.telefono, c.id_municipio, m.nombre, c.id_vehiculo_activo
+        ORDER BY c.id_conductor`,
+    );
+    return rows.map((r) => ({
+      idConductor: Number(r.id_conductor),
+      nombre: descifrarNombre(r),
+      telefono: descifrarTelefono(r.telefono_enc, r.telefono),
+      idMunicipio: r.id_municipio == null ? null : Number(r.id_municipio),
+      municipio: r.municipio,
+      idVehiculoActivo: r.id_vehiculo_activo == null ? null : Number(r.id_vehiculo_activo),
+      docs: r.docs,
+    }));
+  }
+
   async getVehiculoActivo(idConductor: number): Promise<number | null> {
     const { rows } = await pool.query<{ id_vehiculo_activo: string | null }>(
       'SELECT id_vehiculo_activo FROM conductores WHERE id_conductor = $1',
