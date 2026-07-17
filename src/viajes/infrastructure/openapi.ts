@@ -63,6 +63,19 @@ const ViajeDetalleSchema = ViajeSchema.extend({
 const TarifaZonaSchema = z.object({ idZona: z.number().int(), nombre: z.string(), precio: z.number() }).openapi('TarifaZona');
 const OkSchema = z.object({ ok: z.boolean() });
 
+const EtiquetaAgregadaSchema = z
+  .object({
+    id: z.number().int(),
+    texto: z.string().openapi({ example: 'Buen manejo' }),
+    polaridad: z.enum(['positiva', 'negativa']),
+    conteo: z.number().int().openapi({ description: 'Evaluaciones que la generaron dentro de la ventana.' }),
+  })
+  .openapi('EtiquetaAgregada');
+
+const EtiquetasQuery = z.object({
+  rol: z.enum(['conductor', 'pasajero']).openapi({ example: 'conductor', description: 'Faceta del usuario evaluado.' }),
+});
+
 const RutaGeoJSONSchema = z
   .object({
     type: z.literal('LineString'),
@@ -200,6 +213,18 @@ openapiRegistry.registerPath({
   summary: 'Califica al conductor tras completar el viaje', security: [{ bearerAuth: [] }],
   request: { params: ParamsId, body: json(EvaluacionSchema) },
   responses: { 200: ok('Evaluación registrada', OkSchema), 409: err('Ya evaluado / no completado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'get', path: '/api/usuarios/{id}/etiquetas', tags: ['Compartido'],
+  summary: 'Top-3 etiquetas de reputación del usuario (inferidas por LLM-JALA sobre sus últimas 20 evaluaciones; negativas solo con ≥3 ocurrencias)',
+  security: [{ bearerAuth: [] }],
+  request: { params: ParamsId, query: EtiquetasQuery },
+  responses: {
+    200: ok('Etiquetas agregadas', z.object({ data: z.array(EtiquetaAgregadaSchema) })),
+    400: err('Rol inválido'),
+    401: err('No autenticado'),
+  },
 });
 
 openapiRegistry.registerPath({
