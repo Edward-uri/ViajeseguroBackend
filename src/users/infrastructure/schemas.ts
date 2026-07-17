@@ -14,3 +14,11 @@ export const EditarPerfilSchema = z
   .refine((b) => Object.keys(b).length > 0, { message: 'Debe enviar al menos un campo' });
 
 export type EditarPerfilInput = z.infer<typeof EditarPerfilSchema>;
+
+export const CrearDireccionSchema = z.object({
+  etiqueta: z.string().trim().min(1).max(40).optional(),
+  lat: z.number().finite().min(-90).max(90),
+  lng: z.number().finite().min(-180).max(180),
+  texto: z.string().trim().min(1).max(255).optional(),
+  esFavorita: z.boolean().optional(),
+});
