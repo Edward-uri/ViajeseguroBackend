@@ -6,6 +6,7 @@ import {
   AceptarViajeSchema,
   EvaluacionSchema,
   DispositivoSchema,
+  EventoDemandaSchema,
 } from './schemas.js';
 
 const ParamsId = z.object({ id: z.string().openapi({ example: '7' }) });
@@ -232,6 +233,14 @@ openapiRegistry.registerPath({
   summary: 'Registra el token FCM del dispositivo para push', security: [{ bearerAuth: [] }],
   request: { body: json(DispositivoSchema) },
   responses: { 200: ok('Registrado', OkSchema), 401: err('No autenticado') },
+});
+
+openapiRegistry.registerPath({
+  method: 'post', path: '/api/eventos-demanda', tags: ['App Pasajero'],
+  summary: 'Registra demanda (abrir solicitud / cotizar) para el modelo de zonas calientes. Siempre responde 204.',
+  security: [{ bearerAuth: [] }],
+  request: { body: json(EventoDemandaSchema) },
+  responses: { 204: { description: 'Registrado (o ignorado por anti-spam / error interno)' }, 400: err('Datos inválidos'), 401: err('No autenticado') },
 });
 
 openapiRegistry.registerPath({
