@@ -27,12 +27,14 @@ export function estimarViaje(deps: {
   tarifas: ITarifaCalculator;
   municipios: IMunicipioRepository;
   rutas: IRouteEstimator;
+  validarPerimetro: (idMunicipio: number, origen: { lat: number; lng: number }, destino: { lat: number; lng: number }) => Promise<void>;
 }) {
   return async (input: EstimarViajeDTO): Promise<EstimacionViaje> => {
     if (!(await deps.municipios.existeActivo(input.idMunicipio))) throw new MunicipioInvalidoError();
 
     const origen = { lat: input.origen.lat, lng: input.origen.lng };
     const destino = { lat: input.destino.lat, lng: input.destino.lng };
+    await deps.validarPerimetro(input.idMunicipio, origen, destino);
 
     const r = await deps.rutas.estimar(origen, destino);
     const t = await deps.tarifas.calcular({

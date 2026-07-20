@@ -61,6 +61,9 @@ const envSchema = z.object({
   RL_PASSWORD_WINDOW_MIN: z.coerce.number().positive().default(15),
   RL_PASSWORD_MAX: z.coerce.number().int().positive().default(10),
 
+  /** Radio (km) desde el centroide de zona más cercano para aceptar origen/destino de un viaje. */
+  RADIO_MUNICIPIO_KM: z.coerce.number().positive().default(7),
+
   KMS_KEY_ID: z.string().min(1).optional(),
 
   /** Llave AES-256 (32 bytes en base64) para cifrar PII. Sin ella la app no arranca fuera de test. */

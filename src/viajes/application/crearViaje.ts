@@ -22,6 +22,7 @@ export function crearViaje(deps: {
   municipios: IMunicipioRepository;
   notifier: IEventoViajeNotifier;
   rutas: IRouteEstimator;
+  validarPerimetro: (idMunicipio: number, origen: { lat: number; lng: number }, destino: { lat: number; lng: number }) => Promise<void>;
 }) {
   return async (input: CrearViajeDTO): Promise<PublicViaje> => {
     if (!(await deps.municipios.existeActivo(input.idMunicipio))) throw new MunicipioInvalidoError();
@@ -29,6 +30,7 @@ export function crearViaje(deps: {
 
     const origen = { lat: input.origen.lat, lng: input.origen.lng };
     const destino = { lat: input.destino.lat, lng: input.destino.lng };
+    await deps.validarPerimetro(input.idMunicipio, origen, destino);
 
     const { distanciaKm } = await deps.rutas.estimar(origen, destino);
     const t = await deps.tarifas.calcular({
