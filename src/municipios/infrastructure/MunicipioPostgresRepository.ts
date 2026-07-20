@@ -1,4 +1,6 @@
 import { pool } from '../../core/db.js';
+import { ConflictError } from '../../core/errors.js';
+import type { PerimetroGeoJSON } from '../domain/IPerimetroProvider.js';
 import { Municipio, MunicipioBuilder } from '../domain/Municipio.js';
 import type { IMunicipioRepository } from '../domain/repositories/IMunicipioRepository.js';
 
@@ -32,5 +34,31 @@ export class MunicipioPostgresRepository implements IMunicipioRepository {
       [idMunicipio],
     );
     return rowCount === 1;
+  }
+
+  async crear(args: { nombre: string; estado: string; tarifaDefault?: number }): Promise<Municipio> {
+    try {
+      const { rows } = await pool.query<Row>(
+        `INSERT INTO municipios (nombre, estado, tarifa_default)
+         VALUES ($1, $2, COALESCE($3, 15.00)) RETURNING *`,
+        [args.nombre, args.estado, args.tarifaDefault ?? null],
+      );
+      return map(rows[0]!);
+    } catch (err) {
+      if ((err as { code?: string }).code === '23505') throw new ConflictError('Ese municipio ya existe');
+      throw err;
+    }
+  }
+
+  async guardarPerimetro(idMunicipio: number, perimetro: PerimetroGeoJSON): Promise<void> {
+    await pool.query('UPDATE municipios SET perimetro = $2 WHERE id_municipio = $1', [idMunicipio, perimetro]);
+  }
+
+  async perimetroDe(idMunicipio: number): Promise<{ type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] } | null> {
+    const { rows } = await pool.query<{ perimetro: { type: 'Polygon' | 'MultiPolygon'; coordinates: number[][][] | number[][][][] } | null }>(
+      'SELECT perimetro FROM municipios WHERE id_municipio = $1',
+      [idMunicipio],
+    );
+    return rows[0]?.perimetro ?? null;
   }
 }

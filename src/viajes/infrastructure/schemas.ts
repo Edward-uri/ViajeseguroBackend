@@ -62,16 +62,14 @@ const precioZona = z.number().finite().positive().max(999999.99);
 const latZona = z.number().finite().min(-90).max(90);
 const lngZona = z.number().finite().min(-180).max(180);
 
-export const CrearZonaSchema = z
-  .object({
-    nombre: z.string().trim().min(1).max(120),
-    precio: precioZona,
-    lat: latZona.optional(),
-    lng: lngZona.optional(),
-  })
-  .refine((v) => (v.lat == null) === (v.lng == null), {
-    message: 'lat y lng deben venir juntos o ninguno',
-  });
+// lat/lng obligatorios: una zona sin centroide nunca gana el matching de tarifa
+// ni valida perímetro (así nacieron las 'zonas ciegas' que cobraban siempre el default).
+export const CrearZonaSchema = z.object({
+  nombre: z.string().trim().min(1).max(120),
+  precio: precioZona,
+  lat: latZona,
+  lng: lngZona,
+});
 
 export const ActualizarZonaSchema = z
   .object({

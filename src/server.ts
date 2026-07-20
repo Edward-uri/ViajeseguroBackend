@@ -10,6 +10,7 @@ import { userRoutes } from './users/infrastructure/routes/userRoutes.js';
 import { conductorRoutes } from './conductores/infrastructure/routes/conductorRoutes.js';
 import { adminConductoresRoutes } from './conductores/infrastructure/routes/adminConductoresRoutes.js';
 import { municipioRoutes } from './municipios/infrastructure/routes/municipioRoutes.js';
+import { adminMunicipiosRoutes } from './municipios/infrastructure/routes/adminMunicipiosRoutes.js';
 import { flotillasRoutes } from './flotillas/infrastructure/routes/flotillasRoutes.js';
 import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVehiculosRoutes.js';
 import { bolsaRoutes } from './bolsa/infrastructure/routes/bolsaRoutes.js';
@@ -47,6 +48,7 @@ export function buildApp(): Express {
   app.use('/api/auth', authGlobal, authRoutes);
   app.use('/api/users', userRoutes);
   app.use('/api/municipios', municipioRoutes);
+  app.use('/api/admin', adminMunicipiosRoutes);
   app.use('/api/conductor', conductorRoutes);
   app.use('/api/admin', adminConductoresRoutes);
   app.use('/api/flotillas', flotillasRoutes);
