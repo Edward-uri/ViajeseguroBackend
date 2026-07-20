@@ -55,7 +55,7 @@ const haversine = new HaversineRouteEstimator();
 // Con OSRM_URL seteada se usa ruteo real (con Haversine de fallback); sin ella, solo Haversine.
 const rutas: IRouteEstimator = env.OSRM_URL ? new OsrmRouteEstimator(env.OSRM_URL, haversine) : haversine;
 const tarifas = new TarifaPorZona(zonas);
-const validarPerimetro = validarViajeEnMunicipio({ zonas, radioKm: env.RADIO_MUNICIPIO_KM });
+const validarPerimetro = validarViajeEnMunicipio({ zonas, municipios: municipioRepository, radioKm: env.RADIO_MUNICIPIO_KM });
 const etiquetas = new EtiquetaPostgresRepository();
 const senales = new SenalesMlPostgresRepository();
 // Sin LLM_JALA_URL el job no se agenda (ver index.ts); el placeholder nunca se usa.
