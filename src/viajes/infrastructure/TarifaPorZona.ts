@@ -27,6 +27,7 @@ export class TarifaPorZona implements ITarifaCalculator {
     }
     if (precio == null) {
       // Sin zona resuelta -> precio fijo por defecto del municipio (municipios.tarifa_default).
+      console.warn(`[tarifa] municipio ${input.idMunicipio}: sin zona resuelta para el destino — usando tarifa_default (¿zonas sin centroide?)`);
       precio = await this.zonas.tarifaDefault(input.idMunicipio);
       if (precio == null) throw new Error(`municipio ${input.idMunicipio} sin tarifa_default`);
       estimada = true;

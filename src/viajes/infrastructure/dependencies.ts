@@ -31,9 +31,13 @@ import { listarViajesPendientes } from '../application/listarViajesPendientes.js
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
 import { rechazarViaje } from '../application/rechazarViaje.js';
 import { estimarViaje } from '../application/estimarViaje.js';
+import { validarViajeEnMunicipio } from '../application/validarViajeEnMunicipio.js';
 import { asignaciones, vehiculos as flotillaVehiculos, flotillaUseCases } from '../../flotillas/infrastructure/dependencies.js';
 import { ZonaAdminPostgresRepository } from './ZonaAdminPostgresRepository.js';
 import { EtiquetaPostgresRepository } from './EtiquetaPostgresRepository.js';
+import { SenalesMlPostgresRepository } from './SenalesMlPostgresRepository.js';
+import { tomarSnapshotDisponibilidad } from '../application/tomarSnapshotDisponibilidad.js';
+import { registrarEventoDemanda } from '../application/registrarEventoDemanda.js';
 import { LlmJalaClient } from './LlmJalaClient.js';
 import { procesarEvaluacionesNlp } from '../application/procesarEvaluacionesNlp.js';
 import { listarEtiquetasDeUsuario } from '../application/listarEtiquetasDeUsuario.js';
@@ -51,7 +55,9 @@ const haversine = new HaversineRouteEstimator();
 // Con OSRM_URL seteada se usa ruteo real (con Haversine de fallback); sin ella, solo Haversine.
 const rutas: IRouteEstimator = env.OSRM_URL ? new OsrmRouteEstimator(env.OSRM_URL, haversine) : haversine;
 const tarifas = new TarifaPorZona(zonas);
+const validarPerimetro = validarViajeEnMunicipio({ zonas, radioKm: env.RADIO_MUNICIPIO_KM });
 const etiquetas = new EtiquetaPostgresRepository();
+const senales = new SenalesMlPostgresRepository();
 // Sin LLM_JALA_URL el job no se agenda (ver index.ts); el placeholder nunca se usa.
 const clasificador = new LlmJalaClient(env.LLM_JALA_URL ?? 'http://llm-jala-no-configurado', env.LLM_JALA_API_KEY);
 
@@ -70,8 +76,8 @@ const autorizacionVehiculo = {
 export const viajeUseCases = {
   getTarifario: getTarifario({ zonas }),
   rutaEntre: (o: { lat: number; lng: number }, d: { lat: number; lng: number }) => rutas.estimar(o, d),
-  crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier, rutas }),
-  estimarViaje: estimarViaje({ tarifas, municipios: municipioRepository, rutas }),
+  crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier, rutas, validarPerimetro }),
+  estimarViaje: estimarViaje({ tarifas, municipios: municipioRepository, rutas, validarPerimetro }),
   getViaje: getViaje({ viajes }),
   listarMisViajes: listarMisViajes({ viajes }),
   destinosRecientes: destinosRecientes({ viajes }),
@@ -84,6 +90,8 @@ export const viajeUseCases = {
   completarViaje: completarViaje({ viajes, notifier }),
   evaluarViaje: evaluarViaje({ viajes }),
   procesarEvaluacionesNlp: procesarEvaluacionesNlp({ etiquetas, clasificador }),
+  tomarSnapshotDisponibilidad: tomarSnapshotDisponibilidad({ senales }),
+  registrarEventoDemanda: registrarEventoDemanda({ senales }),
   listarEtiquetasDeUsuario: listarEtiquetasDeUsuario({ etiquetas }),
   registrarDispositivo: registrarDispositivo({ dispositivos }),
   registrarUbicacion: registrarUbicacion({ viajes, notifier }),

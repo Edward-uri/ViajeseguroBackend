@@ -41,6 +41,14 @@ export const DispositivoSchema = z.object({
   plataforma: z.enum(['android', 'ios']),
 });
 
+// Evento de demanda del pasajero. lat/lng acotados a Chiapas (rechaza coordenadas basura).
+export const EventoDemandaSchema = z.object({
+  tipo: z.enum(['apertura_solicitud', 'cotizacion']),
+  lat: z.number().min(14).max(18),
+  lng: z.number().min(-95).max(-91),
+  idMunicipio: z.number().int().positive().optional(),
+});
+
 export const IdParamSchema = z.coerce.number().int().positive();
 
 export const RutaQuerySchema = z.object({

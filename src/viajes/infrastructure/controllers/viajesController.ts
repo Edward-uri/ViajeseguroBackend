@@ -149,3 +149,19 @@ export const rechazarViajeController: RequestHandler = async (req, res, next) =>
     res.status(204).end();
   } catch (e) { next(e); }
 };
+
+// Telemetría de demanda: nunca debe romper el flujo del pasajero.
+// Validación (zod) y auth sí pueden dar 400/401; un fallo interno se loguea y responde 204 igual.
+export const registrarEventoDemandaController: RequestHandler = async (req, res, next) => {
+  let dto: ReturnType<typeof S.EventoDemandaSchema.parse>;
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    dto = S.EventoDemandaSchema.parse(req.body);
+  } catch (e) { return next(e); }
+  try {
+    await viajeUseCases.registrarEventoDemanda({ idUsuario: req.user.sub, ...dto });
+  } catch (e) {
+    console.error('[eventos-demanda] error (ignorado):', e);
+  }
+  res.status(204).end();
+};

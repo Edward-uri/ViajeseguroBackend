@@ -33,6 +33,13 @@ const expiracionInterval = setInterval(() => {
 }, 60_000);
 expiracionInterval.unref();
 
+const snapshotInterval = setInterval(() => {
+  comoSistema(() => {
+    void viajeUseCases.tomarSnapshotDisponibilidad().catch((e) => console.error('[snapshot-disponibilidad] error:', e));
+  });
+}, 5 * 60_000);
+snapshotInterval.unref();
+
 if (env.LLM_JALA_URL) {
   const nlpInterval = setInterval(() => {
     comoSistema(() => {

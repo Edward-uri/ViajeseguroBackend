@@ -23,8 +23,8 @@ export class ZonaTarifaPostgresRepository implements IZonaTarifaRepository {
     return rows[0] ? { idMunicipio: Number(rows[0].id_municipio), precio: Number(rows[0].precio) } : null;
   }
 
-  async zonaMasCercana(idMunicipio: number, c: Coordenada): Promise<{ idZona: number; precio: number } | null> {
-    const { rows } = await pool.query<{ id_zona: string | number; precio: string }>(
+  async zonaMasCercana(idMunicipio: number, c: Coordenada): Promise<{ idZona: number; precio: number; distanciaKm: number } | null> {
+    const { rows } = await pool.query<{ id_zona: string | number; precio: string; dist: string }>(
       `SELECT z.id_zona, t.precio,
               6371*2*ASIN(SQRT(POWER(SIN(RADIANS($2-z.lat_centro)/2),2)
                 + COS(RADIANS(z.lat_centro))*COS(RADIANS($2))*POWER(SIN(RADIANS($3-z.lng_centro)/2),2))) AS dist
@@ -34,7 +34,7 @@ export class ZonaTarifaPostgresRepository implements IZonaTarifaRepository {
         LIMIT 1`,
       [idMunicipio, c.lat, c.lng],
     );
-    return rows[0] ? { idZona: Number(rows[0].id_zona), precio: Number(rows[0].precio) } : null;
+    return rows[0] ? { idZona: Number(rows[0].id_zona), precio: Number(rows[0].precio), distanciaKm: Number(rows[0].dist) } : null;
   }
 
   async tarifaDefault(idMunicipio: number): Promise<number | null> {

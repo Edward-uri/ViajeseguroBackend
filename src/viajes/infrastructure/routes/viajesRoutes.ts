@@ -14,6 +14,10 @@ dispositivosRoutes.post('/', authMiddleware, c.registrarDispositivoController);
 export const etiquetasRoutes: Router = Router();
 etiquetasRoutes.get('/:id/etiquetas', authMiddleware, c.etiquetasDeUsuarioController);
 
+/** Eventos de demanda (telemetría del pasajero). Montado en /api/eventos-demanda. */
+export const eventosDemandaRoutes: Router = Router();
+eventosDemandaRoutes.post('/', authMiddleware, c.registrarEventoDemandaController);
+
 /** Viajes. Montado en /api/viajes. */
 export const viajesRoutes: Router = Router();
 viajesRoutes.use(authMiddleware);

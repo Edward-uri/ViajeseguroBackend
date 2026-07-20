@@ -13,7 +13,7 @@ import { municipioRoutes } from './municipios/infrastructure/routes/municipioRou
 import { flotillasRoutes } from './flotillas/infrastructure/routes/flotillasRoutes.js';
 import { adminVehiculosRoutes } from './flotillas/infrastructure/routes/adminVehiculosRoutes.js';
 import { bolsaRoutes } from './bolsa/infrastructure/routes/bolsaRoutes.js';
-import { viajesRoutes, tarifasRoutes, dispositivosRoutes, etiquetasRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
+import { viajesRoutes, tarifasRoutes, dispositivosRoutes, etiquetasRoutes, eventosDemandaRoutes } from './viajes/infrastructure/routes/viajesRoutes.js';
 import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoutes.js';
 import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
 import { zonasRoutes } from './zonas/zonasRoutes.js';
@@ -58,6 +58,7 @@ export function buildApp(): Express {
   app.use('/api/viajes', viajesRoutes);
   app.use('/api/dispositivos', dispositivosRoutes);
   app.use('/api/usuarios', etiquetasRoutes);
+  app.use('/api/eventos-demanda', eventosDemandaRoutes);
   app.use('/api/zonas', zonasRoutes);
 
   app.use(errorMiddleware);
