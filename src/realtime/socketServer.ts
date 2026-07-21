@@ -2,6 +2,7 @@ import { Server } from 'socket.io';
 import type { Server as HttpServer } from 'node:http';
 import { verifyAccessToken } from '../core/jwt.js';
 import { env } from '../core/env.js';
+import { runConTenant } from '../core/tenantContext.js';
 import { usuarioRoom, conductorRoom, municipioRoom } from './rooms.js';
 import { ConductorUbicacionSchema } from './schemas.js';
 import type {
@@ -39,18 +40,28 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
     void socket.join(usuarioRoom(user.sub));
     if (roles.includes('conductor')) void socket.join(conductorRoom(user.sub));
 
+    // Los eventos del socket ejecutan casos de uso que consultan tablas con RLS.
+    // Sin contexto de tenant, el pool corre queries sin app.tenant_id y RLS
+    // (FORCE) oculta TODAS las filas (por eso "viaje no existe" en el socket
+    // aunque el GET HTTP sí lo devuelve). Se replica el contexto del middleware
+    // HTTP a partir del mismo JWT del socket.
+    const ctxTenant = { tenant: user.idMunicipio ?? null, isAdmin: roles.includes('admin') };
+    const conTenant = (fn: () => void) => runConTenant(ctxTenant, fn);
+
     socket.on('conductor:online', (payload, ack) => {
-      void (async () => {
-        if (!roles.includes('conductor')) return ack?.({ ok: false });
-        // El municipio se deriva del servidor (su municipio operativo), no del cliente:
-        // así el conductor siempre entra a SU room aunque la app mande un valor desactualizado.
-        const municipio = await conductorUseCases.municipioOperativo(user.sub);
-        if (municipio == null) return ack?.({ ok: false, error: 'sin_municipio' });
-        const room = municipioRoom(municipio);
-        void socket.join(room);
-        socket.data.municipioRoom = room;
-        ack?.({ ok: true, idMunicipio: municipio });
-      })();
+      conTenant(() => {
+        void (async () => {
+          if (!roles.includes('conductor')) return ack?.({ ok: false });
+          // El municipio se deriva del servidor (su municipio operativo), no del cliente:
+          // así el conductor siempre entra a SU room aunque la app mande un valor desactualizado.
+          const municipio = await conductorUseCases.municipioOperativo(user.sub);
+          if (municipio == null) return ack?.({ ok: false, error: 'sin_municipio' });
+          const room = municipioRoom(municipio);
+          void socket.join(room);
+          socket.data.municipioRoom = room;
+          ack?.({ ok: true, idMunicipio: municipio });
+        })();
+      });
     });
 
     socket.on('conductor:offline', () => {
@@ -67,7 +78,9 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
         console.warn(`[socket] conductor:ubicacion descartada user=${user.sub} rolOk=${roles.includes('conductor')} payloadOk=${parsed.success}`, payload);
         return;
       }
-      void viajeUseCases.registrarUbicacion(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
+      conTenant(() => {
+        void viajeUseCases.registrarUbicacion(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
+      });
     });
 
     socket.on('pasajero:ubicacion', (payload) => {
@@ -76,7 +89,9 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
         console.warn(`[socket] pasajero:ubicacion descartada user=${user.sub} payload invalido`, payload);
         return;
       }
-      void viajeUseCases.registrarUbicacionPasajero(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
+      conTenant(() => {
+        void viajeUseCases.registrarUbicacionPasajero(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
+      });
     });
   });
 
