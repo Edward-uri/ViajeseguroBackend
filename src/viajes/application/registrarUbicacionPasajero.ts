@@ -6,10 +6,11 @@ export function registrarUbicacionPasajero(deps: { viajes: IViajeRepository; not
   return async (idViaje: number, idPasajero: number, lat: number, lng: number): Promise<void> => {
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
     const viaje = await deps.viajes.porId(idViaje);
-    if (!viaje) return;
-    if (viaje.idPasajero !== idPasajero) return;
-    if (viaje.idConductor == null) return;
-    if (viaje.estado !== 'aceptado' && viaje.estado !== 'en_curso') return;
+    // Los warn diagnostican por qué una ubicación no llega a la otra app (drops silenciosos).
+    if (!viaje) return console.warn(`[ubicacion] viaje ${idViaje} no existe (pasajero ${idPasajero})`);
+    if (viaje.idPasajero !== idPasajero) return console.warn(`[ubicacion] viaje ${idViaje}: pasajero ${idPasajero} no es el del viaje (${viaje.idPasajero})`);
+    if (viaje.idConductor == null) return console.warn(`[ubicacion] viaje ${idViaje} sin conductor asignado, se ignora ubicacion del pasajero`);
+    if (viaje.estado !== 'aceptado' && viaje.estado !== 'en_curso') return console.warn(`[ubicacion] viaje ${idViaje} en estado ${viaje.estado}, se ignora ubicacion del pasajero`);
     await deps.notifier.ubicacionPasajero({ idViaje, idConductor: viaje.idConductor, lat, lng });
   };
 }

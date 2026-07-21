@@ -35,6 +35,7 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
   io.on('connection', (socket: AppSocket) => {
     const user = socket.data.user;
     const roles = user.roles;
+    console.log(`[socket] conectado user=${user.sub} roles=${roles.join(',')}`);
     void socket.join(usuarioRoom(user.sub));
     if (roles.includes('conductor')) void socket.join(conductorRoom(user.sub));
 
@@ -62,13 +63,19 @@ export function createSocketServer(httpServer: HttpServer): AppServer {
 
     socket.on('conductor:ubicacion', (payload) => {
       const parsed = ConductorUbicacionSchema.safeParse(payload);
-      if (!roles.includes('conductor') || !parsed.success) return;
+      if (!roles.includes('conductor') || !parsed.success) {
+        console.warn(`[socket] conductor:ubicacion descartada user=${user.sub} rolOk=${roles.includes('conductor')} payloadOk=${parsed.success}`, payload);
+        return;
+      }
       void viajeUseCases.registrarUbicacion(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
     });
 
     socket.on('pasajero:ubicacion', (payload) => {
       const parsed = ConductorUbicacionSchema.safeParse(payload);
-      if (!parsed.success) return;
+      if (!parsed.success) {
+        console.warn(`[socket] pasajero:ubicacion descartada user=${user.sub} payload invalido`, payload);
+        return;
+      }
       void viajeUseCases.registrarUbicacionPasajero(parsed.data.idViaje, user.sub, parsed.data.lat, parsed.data.lng);
     });
   });
