@@ -18,7 +18,8 @@ const getZonasController: RequestHandler = async (req, res, next) => {
     }
     const diaSemana = Number(req.query.dia_semana);
     const hora = Number(req.query.hora);
-    const top = Number(req.query.top) || 5;
+    // Más zonas para que el mapa del conductor se vea lleno (schema del modelo permite hasta 20).
+    const top = Number(req.query.top) || 20;
 
     const resp = await fetch(`${env.ZONAS_URL}/inferencias`, {
       method: 'POST',
