@@ -99,7 +99,7 @@ export class ViajePostgresRepository implements IViajeRepository {
   private async persona(idUsuario: number): Promise<PersonaParte | null> {
     const { rows } = await pool.query(
       `SELECT p.nombre, p.nombre_enc, p.apellido_paterno, p.apellido_paterno_enc,
-              u.telefono, u.telefono_enc, u.foto_perfil_url,
+              u.telefono, u.telefono_enc, u.foto_perfil_url, u.foto_perfil_s3_key,
               (SELECT AVG(calificacion) FROM evaluaciones WHERE id_evaluado = u.id_usuario) AS calificacion
          FROM usuarios u
          LEFT JOIN personas p ON p.id_persona = u.id_usuario
@@ -116,7 +116,10 @@ export class ViajePostgresRepository implements IViajeRepository {
     return {
       nombre: [nombre, apellido].filter(Boolean).join(' ') || null,
       telefono: val(u.telefono, row.telefono),
-      fotoUrl: row.foto_perfil_url ?? null,
+      // foto_perfil_url quedó legada en NULL al subir la foto al volumen; la URL
+      // servible se deriva de la s3_key (GET /api/users/:id/photo), igual que en
+      // userView. Sin esto el conductor nunca recibía la foto del pasajero.
+      fotoUrl: (row.foto_perfil_s3_key ?? row.foto_perfil_url) ? `/api/users/${idUsuario}/photo` : null,
       calificacion: row.calificacion == null ? null : Math.round(Number(row.calificacion) * 10) / 10,
     };
   }

@@ -22,7 +22,7 @@ export const authMiddleware: RequestHandler = (req, _res, next) => {
     req.user = verifyAccessToken(token);
     req.tenant = req.user.idMunicipio ?? null;
     const isAdmin = req.user.roles?.includes('admin') ?? false;
-    runConTenant({ tenant: req.tenant, isAdmin }, () => next());
+    runConTenant({ tenant: req.tenant, isAdmin, userId: req.user.sub }, () => next());
   } catch (err) {
     next(err);
   }
