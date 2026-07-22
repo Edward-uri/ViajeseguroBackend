@@ -22,9 +22,10 @@ pool.on('error', (err: Error) => {
 
 
 async function aplicarContextoTenant(client: pg.PoolClient, ctx: TenantContext): Promise<void> {
-  await client.query('SELECT set_config($1, $2, true), set_config($3, $4, true)', [
+  await client.query('SELECT set_config($1, $2, true), set_config($3, $4, true), set_config($5, $6, true)', [
     'app.tenant_id', ctx.tenant == null ? '' : String(ctx.tenant),
     'app.is_admin', ctx.isAdmin ? 'on' : 'off',
+    'app.user_id', ctx.userId == null ? '' : String(ctx.userId),
   ]);
 }
 
