@@ -8,7 +8,10 @@ function makeDeps(opts: { vehiculo: { idPropietario: number; idMunicipio: number
   return { bolsa, vehiculos } as any;
 }
 
-const INPUT = { idPropietario: 1, idVehiculo: 42, condiciones: null };
+const INPUT = {
+  idPropietario: 1, idVehiculo: 42,
+  tipoTurno: 'completo' as const, rentaTurno: 300, dias: ['lun', 'mar'], horario: null, condiciones: null,
+};
 
 describe('crearVacante', () => {
   it('dueño del vehículo: crea la vacante derivando idMunicipio del vehículo', async () => {
@@ -17,7 +20,8 @@ describe('crearVacante', () => {
     await crearVacante(deps)(INPUT);
 
     expect(deps.bolsa.crearVacante).toHaveBeenCalledWith({
-      idPropietario: 1, idVehiculo: 42, idMunicipio: 7, condiciones: null,
+      idPropietario: 1, idVehiculo: 42, idMunicipio: 7,
+      tipoTurno: 'completo', rentaTurno: 300, dias: ['lun', 'mar'], horario: null, condiciones: null,
     });
   });
 

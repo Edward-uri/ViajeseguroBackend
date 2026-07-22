@@ -1,8 +1,9 @@
-import type { Vacante, VacanteConVehiculo, VacanteConPendientes } from '../Vacante.js';
+import type { Vacante, VacanteConVehiculo, VacanteConPendientes, TipoTurno } from '../Vacante.js';
 import type { Postulacion, PostulacionConConductor, PostulacionConVacante } from '../Postulacion.js';
 
 export interface IBolsaRepository {
-  crearVacante(args: { idPropietario: number; idVehiculo: number; idMunicipio: number; condiciones: string | null }): Promise<Vacante>;
+  crearVacante(args: { idPropietario: number; idVehiculo: number; idMunicipio: number; tipoTurno: TipoTurno; rentaTurno: number; dias: string[]; horario: string | null; condiciones: string | null }): Promise<Vacante>;
+  editarVacante(args: { idVacante: number; tipoTurno: TipoTurno; rentaTurno: number; dias: string[]; horario: string | null; condiciones: string | null }): Promise<Vacante>;
   vacantePorId(idVacante: number): Promise<Vacante | null>;
   vacanteAbiertaPorVehiculo(idVehiculo: number): Promise<Vacante | null>;
   listarAbiertasPorMunicipio(idMunicipio: number): Promise<VacanteConVehiculo[]>;
