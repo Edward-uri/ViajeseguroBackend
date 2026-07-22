@@ -1,6 +1,6 @@
 import { pool, withTransaction } from '../../core/db.js';
 import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
-import type { Vacante, VacanteConVehiculo, VacanteConPendientes } from '../domain/Vacante.js';
+import type { Vacante, VacanteConVehiculo, VacanteConPendientes, TipoTurno } from '../domain/Vacante.js';
 import type { Postulacion, PostulacionConConductor, PostulacionConVacante } from '../domain/Postulacion.js';
 import type { IBolsaRepository } from '../domain/repositories/IBolsaRepository.js';
 import type { IAsignacionRepository } from '../../flotillas/domain/repositories/IAsignacionRepository.js';
@@ -14,6 +14,10 @@ interface VacanteRow {
   id_propietario: string | number;
   id_vehiculo: string | number;
   id_municipio: string | number;
+  tipo_turno: 'completo' | 'matutino' | 'vespertino' | 'nocturno';
+  renta_turno: string | number;
+  dias: string[];
+  horario: string | null;
   condiciones: string | null;
   estado: 'abierta' | 'cerrada';
 }
@@ -25,6 +29,10 @@ function mapVacante(row: VacanteRow | undefined): Vacante | null {
     idPropietario: Number(row.id_propietario),
     idVehiculo: Number(row.id_vehiculo),
     idMunicipio: Number(row.id_municipio),
+    tipoTurno: row.tipo_turno,
+    rentaTurno: Number(row.renta_turno),
+    dias: row.dias ?? [],
+    horario: row.horario,
     condiciones: row.condiciones,
     estado: row.estado,
   };
@@ -53,20 +61,34 @@ export class BolsaPostgresRepository implements IBolsaRepository {
   constructor(private readonly asignaciones: IAsignacionRepository) {}
 
   async crearVacante(args: {
-    idPropietario: number; idVehiculo: number; idMunicipio: number; condiciones: string | null;
+    idPropietario: number; idVehiculo: number; idMunicipio: number;
+    tipoTurno: TipoTurno; rentaTurno: number; dias: string[]; horario: string | null; condiciones: string | null;
   }): Promise<Vacante> {
     try {
       const { rows } = await pool.query<VacanteRow>(
-        `INSERT INTO vacantes (id_propietario, id_vehiculo, id_municipio, condiciones)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO vacantes (id_propietario, id_vehiculo, id_municipio, tipo_turno, renta_turno, dias, horario, condiciones)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [args.idPropietario, args.idVehiculo, args.idMunicipio, args.condiciones],
+        [args.idPropietario, args.idVehiculo, args.idMunicipio, args.tipoTurno, args.rentaTurno, args.dias, args.horario, args.condiciones],
       );
       return mapVacante(rows[0])!;
     } catch (e) {
       if ((e as { code?: string }).code === '23505') throw new VacanteYaAbiertaError();
       throw e;
     }
+  }
+
+  async editarVacante(args: {
+    idVacante: number; tipoTurno: TipoTurno; rentaTurno: number; dias: string[]; horario: string | null; condiciones: string | null;
+  }): Promise<Vacante> {
+    const { rows } = await pool.query<VacanteRow>(
+      `UPDATE vacantes
+          SET tipo_turno = $2, renta_turno = $3, dias = $4, horario = $5, condiciones = $6
+        WHERE id_vacante = $1
+        RETURNING *`,
+      [args.idVacante, args.tipoTurno, args.rentaTurno, args.dias, args.horario, args.condiciones],
+    );
+    return mapVacante(rows[0])!;
   }
 
   async vacantePorId(idVacante: number): Promise<Vacante | null> {

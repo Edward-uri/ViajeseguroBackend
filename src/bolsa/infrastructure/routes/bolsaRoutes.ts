@@ -8,6 +8,7 @@ bolsaRoutes.use(authMiddleware);
 
 // Publicar/gestionar vacantes: propietario.
 bolsaRoutes.post('/vacantes', requireRole('propietario'), c.crearVacanteController);
+bolsaRoutes.patch('/vacantes/:id', requireRole('propietario'), c.editarVacanteController);
 bolsaRoutes.get('/mis-vacantes', requireRole('propietario'), c.misVacantesController);
 bolsaRoutes.post('/vacantes/:id/cerrar', requireRole('propietario'), c.cerrarVacanteController);
 bolsaRoutes.get('/vacantes/:id/postulaciones', requireRole('propietario'), c.listarPostulacionesDeVacanteController);

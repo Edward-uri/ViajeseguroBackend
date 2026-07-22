@@ -5,6 +5,7 @@ import { DispositivoPostgresRepository } from '../../viajes/infrastructure/Dispo
 import { ConductorPostgresRepository } from '../../conductores/infrastructure/ConductorPostgresRepository.js';
 import { env } from '../../core/env.js';
 import { crearVacante } from '../application/crearVacante.js';
+import { editarVacante } from '../application/editarVacante.js';
 import { listarVacantesAbiertas } from '../application/listarVacantesAbiertas.js';
 import { misVacantes } from '../application/misVacantes.js';
 import { cerrarVacante } from '../application/cerrarVacante.js';
@@ -20,6 +21,7 @@ const push = pickPushSender(env.FCM_SERVICE_ACCOUNT, new DispositivoPostgresRepo
 
 export const bolsaUseCases = {
   crearVacante: crearVacante({ bolsa, vehiculos }),
+  editarVacante: editarVacante({ bolsa }),
   listarVacantesAbiertas: listarVacantesAbiertas({ bolsa }),
   misVacantes: misVacantes({ bolsa }),
   cerrarVacante: cerrarVacante({ bolsa }),

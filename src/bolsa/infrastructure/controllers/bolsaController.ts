@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { bolsaUseCases } from '../dependencies.js';
-import { CrearVacanteSchema, PostularSchema, ListarVacantesQuerySchema } from '../schemas.js';
+import { CrearVacanteSchema, EditarVacanteSchema, PostularSchema, ListarVacantesQuerySchema } from '../schemas.js';
 import { UnauthorizedError } from '../../../core/errors.js';
 
 export const crearVacanteController: RequestHandler = async (req, res, next) => {
@@ -10,9 +10,31 @@ export const crearVacanteController: RequestHandler = async (req, res, next) => 
     const vacante = await bolsaUseCases.crearVacante({
       idPropietario: req.user.sub,
       idVehiculo: dto.idVehiculo,
+      tipoTurno: dto.tipoTurno,
+      rentaTurno: dto.rentaTurno,
+      dias: dto.dias,
+      horario: dto.horario ?? null,
       condiciones: dto.condiciones ?? null,
     });
     res.status(201).json(vacante);
+  } catch (e) { next(e); }
+};
+
+export const editarVacanteController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const idVacante = Number(req.params.id);
+    const dto = EditarVacanteSchema.parse(req.body);
+    const vacante = await bolsaUseCases.editarVacante({
+      idVacante,
+      idPropietario: req.user.sub,
+      tipoTurno: dto.tipoTurno,
+      rentaTurno: dto.rentaTurno,
+      dias: dto.dias,
+      horario: dto.horario ?? null,
+      condiciones: dto.condiciones ?? null,
+    });
+    res.json(vacante);
   } catch (e) { next(e); }
 };
 
