@@ -40,8 +40,9 @@ export const editarVacanteController: RequestHandler = async (req, res, next) =>
 
 export const listarVacantesAbiertasController: RequestHandler = async (req, res, next) => {
   try {
+    if (!req.user) throw new UnauthorizedError();
     const q = ListarVacantesQuerySchema.parse(req.query);
-    res.json({ data: await bolsaUseCases.listarVacantesAbiertas(q.municipio) });
+    res.json({ data: await bolsaUseCases.listarVacantesAbiertas(q.municipio, req.user.sub) });
   } catch (e) { next(e); }
 };
 

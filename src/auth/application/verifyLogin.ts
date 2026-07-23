@@ -5,7 +5,7 @@ import type { PublicUser } from '../../users/domain/User.js';
 import type { Rol } from '../../core/jwt.js';
 import { rolPrincipal } from '../../core/jwt.js';
 import { verificarCodigo, MAX_INTENTOS } from '../domain/otp.js';
-import { OtpInvalidoError, CredencialesError } from '../domain/errors.js';
+import { OtpInvalidoError, CredencialesError, CuentaSuspendidaError } from '../domain/errors.js';
 import { emitirTokens } from './sessionTokens.js';
 
 export function verifyLogin(deps: {
@@ -25,6 +25,7 @@ export function verifyLogin(deps: {
 
     const user = await deps.users.findByCorreo(correo);
     if (!user || user.idUsuario === null) throw new CredencialesError();
+    if (user.estadoCuenta === 'suspendido') throw new CuentaSuspendidaError();
     const roles = await deps.users.getRoles(user.idUsuario);
     const tokens = await emitirTokens(deps.sessions, user.idUsuario, roles, user.idMunicipio, dispositivo ?? null);
     return { ...tokens, user: { ...user.toPublicJSON(), rol: rolPrincipal(roles) }, roles };

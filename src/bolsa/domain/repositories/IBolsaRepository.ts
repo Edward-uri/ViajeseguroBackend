@@ -6,7 +6,7 @@ export interface IBolsaRepository {
   editarVacante(args: { idVacante: number; tipoTurno: TipoTurno; rentaTurno: number; dias: string[]; horario: string | null; condiciones: string | null }): Promise<Vacante>;
   vacantePorId(idVacante: number): Promise<Vacante | null>;
   vacanteAbiertaPorVehiculo(idVehiculo: number): Promise<Vacante | null>;
-  listarAbiertasPorMunicipio(idMunicipio: number): Promise<VacanteConVehiculo[]>;
+  listarAbiertasPorMunicipio(idMunicipio: number, idUsuarioExcluido: number): Promise<VacanteConVehiculo[]>;
   listarMisVacantes(idPropietario: number): Promise<VacanteConPendientes[]>;
   cerrarVacante(idVacante: number): Promise<Vacante>;
 

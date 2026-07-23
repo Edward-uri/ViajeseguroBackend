@@ -2,7 +2,8 @@ import type { IBolsaRepository } from '../domain/repositories/IBolsaRepository.j
 import type { VacanteConVehiculo } from '../domain/Vacante.js';
 
 export function listarVacantesAbiertas(deps: { bolsa: Pick<IBolsaRepository, 'listarAbiertasPorMunicipio'> }) {
-  return async (idMunicipio: number): Promise<VacanteConVehiculo[]> => {
-    return deps.bolsa.listarAbiertasPorMunicipio(idMunicipio);
+  // idUsuarioExcluido: el propio conductor no ve sus vacantes en la bolsa.
+  return async (idMunicipio: number, idUsuarioExcluido: number): Promise<VacanteConVehiculo[]> => {
+    return deps.bolsa.listarAbiertasPorMunicipio(idMunicipio, idUsuarioExcluido);
   };
 }

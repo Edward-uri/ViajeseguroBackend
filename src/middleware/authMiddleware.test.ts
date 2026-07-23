@@ -61,10 +61,10 @@ describe('authMiddleware: req.tenant', () => {
     const req = reqConToken(signAccessToken({ sub: 5, roles: ['pasajero'], idMunicipio: 3 }));
     let visto: unknown = 'no-corrió';
     authMiddleware(req, res, () => { visto = tenantActual(); });
-    expect(visto).toEqual({ tenant: 3, isAdmin: false });
+    expect(visto).toEqual({ tenant: 3, isAdmin: false, userId: 5 });
 
     const reqAdmin = reqConToken(signAccessToken({ sub: 1, roles: ['admin'], idMunicipio: null }));
     authMiddleware(reqAdmin, res, () => { visto = tenantActual(); });
-    expect(visto).toEqual({ tenant: null, isAdmin: true });
+    expect(visto).toEqual({ tenant: null, isAdmin: true, userId: 1 });
   });
 });

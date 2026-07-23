@@ -247,6 +247,11 @@ export class ViajePostgresRepository implements IViajeRepository {
             SELECT 1 FROM viaje_rechazos r
              WHERE r.id_viaje = v.id_viaje AND r.id_conductor = $2
           )
+          AND NOT EXISTS (
+            SELECT 1 FROM reportes rp
+             WHERE (rp.id_reportante = v.id_pasajero AND rp.id_reportado = $2)
+                OR (rp.id_reportante = $2 AND rp.id_reportado = v.id_pasajero)
+          )
         ORDER BY v.fecha_solicitud ASC, v.id_viaje ASC`,
       [idMunicipio, idConductor],
     );

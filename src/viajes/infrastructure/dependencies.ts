@@ -77,7 +77,7 @@ const autorizacionVehiculo = {
 export const viajeUseCases = {
   getTarifario: getTarifario({ zonas }),
   rutaEntre: (o: { lat: number; lng: number }, d: { lat: number; lng: number }) => rutas.estimar(o, d),
-  crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier, rutas, validarPerimetro }),
+  crearViaje: crearViaje({ viajes, tarifas, municipios: municipioRepository, notifier, rutas, validarPerimetro, bloqueos: reportes }),
   estimarViaje: estimarViaje({ tarifas, municipios: municipioRepository, rutas, validarPerimetro }),
   getViaje: getViaje({ viajes }),
   listarMisViajes: listarMisViajes({ viajes }),
