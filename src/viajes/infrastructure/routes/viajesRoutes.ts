@@ -28,7 +28,9 @@ viajesRoutes.get('/mios', c.listarMisViajesController);
 viajesRoutes.get('/activo', c.getViajeActivoController);
 viajesRoutes.get('/pendientes', requireRole('conductor'), c.listarPendientesController);
 viajesRoutes.get('/asignados', requireRole('conductor'), c.listarAsignadosController);
-viajesRoutes.get('/historial', requireRole('conductor'), c.listarHistorialController);
+// Sin requireRole: es el historial del propio usuario (id_conductor = sub); una
+// cuenta nueva sin viajes recibe lista vacía en vez de 403.
+viajesRoutes.get('/historial', c.listarHistorialController);
 viajesRoutes.get('/ruta', c.rutaController);
 viajesRoutes.get('/destinos-recientes', c.destinosRecientesController);
 viajesRoutes.get('/:id', c.getViajeController);
