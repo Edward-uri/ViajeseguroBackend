@@ -1,6 +1,6 @@
 import { pool } from '../../core/db.js';
 import type {
-  IReporteRepository, ConductorReportado, DetalleConductorReportado, ReporteConReportante,
+  IReporteRepository, UsuarioReportado, DetalleUsuarioReportado, ReporteConReportante,
 } from '../domain/repositories/IReporteRepository.js';
 import type { Reporte, RolReportado } from '../domain/Reporte.js';
 import { YaReportadoError } from '../domain/errors.js';
@@ -96,22 +96,24 @@ export class ReportePostgresRepository implements IReporteRepository {
     return Number(rows[0]?.n ?? 0);
   }
 
-  async listarConductoresConReportes(args: { limit: number; offset: number }): Promise<{
-    data: ConductorReportado[]; total: number;
+  async listarUsuariosConReportes(args: { limit: number; offset: number }): Promise<{
+    data: UsuarioReportado[]; total: number;
   }> {
+    // Total = número de pares (usuario, rol) con al menos un reporte.
     const { rows: totalRows } = await pool.query<{ total: string | number }>(
-      `SELECT COUNT(DISTINCT id_reportado)::int AS total
-         FROM reportes WHERE rol_reportado = 'conductor'`,
+      `SELECT COUNT(*)::int AS total
+         FROM (SELECT 1 FROM reportes GROUP BY id_reportado, rol_reportado) t`,
     );
     const total = Number(totalRows[0]?.total ?? 0);
 
     const { rows } = await pool.query<{
-      id_conductor: string | number; conteo: string | number; ultimo: Date | string | null;
+      id_usuario: string | number; rol_reportado: RolReportado;
+      conteo: string | number; ultimo: Date | string | null;
       estado_cuenta: string;
       nombre_enc: string | null; apellido_paterno_enc: string | null;
       nombre: string | null; apellido_paterno: string | null;
     }>(
-      `SELECT r.id_reportado AS id_conductor,
+      `SELECT r.id_reportado AS id_usuario, r.rol_reportado,
               COUNT(*)::int AS conteo,
               MAX(r.creado_en) AS ultimo,
               u.estado_cuenta,
@@ -119,16 +121,16 @@ export class ReportePostgresRepository implements IReporteRepository {
          FROM reportes r
          JOIN usuarios u ON u.id_usuario = r.id_reportado
          LEFT JOIN personas per ON per.id_persona = r.id_reportado
-        WHERE r.rol_reportado = 'conductor'
-        GROUP BY r.id_reportado, u.estado_cuenta,
+        GROUP BY r.id_reportado, r.rol_reportado, u.estado_cuenta,
                  per.nombre_enc, per.apellido_paterno_enc, per.nombre, per.apellido_paterno
         ORDER BY conteo DESC, ultimo DESC
         LIMIT $1 OFFSET $2`,
       [args.limit, args.offset],
     );
 
-    const data: ConductorReportado[] = rows.map((r) => ({
-      idConductor: Number(r.id_conductor),
+    const data: UsuarioReportado[] = rows.map((r) => ({
+      idUsuario: Number(r.id_usuario),
+      rol: r.rol_reportado,
       nombre: nombreDeRow(r),
       conteo: Number(r.conteo),
       ultimoReporte: r.ultimo == null ? null : new Date(r.ultimo),
@@ -137,7 +139,7 @@ export class ReportePostgresRepository implements IReporteRepository {
     return { data, total };
   }
 
-  async detalleConductorReportado(idConductor: number): Promise<DetalleConductorReportado | null> {
+  async detalleUsuarioReportado(idUsuario: number, rol: RolReportado): Promise<DetalleUsuarioReportado | null> {
     const { rows: uRows } = await pool.query<{
       estado_cuenta: string; telefono: string | null; telefono_enc: string | null;
       correo_electronico: string | null; correo_electronico_enc: string | null;
@@ -150,7 +152,7 @@ export class ReportePostgresRepository implements IReporteRepository {
          FROM usuarios u
          LEFT JOIN personas per ON per.id_persona = u.id_usuario
         WHERE u.id_usuario = $1`,
-      [idConductor],
+      [idUsuario],
     );
     const u = uRows[0];
     if (!u) return null;
@@ -170,9 +172,9 @@ export class ReportePostgresRepository implements IReporteRepository {
               per.nombre_enc, per.apellido_paterno_enc, per.nombre, per.apellido_paterno
          FROM reportes r
          LEFT JOIN personas per ON per.id_persona = r.id_reportante
-        WHERE r.id_reportado = $1 AND r.rol_reportado = 'conductor'
+        WHERE r.id_reportado = $1 AND r.rol_reportado = $2
         ORDER BY r.creado_en DESC`,
-      [idConductor],
+      [idUsuario, rol],
     );
 
     const reportes: ReporteConReportante[] = rRows.map((r) => ({
@@ -186,7 +188,8 @@ export class ReportePostgresRepository implements IReporteRepository {
     }));
 
     return {
-      idConductor,
+      idUsuario,
+      rol,
       nombre: nombreDeRow(u),
       telefono: ((cont.telefono as string | null) ?? u.telefono) ?? null,
       correo: ((cont.correo_electronico as string | null) ?? u.correo_electronico) ?? null,

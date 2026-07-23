@@ -8,8 +8,8 @@ import { env } from '../../core/env.js';
 import { crearReporte } from '../application/crearReporte.js';
 import { vetarConductor } from '../application/vetarConductor.js';
 import { reactivarConductor } from '../application/reactivarConductor.js';
-import { listarConductoresReportados } from '../application/listarConductoresReportados.js';
-import { detalleConductorReportado } from '../application/detalleConductorReportado.js';
+import { listarUsuariosReportados } from '../application/listarUsuariosReportados.js';
+import { detalleUsuarioReportado } from '../application/detalleUsuarioReportado.js';
 
 // Repo standalone (solo usa pool); lo importa viajes/dependencies para el gate de
 // bloqueo en aceptarViaje/crearViaje. Se crea su propio repo de viajes para el
@@ -24,6 +24,6 @@ export const reportesUseCases = {
   crearReporte: crearReporte({ reportes, viajes }),
   vetarConductor: vetarConductor({ users, sessions, push }),
   reactivarConductor: reactivarConductor({ users, push }),
-  listarConductoresReportados: listarConductoresReportados({ reportes }),
-  detalleConductorReportado: detalleConductorReportado({ reportes }),
+  listarUsuariosReportados: listarUsuariosReportados({ reportes }),
+  detalleUsuarioReportado: detalleUsuarioReportado({ reportes }),
 };
