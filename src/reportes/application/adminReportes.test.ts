@@ -9,17 +9,21 @@ describe('vetarConductor', () => {
   it('suspende la cuenta y revoca todas las sesiones del conductor', async () => {
     const users = { suspenderCuenta: vi.fn(async () => {}) };
     const sessions = { revocarTodasDeUsuario: vi.fn(async () => {}) };
-    await vetarConductor({ users, sessions })(7);
+    const push = { enviar: vi.fn(async () => {}) };
+    await vetarConductor({ users, sessions, push })(7);
     expect(users.suspenderCuenta).toHaveBeenCalledWith(7);
     expect(sessions.revocarTodasDeUsuario).toHaveBeenCalledWith(7);
+    expect(push.enviar).toHaveBeenCalled();
   });
 });
 
 describe('reactivarConductor', () => {
   it('reactiva la cuenta del conductor', async () => {
     const users = { reactivarCuenta: vi.fn(async () => {}) };
-    await reactivarConductor({ users })(7);
+    const push = { enviar: vi.fn(async () => {}) };
+    await reactivarConductor({ users, push })(7);
     expect(users.reactivarCuenta).toHaveBeenCalledWith(7);
+    expect(push.enviar).toHaveBeenCalled();
   });
 });
 

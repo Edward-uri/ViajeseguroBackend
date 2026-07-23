@@ -47,7 +47,7 @@ export const flotillaUseCases = {
   getVehiculo: getVehiculo({ vehiculos, documentos }),
   editarVehiculo: editarVehiculo({ vehiculos, municipios: municipioRepository }),
   uploadDocumentoVehiculo: uploadDocumentoVehiculo({ vehiculos, documentos, storage }),
-  reviewDocumentoVehiculo: reviewDocumentoVehiculo({ vehiculos, documentos }),
+  reviewDocumentoVehiculo: reviewDocumentoVehiculo({ vehiculos, documentos, push }),
   listVehiculosPendientes: listVehiculosPendientes({ vehiculos }),
   getArchivoVehiculo: getArchivoVehiculo({ vehiculos, documentos, storage }),
   asignarConductor: asignarConductor({ vehiculos, asignaciones }),

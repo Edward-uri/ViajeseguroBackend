@@ -25,7 +25,7 @@ export const bolsaUseCases = {
   listarVacantesAbiertas: listarVacantesAbiertas({ bolsa }),
   misVacantes: misVacantes({ bolsa }),
   cerrarVacante: cerrarVacante({ bolsa }),
-  postular: postular({ bolsa }),
+  postular: postular({ bolsa, push }),
   retirarPostulacion: retirarPostulacion({ bolsa }),
   listarPostulacionesDeVacante: listarPostulacionesDeVacante({ bolsa }),
   misPostulaciones: misPostulaciones({ bolsa }),
