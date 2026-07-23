@@ -19,6 +19,7 @@ import { zonasAdminRoutes } from './viajes/infrastructure/routes/zonasAdminRoute
 import { adminInvitacionesRoutes } from './auth/infrastructure/routes/adminInvitacionesRoutes.js';
 import { zonasRoutes } from './zonas/zonasRoutes.js';
 import { reportesRoutes } from './reportes/infrastructure/routes/reportesRoutes.js';
+import { adminReportesRoutes } from './reportes/infrastructure/routes/adminReportesRoutes.js';
 import { authGlobal } from './auth/infrastructure/rateLimiters.js';
 import { eliminarCuentaController } from './legal/infrastructure/eliminarCuentaController.js';
 
@@ -60,6 +61,7 @@ export function buildApp(): Express {
   app.use('/api/admin', adminInvitacionesRoutes);
   app.use('/api/viajes', viajesRoutes);
   app.use('/api/reportes', reportesRoutes);
+  app.use('/api/admin', adminReportesRoutes);
   app.use('/api/dispositivos', dispositivosRoutes);
   app.use('/api/usuarios', etiquetasRoutes);
   app.use('/api/eventos-demanda', eventosDemandaRoutes);
