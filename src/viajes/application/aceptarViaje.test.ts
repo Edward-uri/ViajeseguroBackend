@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { aceptarViaje } from './aceptarViaje.js';
-import { SinVehiculoActivoError } from '../domain/errors.js';
+import { SinVehiculoActivoError, UsuariosBloqueadosError } from '../domain/errors.js';
 
 function makeViaje(estado = 'solicitado') {
   return {
@@ -32,7 +32,8 @@ function makeDeps(opts?: { activo?: number | null }) {
     getVehiculoActivo: vi.fn(async () => (opts?.activo === undefined ? null : opts.activo)),
   };
   const municipioDelConductor = vi.fn(async () => 1);
-  return { viajes, notifier, push, autorizacion, conductores, municipioDelConductor } as any;
+  const bloqueos = { estanBloqueados: vi.fn(async () => false) };
+  return { viajes, notifier, push, autorizacion, conductores, municipioDelConductor, bloqueos } as any;
 }
 
 describe('aceptarViaje deriva el vehiculo activo cuando falta idVehiculo', () => {
@@ -73,6 +74,14 @@ describe('aceptarViaje deriva el vehiculo activo cuando falta idVehiculo', () =>
     expect(deps.autorizacion.existeVehiculo).not.toHaveBeenCalled();
     expect(deps.autorizacion.conductorAutorizado).not.toHaveBeenCalled();
     expect(deps.autorizacion.vehiculoAprobado).not.toHaveBeenCalled();
+    expect(deps.viajes.cambiarEstado).not.toHaveBeenCalled();
+  });
+
+  it('bloqueados (existe reporte entre el par): lanza UsuariosBloqueadosError y no cambia estado', async () => {
+    const deps = makeDeps({ activo: 7 });
+    deps.bloqueos.estanBloqueados = vi.fn(async () => true);
+
+    await expect(aceptarViaje(deps)(1, 10, undefined)).rejects.toBeInstanceOf(UsuariosBloqueadosError);
     expect(deps.viajes.cambiarEstado).not.toHaveBeenCalled();
   });
 });

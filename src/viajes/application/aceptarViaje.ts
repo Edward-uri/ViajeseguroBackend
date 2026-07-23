@@ -3,6 +3,7 @@ import type { IEventoViajeNotifier } from '../domain/ports/IEventoViajeNotifier.
 import type { IPushSender } from '../domain/ports/IPushSender.js';
 import type { IAutorizacionVehiculo } from '../domain/ports/IConductorAutorizado.js';
 import type { IConductorRepository } from '../../conductores/domain/repositories/IConductorRepository.js';
+import type { IBloqueoChecker } from '../domain/ports/IBloqueoChecker.js';
 import type { PublicViaje } from '../domain/Viaje.js';
 import {
   ViajeNoEncontradoError,
@@ -12,6 +13,7 @@ import {
   VehiculoNoAprobadoError,
   ConductorOcupadoError,
   SinVehiculoActivoError,
+  UsuariosBloqueadosError,
 } from '../domain/errors.js';
 import { puedeTransicionar } from '../domain/tipos.js';
 
@@ -22,6 +24,7 @@ export function aceptarViaje(deps: {
   autorizacion: IAutorizacionVehiculo;
   conductores: Pick<IConductorRepository, 'getVehiculoActivo'>;
   municipioDelConductor: (idConductor: number) => Promise<number | null>;
+  bloqueos: Pick<IBloqueoChecker, 'estanBloqueados'>;
 }) {
   return async (idViaje: number, idConductor: number, idVehiculo?: number): Promise<PublicViaje> => {
     const idVehiculoFinal = idVehiculo ?? (await deps.conductores.getVehiculoActivo(idConductor));
@@ -31,6 +34,7 @@ export function aceptarViaje(deps: {
     if (!viaje) throw new ViajeNoEncontradoError();
     const municipioConductor = await deps.municipioDelConductor(idConductor);
     if (municipioConductor == null || viaje.data.idMunicipio !== municipioConductor) throw new ViajeNoEncontradoError();
+    if (await deps.bloqueos.estanBloqueados(idConductor, viaje.data.idPasajero)) throw new UsuariosBloqueadosError();
     if (!puedeTransicionar(viaje.estado, 'aceptado')) throw new TransicionInvalidaError(viaje.estado, 'aceptado');
 
     if (!(await deps.autorizacion.existeVehiculo(idVehiculoFinal))) throw new VehiculoNoEncontradoError();

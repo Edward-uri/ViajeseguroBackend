@@ -39,3 +39,6 @@ export class PasajeroConViajeActivoError extends ConflictError {
 export class TarifaCambiadaError extends ConflictError {
   constructor() { super('La tarifa cambió, vuelve a estimar'); }
 }
+export class UsuariosBloqueadosError extends ConflictError {
+  constructor() { super('Este viaje ya no está disponible'); }
+}
