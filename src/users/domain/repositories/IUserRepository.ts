@@ -58,4 +58,7 @@ export interface IUserRepository {
   getRoles(idUsuario: number): Promise<Rol[]>;
   /** Agrega un rol (idempotente). */
   addRol(idUsuario: number, rol: Rol): Promise<void>;
+
+  /** Veto admin: marca la cuenta como suspendida (idempotente; no toca cuentas eliminadas). */
+  suspenderCuenta(idUsuario: number): Promise<void>;
 }

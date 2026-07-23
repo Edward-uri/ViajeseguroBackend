@@ -13,6 +13,8 @@ export interface IAsignacionRepository {
   }): Promise<boolean>;
   revocar(args: { idVehiculo: number; idConductor: number }): Promise<boolean>;
   listarAsignacionesDeVehiculo(idVehiculo: number): Promise<ConductorAsignado[]>;
+  /** Nº de conductores activos por vehículo (para marcar cuáles ya tienen conductor). */
+  contarActivosPorVehiculos(ids: number[]): Promise<Record<number, number>>;
   vehiculosAsignados(idConductor: number): Promise<number[]>;
   conductorAutorizado(idConductor: number, idVehiculo: number): Promise<boolean>;
   existeConductor(idConductor: number): Promise<boolean>;

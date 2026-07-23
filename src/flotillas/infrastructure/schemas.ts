@@ -5,17 +5,23 @@ export const PerfilSchema = z.object({
   razonSocial: z.string().max(100).optional(),
 });
 
+// Colores de unidad soportados (mapean al SVG del mototaxi por color).
+export const COLORES_VEHICULO = [
+  'Blanco', 'Rojo', 'Azul', 'Negro', 'Verde', 'Amarillo', 'Gris', 'Naranja',
+] as const;
+
 export const VehiculoSchema = z.object({
   placa: z.string().min(3).max(20),
+  numeroSerie: z.string().min(3).max(50),
   modelo: z.string().max(100).optional(),
-  color: z.string().max(30).optional(),
+  color: z.enum(COLORES_VEHICULO).optional(),
   anio: z.number().int().min(1950).max(2100).optional(),
   idMunicipio: z.number().int().positive(),
 });
 
 export const EditarVehiculoSchema = z.object({
   modelo: z.string().max(100).optional(),
-  color: z.string().max(30).optional(),
+  color: z.enum(COLORES_VEHICULO).optional(),
   anio: z.number().int().min(1950).max(2100).optional(),
   idMunicipio: z.number().int().positive().optional(),
 });

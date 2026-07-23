@@ -14,6 +14,7 @@ export function registrarVehiculo(deps: {
   return async (input: {
     idPropietario: number;
     placa: string;
+    numeroSerie: string | null;
     modelo: string | null;
     color: string | null;
     anio: number | null;

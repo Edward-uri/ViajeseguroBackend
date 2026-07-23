@@ -66,6 +66,20 @@ export class AsignacionPostgresRepository implements IAsignacionRepository {
     return (rowCount ?? 0) > 0;
   }
 
+  async contarActivosPorVehiculos(ids: number[]): Promise<Record<number, number>> {
+    if (ids.length === 0) return {};
+    const { rows } = await pool.query<{ id_vehiculo: string | number; n: string | number }>(
+      `SELECT id_vehiculo, COUNT(*)::int AS n
+         FROM asignaciones_conductor_vehiculo
+        WHERE id_vehiculo = ANY($1) AND activo
+        GROUP BY id_vehiculo`,
+      [ids],
+    );
+    const out: Record<number, number> = {};
+    for (const r of rows) out[Number(r.id_vehiculo)] = Number(r.n);
+    return out;
+  }
+
   async listarAsignacionesDeVehiculo(idVehiculo: number): Promise<ConductorAsignado[]> {
     const { rows } = await pool.query<{
       id_conductor: string | number; origen: 'propia' | 'bolsa';

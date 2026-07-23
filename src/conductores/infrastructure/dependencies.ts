@@ -55,7 +55,7 @@ export const conductorUseCases = {
   listConductoresAdmin: listConductoresAdmin({ conductores, asignaciones, vehiculos }),
   getArchivo: getArchivo({ documentos, storage }),
   municipioOperativo: municipioOperativo({ conductores }),
-  setDisponibilidad: setDisponibilidad({ disponibilidad, sesiones }),
+  setDisponibilidad: setDisponibilidad({ disponibilidad, sesiones, usuarios: users }),
   getDisponibilidad: getDisponibilidad({ disponibilidad }),
   getStats: getStats({ estadisticas }),
   getGanancias: getGanancias({ estadisticas, sesiones }),

@@ -21,6 +21,6 @@ export interface VacanteConVehiculo extends Vacante {
   anio: number | null;
 }
 
-export interface VacanteConPendientes extends Vacante {
+export interface VacanteConPendientes extends VacanteConVehiculo {
   postulacionesPendientes: number;
 }

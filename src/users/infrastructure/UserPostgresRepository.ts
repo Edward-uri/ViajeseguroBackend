@@ -316,4 +316,12 @@ export class UserPostgresRepository implements IUserRepository {
       [idUsuario, rol],
     );
   }
+
+  async suspenderCuenta(idUsuario: number): Promise<void> {
+    await pool.query(
+      `UPDATE usuarios SET estado_cuenta = 'suspendido'
+        WHERE id_usuario = $1 AND estado_cuenta <> 'eliminado'`,
+      [idUsuario],
+    );
+  }
 }

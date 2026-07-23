@@ -64,6 +64,9 @@ const envSchema = z.object({
   /** Radio (km) desde el centroide de zona más cercano para aceptar origen/destino de un viaje. */
   RADIO_MUNICIPIO_KM: z.coerce.number().positive().default(7),
 
+  /** Nº de reportes de un conductor a partir del cual el panel lo marca en rojo para veto. */
+  REPORTES_UMBRAL_VETO: z.coerce.number().int().positive().default(5),
+
   KMS_KEY_ID: z.string().min(1).optional(),
 
   /** Llave AES-256 (32 bytes en base64) para cifrar PII. Sin ella la app no arranca fuera de test. */
