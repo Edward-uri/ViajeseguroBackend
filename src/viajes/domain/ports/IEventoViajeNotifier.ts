@@ -2,7 +2,9 @@ import type { PublicViaje } from '../Viaje.js';
 import type { EstadoViaje } from '../tipos.js';
 
 export interface IEventoViajeNotifier {
-  viajeSolicitado(viaje: PublicViaje): Promise<void>;
+  /** Difunde la solicitud al municipio, excluyendo los rooms de los conductores
+   *  bloqueados con el pasajero (para que ni les llegue la tarjeta). */
+  viajeSolicitado(viaje: PublicViaje, conductoresExcluidos?: number[]): Promise<void>;
   viajeAceptado(viaje: PublicViaje): Promise<void>;
   cambioEstado(viaje: PublicViaje): Promise<void>;
   /** Avisa a los conductores del municipio que un viaje pendiente ya no está disponible. */

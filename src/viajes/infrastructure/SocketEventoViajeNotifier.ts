@@ -11,8 +11,11 @@ export class SocketEventoViajeNotifier implements IEventoViajeNotifier {
     this.io = io;
   }
 
-  async viajeSolicitado(v: PublicViaje): Promise<void> {
-    this.io?.to(municipioRoom(v.idMunicipio)).emit('viaje:solicitado', v);
+  async viajeSolicitado(v: PublicViaje, conductoresExcluidos: number[] = []): Promise<void> {
+    // Bloqueo (capa 1): no difundir a los conductores bloqueados con el pasajero.
+    let target = this.io?.to(municipioRoom(v.idMunicipio));
+    for (const id of conductoresExcluidos) target = target?.except(conductorRoom(id));
+    target?.emit('viaje:solicitado', v);
   }
 
   async viajeAceptado(v: PublicViaje): Promise<void> {
