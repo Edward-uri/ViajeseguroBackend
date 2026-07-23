@@ -275,6 +275,33 @@ export class ViajePostgresRepository implements IViajeRepository {
     return rows.map((r) => mapViaje(r)!);
   }
 
+  async listarHistorialConductor(args: {
+    idConductor: number; limit: number; offset: number;
+    estado?: string | null; desde?: string | null; hasta?: string | null;
+  }): Promise<{ data: Viaje[]; total: number }> {
+    const where: string[] = ['id_conductor = $1'];
+    const params: unknown[] = [args.idConductor];
+    if (args.estado) { params.push(args.estado); where.push(`estado = $${params.length}`); }
+    if (args.desde) { params.push(args.desde); where.push(`fecha_solicitud >= $${params.length}`); }
+    if (args.hasta) { params.push(args.hasta); where.push(`fecha_solicitud < $${params.length}`); }
+    const whereSql = where.join(' AND ');
+
+    const totalRes = await pool.query<{ n: string | number }>(
+      `SELECT COUNT(*)::int AS n FROM viajes WHERE ${whereSql}`,
+      params,
+    );
+    const total = Number(totalRes.rows[0]?.n ?? 0);
+
+    const listParams = [...params, args.limit, args.offset];
+    const { rows } = await pool.query<ViajeRow>(
+      `SELECT * FROM viajes WHERE ${whereSql}
+        ORDER BY fecha_solicitud DESC, id_viaje DESC
+        LIMIT $${listParams.length - 1} OFFSET $${listParams.length}`,
+      listParams,
+    );
+    return { data: rows.map((r) => mapViaje(r)!), total };
+  }
+
   async conductorConViajeActivo(idConductor: number): Promise<boolean> {
     const { rowCount } = await pool.query(
       `SELECT 1 FROM viajes WHERE id_conductor=$1 AND estado IN ('aceptado','en_curso') LIMIT 1`,

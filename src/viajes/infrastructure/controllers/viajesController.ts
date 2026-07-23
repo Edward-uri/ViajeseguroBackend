@@ -40,6 +40,21 @@ export const listarMisViajesController: RequestHandler = async (req, res, next) 
   } catch (e) { next(e); }
 };
 
+export const listarHistorialController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const q = S.HistorialQuerySchema.parse(req.query);
+    res.json(await viajeUseCases.listarHistorialConductor({
+      idConductor: req.user.sub,
+      page: q.page,
+      perPage: q.perPage,
+      estado: q.estado ?? null,
+      desde: q.desde ?? null,
+      hasta: q.hasta ?? null,
+    }));
+  } catch (e) { next(e); }
+};
+
 export const destinosRecientesController: RequestHandler = async (req, res, next) => {
   try {
     if (!req.user) throw new UnauthorizedError();
