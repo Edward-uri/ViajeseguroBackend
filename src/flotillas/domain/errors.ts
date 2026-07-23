@@ -22,6 +22,9 @@ export class MunicipioNoValidoError extends ValidationError {
 export class PlacaYaRegistradaError extends AppError {
   constructor() { super('Esta placa ya está registrada. Intenta con otra.', 409, 'PLACA_YA_REGISTRADA'); }
 }
+export class NumeroSerieYaRegistradoError extends AppError {
+  constructor() { super('Ese número de serie ya está registrado. Verifícalo.', 409, 'NUMERO_SERIE_YA_REGISTRADO'); }
+}
 export class AsignacionEnViajeError extends AppError {
   constructor() { super('No puedes revocar mientras hay un viaje en curso; espera a que termine', 409, 'ASIGNACION_EN_VIAJE'); }
 }

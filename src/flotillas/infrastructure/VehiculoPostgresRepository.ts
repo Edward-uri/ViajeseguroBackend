@@ -1,7 +1,7 @@
 import { pool } from '../../core/db.js';
 import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 import { Vehiculo, VehiculoBuilder } from '../domain/Vehiculo.js';
-import { PlacaYaRegistradaError } from '../domain/errors.js';
+import { PlacaYaRegistradaError, NumeroSerieYaRegistradoError } from '../domain/errors.js';
 import type { IVehiculoRepository, VehiculoPendiente } from '../domain/repositories/IVehiculoRepository.js';
 
 function descifrarTelefono(telEnc: string | null, telPlano: string | null): string | null {
@@ -25,6 +25,7 @@ interface Row {
   id_vehiculo: string | number;
   id_propietario: string | number;
   placa: string | null;
+  numero_serie: string | null;
   modelo: string | null;
   color: string | null;
   anio: number | null;
@@ -38,6 +39,7 @@ function map(row: Row | undefined): Vehiculo | null {
     .idVehiculo(Number(row.id_vehiculo))
     .idPropietario(Number(row.id_propietario))
     .placa(((dec.placa as string | null) ?? row.placa) as string)
+    .numeroSerie(row.numero_serie)
     .modelo(row.modelo)
     .color(row.color)
     .anio(row.anio == null ? null : Number(row.anio))
@@ -47,20 +49,23 @@ function map(row: Row | undefined): Vehiculo | null {
 
 export class VehiculoPostgresRepository implements IVehiculoRepository {
   async crear(a: {
-    idPropietario: number; placa: string; modelo: string | null; color: string | null; anio: number | null; idMunicipio: number;
+    idPropietario: number; placa: string; numeroSerie: string | null; modelo: string | null; color: string | null; anio: number | null; idMunicipio: number;
   }): Promise<Vehiculo> {
     const enc = cipherCodec.encodeParaInsert('vehiculos', { placa: a.placa });
     try {
       const { rows } = await pool.query<Row>(
-        `INSERT INTO vehiculos (id_propietario, placa_enc, placa_bidx, modelo, color, anio, id_municipio)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `INSERT INTO vehiculos (id_propietario, placa_enc, placa_bidx, numero_serie, modelo, color, anio, id_municipio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [a.idPropietario, enc.placa_enc, enc.placa_bidx, a.modelo, a.color, a.anio, a.idMunicipio],
+        [a.idPropietario, enc.placa_enc, enc.placa_bidx, a.numeroSerie, a.modelo, a.color, a.anio, a.idMunicipio],
       );
       return map(rows[0])!;
     } catch (e) {
-      // uq_vehiculos_placa_bidx: placa ya registrada (por cualquier propietario).
-      if ((e as { code?: string }).code === '23505') throw new PlacaYaRegistradaError();
+      const err = e as { code?: string; constraint?: string };
+      if (err.code === '23505') {
+        if (err.constraint === 'uq_vehiculos_numero_serie') throw new NumeroSerieYaRegistradoError();
+        throw new PlacaYaRegistradaError(); // uq_vehiculos_placa_bidx
+      }
       throw e;
     }
   }

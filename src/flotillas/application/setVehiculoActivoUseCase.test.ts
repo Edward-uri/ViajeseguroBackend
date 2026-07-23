@@ -41,7 +41,10 @@ describe('listarVehiculos marca activo comparando contra getVehiculoActivo (una 
       findById: vi.fn(async () => null),
     };
     const documentos = { listarPorVehiculo: vi.fn(async () => []) };
-    const asignaciones = { vehiculosAsignados: vi.fn(async () => []) };
+    const asignaciones = {
+      vehiculosAsignados: vi.fn(async () => []),
+      contarActivosPorVehiculos: vi.fn(async () => ({})),
+    };
     const conductores = { getVehiculoActivo: vi.fn(async () => 4) };
 
     const result = await listarVehiculos({ vehiculos, documentos, asignaciones, conductores } as any)({ idPropietario: 1 });

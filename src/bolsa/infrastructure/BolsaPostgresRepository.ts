@@ -125,16 +125,28 @@ export class BolsaPostgresRepository implements IBolsaRepository {
   }
 
   async listarMisVacantes(idPropietario: number): Promise<VacanteConPendientes[]> {
-    const { rows } = await pool.query<VacanteRow & { pendientes: string | number }>(
-      `SELECT v.*, COUNT(p.id_postulacion) FILTER (WHERE p.estado = 'pendiente') AS pendientes
+    const { rows } = await pool.query<VacanteRow & {
+      pendientes: string | number;
+      placa_enc: string | null; placa: string | null; modelo: string | null; color: string | null; anio: number | null;
+    }>(
+      `SELECT v.*, veh.placa_enc, veh.placa, veh.modelo, veh.color, veh.anio,
+              COUNT(p.id_postulacion) FILTER (WHERE p.estado = 'pendiente') AS pendientes
          FROM vacantes v
+         JOIN vehiculos veh ON veh.id_vehiculo = v.id_vehiculo
          LEFT JOIN postulaciones p ON p.id_vacante = v.id_vacante
         WHERE v.id_propietario = $1
-        GROUP BY v.id_vacante
+        GROUP BY v.id_vacante, veh.placa_enc, veh.placa, veh.modelo, veh.color, veh.anio
         ORDER BY v.id_vacante DESC`,
       [idPropietario],
     );
-    return rows.map((r) => ({ ...mapVacante(r)!, postulacionesPendientes: Number(r.pendientes) }));
+    return rows.map((r) => ({
+      ...mapVacante(r)!,
+      placa: ((cipherCodec.decodeDeRow('vehiculos', { placa_enc: r.placa_enc }).placa as string | null) ?? r.placa) as string,
+      modelo: r.modelo,
+      color: r.color,
+      anio: r.anio == null ? null : Number(r.anio),
+      postulacionesPendientes: Number(r.pendientes),
+    }));
   }
 
   async cerrarVacante(idVacante: number): Promise<Vacante> {

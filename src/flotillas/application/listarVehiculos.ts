@@ -7,6 +7,7 @@ import { calcularEstadoVerificacion, type EstadoVerificacion } from '../domain/t
 export interface VehiculoResumen {
   idVehiculo: number;
   placa: string;
+  numeroSerie: string | null;
   modelo: string | null;
   color: string | null;
   anio: number | null;
@@ -14,6 +15,7 @@ export interface VehiculoResumen {
   estadoVerificacion: EstadoVerificacion;
   origen: 'propio' | 'asignado';
   activo: boolean;
+  conductoresAsignados: number;
 }
 
 export function listarVehiculos(deps: {
@@ -37,6 +39,9 @@ export function listarVehiculos(deps: {
     ];
 
     const idVehiculoActivo = await deps.conductores.getVehiculoActivo(idPropietario);
+    const conductoresPorVehiculo = await deps.asignaciones.contarActivosPorVehiculos(
+      filas.map((f) => f.v.idVehiculo),
+    );
 
     return Promise.all(
       filas.map(async ({ v, origen }) => {
@@ -45,6 +50,7 @@ export function listarVehiculos(deps: {
         return {
           idVehiculo: v.idVehiculo,
           placa: v.placa,
+          numeroSerie: v.numeroSerie,
           modelo: v.modelo,
           color: v.color,
           anio: v.anio,
@@ -52,6 +58,7 @@ export function listarVehiculos(deps: {
           estadoVerificacion: estado,
           origen,
           activo: v.idVehiculo === idVehiculoActivo,
+          conductoresAsignados: conductoresPorVehiculo[v.idVehiculo] ?? 0,
         };
       }),
     );

@@ -39,6 +39,7 @@ export const registrarVehiculoController: RequestHandler = async (req, res, next
     const v = await flotillaUseCases.registrarVehiculo({
       idPropietario: req.user.sub,
       placa: dto.placa,
+      numeroSerie: dto.numeroSerie,
       modelo: dto.modelo ?? null,
       color: dto.color ?? null,
       anio: dto.anio ?? null,
