@@ -24,3 +24,6 @@ export class InvitacionYaAceptadaError extends AppError {
 export class InvitacionNoEncontradaError extends AppError {
   constructor() { super('Invitación no encontrada', 404, 'NOT_FOUND'); }
 }
+export class CuentaSuspendidaError extends ForbiddenError {
+  constructor() { super('Tu cuenta fue suspendida. Contacta al soporte.'); }
+}
