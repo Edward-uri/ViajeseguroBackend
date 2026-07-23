@@ -4,6 +4,7 @@ import { UserPostgresRepository } from '../../users/infrastructure/UserPostgresR
 import { SessionPostgresRepository } from '../../auth/infrastructure/SessionPostgresRepository.js';
 import { crearReporte } from '../application/crearReporte.js';
 import { vetarConductor } from '../application/vetarConductor.js';
+import { reactivarConductor } from '../application/reactivarConductor.js';
 import { listarConductoresReportados } from '../application/listarConductoresReportados.js';
 import { detalleConductorReportado } from '../application/detalleConductorReportado.js';
 
@@ -18,6 +19,7 @@ const sessions = new SessionPostgresRepository();
 export const reportesUseCases = {
   crearReporte: crearReporte({ reportes, viajes }),
   vetarConductor: vetarConductor({ users, sessions }),
+  reactivarConductor: reactivarConductor({ users }),
   listarConductoresReportados: listarConductoresReportados({ reportes }),
   detalleConductorReportado: detalleConductorReportado({ reportes }),
 };

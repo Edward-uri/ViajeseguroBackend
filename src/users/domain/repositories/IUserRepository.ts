@@ -61,4 +61,7 @@ export interface IUserRepository {
 
   /** Veto admin: marca la cuenta como suspendida (idempotente; no toca cuentas eliminadas). */
   suspenderCuenta(idUsuario: number): Promise<void>;
+
+  /** Reactiva una cuenta suspendida (idempotente; no toca eliminadas ni activas). */
+  reactivarCuenta(idUsuario: number): Promise<void>;
 }

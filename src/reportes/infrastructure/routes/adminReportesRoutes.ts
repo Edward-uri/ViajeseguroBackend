@@ -11,3 +11,5 @@ adminReportesRoutes.get('/reportes/conductores', c.listarConductoresReportadosCo
 adminReportesRoutes.get('/reportes/conductores/:id', c.detalleConductorReportadoController);
 // Veto: desactiva la cuenta del conductor y revoca sus sesiones.
 adminReportesRoutes.post('/reportes/conductores/:id/vetar', c.vetarConductorController);
+// Reactivación: revierte el veto (cuenta suspendida → activa).
+adminReportesRoutes.post('/reportes/conductores/:id/reactivar', c.reactivarConductorController);

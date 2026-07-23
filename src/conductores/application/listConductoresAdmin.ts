@@ -10,6 +10,7 @@ export interface ConductorAdmin {
   idMunicipio: number | null;
   municipio: string | null;
   estadoVerificacion: EstadoVerificacion;
+  estadoCuenta: string;
   vehiculos: { idVehiculo: number; placa: string; modelo: string | null; activo: boolean }[];
 }
 
@@ -45,6 +46,7 @@ export function listConductoresAdmin(deps: {
           idMunicipio: f.idMunicipio,
           municipio: f.municipio,
           estadoVerificacion: calcularEstadoVerificacion(estados),
+          estadoCuenta: f.estadoCuenta,
           vehiculos,
         };
       }),
