@@ -2,6 +2,7 @@ import type { IVehiculoRepository } from '../domain/repositories/IVehiculoReposi
 import type { IAsignacionRepository } from '../domain/repositories/IAsignacionRepository.js';
 import type { IViajeRepository } from '../../viajes/domain/repositories/IViajeRepository.js';
 import type { IConductorRepository } from '../../conductores/domain/repositories/IConductorRepository.js';
+import type { IPushSender } from '../../viajes/domain/ports/IPushSender.js';
 import { VehiculoNoEncontradoError, NoEsTuVehiculoError, AsignacionEnViajeError } from '../domain/errors.js';
 
 export function revocarConductor(deps: {
@@ -9,6 +10,7 @@ export function revocarConductor(deps: {
   asignaciones: IAsignacionRepository;
   viajes: IViajeRepository;
   conductores: IConductorRepository;
+  push: IPushSender;
 }) {
   return async ({ idVehiculo, idPropietario, idConductor }: {
     idVehiculo: number; idPropietario: number; idConductor: number;
@@ -32,6 +34,18 @@ export function revocarConductor(deps: {
         }
       } catch (err) {
         console.error('[revocarConductor] limpieza de vehículo activo falló:', err);
+      }
+
+      // Aviso best-effort al conductor: nunca revierte ni interrumpe la baja ya hecha.
+      try {
+        await deps.push.enviar({
+          idUsuario: idConductor,
+          titulo: 'Tu asignación terminó',
+          cuerpo: 'El dueño del vehículo te dio de baja como conductor.',
+          data: { tipo: 'asignacion_revocada' },
+        });
+      } catch (err) {
+        console.error('[revocarConductor] push falló:', err);
       }
     }
   };

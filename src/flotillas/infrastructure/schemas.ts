@@ -28,3 +28,13 @@ export const RevisarDocumentoVehiculoSchema = z.discriminatedUnion('estado', [
 export const AsignarConductorSchema = z.object({ idConductor: z.number().int().positive() });
 
 export const SetVehiculoActivoSchema = z.object({ idVehiculo: z.number().int().positive() });
+
+const DIAS_SEMANA = ['lun', 'mar', 'mie', 'jue', 'vie', 'sab', 'dom'] as const;
+
+// Términos que el dueño edita de un conductor ya asignado (mismo shape que la vacante).
+export const EditarTerminosConductorSchema = z.object({
+  tipoTurno: z.enum(['completo', 'matutino', 'vespertino', 'nocturno']),
+  rentaTurno: z.number().positive(),
+  dias: z.array(z.enum(DIAS_SEMANA)).min(1),
+  horario: z.string().max(50).optional(),
+});

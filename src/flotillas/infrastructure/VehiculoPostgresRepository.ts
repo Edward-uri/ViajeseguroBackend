@@ -1,6 +1,7 @@
 import { pool } from '../../core/db.js';
 import { cipherCodec } from '../../infrastructure/crypto/cipher.js';
 import { Vehiculo, VehiculoBuilder } from '../domain/Vehiculo.js';
+import { PlacaYaRegistradaError } from '../domain/errors.js';
 import type { IVehiculoRepository, VehiculoPendiente } from '../domain/repositories/IVehiculoRepository.js';
 
 function descifrarTelefono(telEnc: string | null, telPlano: string | null): string | null {
@@ -49,13 +50,19 @@ export class VehiculoPostgresRepository implements IVehiculoRepository {
     idPropietario: number; placa: string; modelo: string | null; color: string | null; anio: number | null; idMunicipio: number;
   }): Promise<Vehiculo> {
     const enc = cipherCodec.encodeParaInsert('vehiculos', { placa: a.placa });
-    const { rows } = await pool.query<Row>(
-      `INSERT INTO vehiculos (id_propietario, placa_enc, placa_bidx, modelo, color, anio, id_municipio)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
-       RETURNING *`,
-      [a.idPropietario, enc.placa_enc, enc.placa_bidx, a.modelo, a.color, a.anio, a.idMunicipio],
-    );
-    return map(rows[0])!;
+    try {
+      const { rows } = await pool.query<Row>(
+        `INSERT INTO vehiculos (id_propietario, placa_enc, placa_bidx, modelo, color, anio, id_municipio)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)
+         RETURNING *`,
+        [a.idPropietario, enc.placa_enc, enc.placa_bidx, a.modelo, a.color, a.anio, a.idMunicipio],
+      );
+      return map(rows[0])!;
+    } catch (e) {
+      // uq_vehiculos_placa_bidx: placa ya registrada (por cualquier propietario).
+      if ((e as { code?: string }).code === '23505') throw new PlacaYaRegistradaError();
+      throw e;
+    }
   }
 
   async findById(idVehiculo: number): Promise<Vehiculo | null> {
