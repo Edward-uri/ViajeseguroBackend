@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { vetarConductor } from './vetarConductor.js';
 import { reactivarConductor } from './reactivarConductor.js';
-import { listarConductoresReportados } from './listarConductoresReportados.js';
-import { detalleConductorReportado } from './detalleConductorReportado.js';
+import { listarUsuariosReportados } from './listarUsuariosReportados.js';
+import { detalleUsuarioReportado } from './detalleUsuarioReportado.js';
 import { NotFoundError } from '../../core/errors.js';
 
 describe('vetarConductor', () => {
@@ -27,20 +27,20 @@ describe('reactivarConductor', () => {
   });
 });
 
-describe('listarConductoresReportados', () => {
+describe('listarUsuariosReportados', () => {
   it('traduce page/perPage a limit/offset y calcula totalPages', async () => {
     const reportes = {
-      listarConductoresConReportes: vi.fn(async () => ({ data: [], total: 25 })),
+      listarUsuariosConReportes: vi.fn(async () => ({ data: [], total: 25 })),
     };
-    const result = await listarConductoresReportados({ reportes })(2, 10);
-    expect(reportes.listarConductoresConReportes).toHaveBeenCalledWith({ limit: 10, offset: 10 });
+    const result = await listarUsuariosReportados({ reportes })(2, 10);
+    expect(reportes.listarUsuariosConReportes).toHaveBeenCalledWith({ limit: 10, offset: 10 });
     expect(result).toMatchObject({ page: 2, perPage: 10, total: 25, totalPages: 3 });
   });
 });
 
-describe('detalleConductorReportado', () => {
-  it('lanza NotFound si el conductor no existe', async () => {
-    const reportes = { detalleConductorReportado: vi.fn(async () => null) };
-    await expect(detalleConductorReportado({ reportes })(99)).rejects.toThrow(NotFoundError);
+describe('detalleUsuarioReportado', () => {
+  it('lanza NotFound si el usuario no existe', async () => {
+    const reportes = { detalleUsuarioReportado: vi.fn(async () => null) };
+    await expect(detalleUsuarioReportado({ reportes })(99, 'conductor')).rejects.toThrow(NotFoundError);
   });
 });

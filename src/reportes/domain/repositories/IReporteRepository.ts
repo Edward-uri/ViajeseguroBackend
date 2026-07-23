@@ -1,8 +1,9 @@
 import type { Reporte, RolReportado } from '../Reporte.js';
 
-/** Fila de la lista admin: un conductor con su acumulado de reportes. */
-export interface ConductorReportado {
-  idConductor: number;
+/** Fila de la lista admin: un usuario reportado en un rol, con su acumulado. */
+export interface UsuarioReportado {
+  idUsuario: number;
+  rol: RolReportado;
   nombre: string | null;
   conteo: number;
   ultimoReporte: Date | null;
@@ -20,9 +21,10 @@ export interface ReporteConReportante {
   creadoEn: Date | null;
 }
 
-/** Detalle admin: contacto del conductor + sus reportes. */
-export interface DetalleConductorReportado {
-  idConductor: number;
+/** Detalle admin: contacto del usuario + sus reportes en ese rol. */
+export interface DetalleUsuarioReportado {
+  idUsuario: number;
+  rol: RolReportado;
   nombre: string | null;
   telefono: string | null;
   correo: string | null;
@@ -52,12 +54,13 @@ export interface IReporteRepository {
 
   // ───── Admin ─────
 
-  /** Conductores con reportes, ordenados por conteo desc. Paginado. */
-  listarConductoresConReportes(args: { limit: number; offset: number }): Promise<{
-    data: ConductorReportado[];
+  /** Usuarios con reportes (cualquier rol), ordenados por conteo desc. Paginado.
+   *  Un usuario reportado en dos roles aparece como dos filas distintas. */
+  listarUsuariosConReportes(args: { limit: number; offset: number }): Promise<{
+    data: UsuarioReportado[];
     total: number;
   }>;
 
-  /** Detalle de un conductor reportado (contacto + sus reportes). null si no existe el usuario. */
-  detalleConductorReportado(idConductor: number): Promise<DetalleConductorReportado | null>;
+  /** Detalle de un usuario reportado en un rol (contacto + reportes de ese rol). null si no existe. */
+  detalleUsuarioReportado(idUsuario: number, rol: RolReportado): Promise<DetalleUsuarioReportado | null>;
 }

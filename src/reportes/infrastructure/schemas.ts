@@ -24,7 +24,12 @@ export const ReportarSchema = z
   );
 
 // Paginación admin (10 por página por defecto, como el resto del panel).
-export const ListaConductoresReportadosQuerySchema = z.object({
+export const ListaReportadosQuerySchema = z.object({
   page: z.coerce.number().int().positive().default(1),
   perPage: z.coerce.number().int().positive().max(100).default(10),
+});
+
+// Detalle admin: el rol define de cuál lado se listan los reportes del usuario.
+export const DetalleReporteQuerySchema = z.object({
+  rol: z.enum(['conductor', 'pasajero']),
 });

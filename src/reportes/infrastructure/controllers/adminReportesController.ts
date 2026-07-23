@@ -1,20 +1,21 @@
 import type { RequestHandler } from 'express';
 import { reportesUseCases } from '../dependencies.js';
-import { ListaConductoresReportadosQuerySchema } from '../schemas.js';
+import { ListaReportadosQuerySchema, DetalleReporteQuerySchema } from '../schemas.js';
 import { env } from '../../../core/env.js';
 
-export const listarConductoresReportadosController: RequestHandler = async (req, res, next) => {
+export const listarUsuariosReportadosController: RequestHandler = async (req, res, next) => {
   try {
-    const q = ListaConductoresReportadosQuerySchema.parse(req.query);
-    const result = await reportesUseCases.listarConductoresReportados(q.page, q.perPage);
+    const q = ListaReportadosQuerySchema.parse(req.query);
+    const result = await reportesUseCases.listarUsuariosReportados(q.page, q.perPage);
     res.json({ ...result, umbral: env.REPORTES_UMBRAL_VETO });
   } catch (e) { next(e); }
 };
 
-export const detalleConductorReportadoController: RequestHandler = async (req, res, next) => {
+export const detalleUsuarioReportadoController: RequestHandler = async (req, res, next) => {
   try {
-    const idConductor = Number(req.params.id);
-    const detalle = await reportesUseCases.detalleConductorReportado(idConductor);
+    const idUsuario = Number(req.params.id);
+    const { rol } = DetalleReporteQuerySchema.parse(req.query);
+    const detalle = await reportesUseCases.detalleUsuarioReportado(idUsuario, rol);
     res.json({ ...detalle, umbral: env.REPORTES_UMBRAL_VETO });
   } catch (e) { next(e); }
 };
