@@ -25,6 +25,7 @@ flotillasRoutes.patch('/vehiculos/:id', c.editarVehiculoController);
 
 flotillasRoutes.post('/vehiculos/:id/conductores', c.asignarConductorController);
 flotillasRoutes.get('/vehiculos/:id/conductores', c.listarConductoresAsignadosController);
+flotillasRoutes.patch('/vehiculos/:id/conductores/:idConductor', c.editarTerminosConductorController);
 flotillasRoutes.delete('/vehiculos/:id/conductores/:idConductor', c.revocarConductorController);
 
 const upload = subirArchivo.single('archivo');

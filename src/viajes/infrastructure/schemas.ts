@@ -9,6 +9,7 @@ const coord = z.object({
 
 export const CrearViajeSchema = z.object({
   idMunicipio: z.number().int().positive(),
+  tipoServicio: z.enum(['viaje', 'envio']).default('viaje'),
   origen: coord,
   destino: coord,
   idZonaDestino: z.number().int().positive().optional(),

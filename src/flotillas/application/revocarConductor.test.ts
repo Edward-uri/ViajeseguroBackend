@@ -16,7 +16,8 @@ function makeDeps(opts: { viajeActivo: boolean; revocarResult: boolean; activo: 
     getVehiculoActivo: vi.fn(async () => opts.activo),
     setVehiculoActivo: vi.fn(async () => {}),
   };
-  return { vehiculos, asignaciones, viajes, conductores } as any;
+  const push = { enviar: vi.fn(async () => {}) };
+  return { vehiculos, asignaciones, viajes, conductores, push } as any;
 }
 
 const INPUT = { idVehiculo: 42, idPropietario: 1, idConductor: 7 };

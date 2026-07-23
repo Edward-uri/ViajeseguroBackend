@@ -19,6 +19,12 @@ export class ArchivoRequeridoError extends ValidationError {
 export class MunicipioNoValidoError extends ValidationError {
   constructor() { super('El municipio indicado no existe o no está activo'); }
 }
+export class PlacaYaRegistradaError extends AppError {
+  constructor() { super('Esta placa ya está registrada. Intenta con otra.', 409, 'PLACA_YA_REGISTRADA'); }
+}
 export class AsignacionEnViajeError extends AppError {
   constructor() { super('No puedes revocar mientras hay un viaje en curso; espera a que termine', 409, 'ASIGNACION_EN_VIAJE'); }
+}
+export class AsignacionNoEncontradaError extends NotFoundError {
+  constructor() { super('Asignación'); }
 }

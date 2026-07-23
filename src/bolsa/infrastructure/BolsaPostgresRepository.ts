@@ -183,11 +183,11 @@ export class BolsaPostgresRepository implements IBolsaRepository {
   async listarPostulacionesDeVacante(idVacante: number): Promise<PostulacionConConductor[]> {
     const { rows } = await pool.query<PostulacionRow & {
       nombre_enc: string | null; apellido_paterno_enc: string | null; nombre: string | null; apellido_paterno: string | null;
-      foto_perfil_url: string | null; calificacion: string | null;
+      foto_perfil_url: string | null; foto_perfil_s3_key: string | null; calificacion: string | null;
     }>(
       `SELECT p.*,
               per.nombre_enc, per.apellido_paterno_enc, per.nombre, per.apellido_paterno,
-              u.foto_perfil_url,
+              u.foto_perfil_url, u.foto_perfil_s3_key,
               (SELECT AVG(calificacion) FROM evaluaciones WHERE id_evaluado = u.id_usuario) AS calificacion
          FROM postulaciones p
          JOIN usuarios u ON u.id_usuario = p.id_conductor
@@ -207,7 +207,9 @@ export class BolsaPostgresRepository implements IBolsaRepository {
         conductor: {
           nombre: [nombre, apellido].filter(Boolean).join(' ') || null,
           calificacion: r.calificacion == null ? null : Math.round(Number(r.calificacion) * 10) / 10,
-          fotoUrl: r.foto_perfil_url ?? null,
+          fotoUrl: (r.foto_perfil_s3_key ?? r.foto_perfil_url)
+            ? `/api/users/${Number(r.id_conductor)}/photo`
+            : null,
         },
       };
     });
@@ -241,9 +243,11 @@ export class BolsaPostgresRepository implements IBolsaRepository {
         id_postulacion: string | number; id_vacante: string | number; id_conductor: string | number;
         estado_postulacion: 'pendiente' | 'aceptada' | 'rechazada' | 'retirada';
         id_propietario: string | number; id_vehiculo: string | number; estado_vacante: 'abierta' | 'cerrada';
+        tipo_turno: TipoTurno; renta_turno: string | number; dias: string[] | null; horario: string | null;
       }>(
         `SELECT p.id_postulacion, p.id_vacante, p.id_conductor, p.estado AS estado_postulacion,
-                v.id_propietario, v.id_vehiculo, v.estado AS estado_vacante
+                v.id_propietario, v.id_vehiculo, v.estado AS estado_vacante,
+                v.tipo_turno, v.renta_turno, v.dias, v.horario
            FROM postulaciones p
            JOIN vacantes v ON v.id_vacante = p.id_vacante
           WHERE p.id_postulacion = $1
@@ -261,7 +265,11 @@ export class BolsaPostgresRepository implements IBolsaRepository {
       const idVehiculo = Number(row.id_vehiculo);
 
       // 2) Asignación origen='bolsa' — reusa AsignacionPostgresRepository.asignar en el MISMO client.
-      await this.asignaciones.asignar({ idVehiculo, idConductor, origen: 'bolsa' }, client);
+      //    Copia los términos de la vacante: la asignación es la fuente de verdad tras cerrarse la vacante.
+      await this.asignaciones.asignar({
+        idVehiculo, idConductor, origen: 'bolsa',
+        tipoTurno: row.tipo_turno, rentaTurno: Number(row.renta_turno), dias: row.dias ?? [], horario: row.horario,
+      }, client);
 
       // 3) Acepta la elegida.
       const { rows: aceptRows } = await client.query<PostulacionRow>(

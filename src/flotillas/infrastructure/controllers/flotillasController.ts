@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { flotillaUseCases } from '../dependencies.js';
-import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, AsignarConductorSchema, SetVehiculoActivoSchema } from '../schemas.js';
+import { PerfilSchema, VehiculoSchema, EditarVehiculoSchema, AsignarConductorSchema, SetVehiculoActivoSchema, EditarTerminosConductorSchema } from '../schemas.js';
 import type { TipoDocumentoVehiculo } from '../../domain/tipos.js';
 import { ArchivoRequeridoError } from '../../domain/errors.js';
 import { UnauthorizedError } from '../../../core/errors.js';
@@ -121,6 +121,20 @@ export const listarConductoresAsignadosController: RequestHandler = async (req, 
     if (!req.user) throw new UnauthorizedError();
     const idVehiculo = Number(req.params.id);
     res.json({ data: await flotillaUseCases.listarConductoresAsignados({ idVehiculo, idPropietario: req.user.sub }) });
+  } catch (e) { next(e); }
+};
+
+export const editarTerminosConductorController: RequestHandler = async (req, res, next) => {
+  try {
+    if (!req.user) throw new UnauthorizedError();
+    const idVehiculo = Number(req.params.id);
+    const idConductor = Number(req.params.idConductor);
+    const dto = EditarTerminosConductorSchema.parse(req.body);
+    await flotillaUseCases.editarTerminosConductor({
+      idVehiculo, idConductor, idPropietario: req.user.sub,
+      tipoTurno: dto.tipoTurno, rentaTurno: dto.rentaTurno, dias: dto.dias, horario: dto.horario ?? null,
+    });
+    res.json({ ok: true });
   } catch (e) { next(e); }
 };
 

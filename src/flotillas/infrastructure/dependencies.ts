@@ -21,6 +21,10 @@ import { getArchivoVehiculo } from '../application/getArchivoVehiculo.js';
 import { asignarConductor } from '../application/asignarConductor.js';
 import { revocarConductor } from '../application/revocarConductor.js';
 import { listarConductoresAsignados } from '../application/listarConductoresAsignados.js';
+import { editarTerminosConductor } from '../application/editarTerminosConductor.js';
+import { pickPushSender } from '../../viajes/infrastructure/pushSenderFactory.js';
+import { DispositivoPostgresRepository } from '../../viajes/infrastructure/DispositivoPostgresRepository.js';
+import { env } from '../../core/env.js';
 import { estadoVehiculo } from '../application/estadoVehiculo.js';
 import { setVehiculoActivoUseCase } from '../application/setVehiculoActivoUseCase.js';
 
@@ -32,6 +36,7 @@ export const asignaciones = new AsignacionPostgresRepository();
 const conductores = new ConductorPostgresRepository();
 const viajes = new ViajePostgresRepository();
 const users = new UserPostgresRepository();
+const push = pickPushSender(env.FCM_SERVICE_ACCOUNT, new DispositivoPostgresRepository());
 
 export const flotillaUseCases = {
   getPerfil: getPerfil({ propietarios }),
@@ -46,8 +51,9 @@ export const flotillaUseCases = {
   listVehiculosPendientes: listVehiculosPendientes({ vehiculos }),
   getArchivoVehiculo: getArchivoVehiculo({ vehiculos, documentos, storage }),
   asignarConductor: asignarConductor({ vehiculos, asignaciones }),
-  revocarConductor: revocarConductor({ vehiculos, asignaciones, viajes, conductores }),
+  revocarConductor: revocarConductor({ vehiculos, asignaciones, viajes, conductores, push }),
   listarConductoresAsignados: listarConductoresAsignados({ vehiculos, asignaciones }),
+  editarTerminosConductor: editarTerminosConductor({ vehiculos, asignaciones }),
   estadoVehiculo: estadoVehiculo({ documentos }),
   setVehiculoActivo: setVehiculoActivoUseCase({ asignaciones, conductores }),
 };

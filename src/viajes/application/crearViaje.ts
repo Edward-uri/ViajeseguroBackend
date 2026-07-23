@@ -5,11 +5,13 @@ import type { IMunicipioRepository } from '../../municipios/domain/repositories/
 import type { IRouteEstimator } from '../domain/ports/IRouteEstimator.js';
 import type { IBloqueoChecker } from '../domain/ports/IBloqueoChecker.js';
 import type { PublicViaje } from '../domain/Viaje.js';
+import type { TipoServicio } from '../domain/tipos.js';
 import { MunicipioInvalidoError, PasajeroConViajeActivoError, TarifaCambiadaError } from '../domain/errors.js';
 
 export interface CrearViajeDTO {
   idPasajero: number;
   idMunicipio: number;
+  tipoServicio?: TipoServicio;
   origen: { lat: number; lng: number; texto?: string | null };
   destino: { lat: number; lng: number; texto?: string | null };
   idZonaDestino?: number;
@@ -49,6 +51,7 @@ export function crearViaje(deps: {
     const viaje = await deps.viajes.crear({
       idPasajero: input.idPasajero,
       idMunicipio: input.idMunicipio,
+      tipoServicio: input.tipoServicio,
       origen: input.origen,
       destino: input.destino,
       idZonaDestino: t.idZonaDestino,

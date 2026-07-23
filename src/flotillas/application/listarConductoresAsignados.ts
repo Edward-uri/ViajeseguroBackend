@@ -1,5 +1,6 @@
 import type { IVehiculoRepository } from '../domain/repositories/IVehiculoRepository.js';
 import type { IAsignacionRepository } from '../domain/repositories/IAsignacionRepository.js';
+import type { ConductorAsignado } from '../domain/ConductorAsignado.js';
 import { VehiculoNoEncontradoError, NoEsTuVehiculoError } from '../domain/errors.js';
 
 export function listarConductoresAsignados(deps: {
@@ -8,10 +9,10 @@ export function listarConductoresAsignados(deps: {
 }) {
   return async ({ idVehiculo, idPropietario }: {
     idVehiculo: number; idPropietario: number;
-  }): Promise<number[]> => {
+  }): Promise<ConductorAsignado[]> => {
     const vehiculo = await deps.vehiculos.findById(idVehiculo);
     if (!vehiculo) throw new VehiculoNoEncontradoError();
     if (vehiculo.idPropietario !== idPropietario) throw new NoEsTuVehiculoError();
-    return deps.asignaciones.listarConductoresPorVehiculo(idVehiculo);
+    return deps.asignaciones.listarAsignacionesDeVehiculo(idVehiculo);
   };
 }
