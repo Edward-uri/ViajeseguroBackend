@@ -104,16 +104,16 @@ export class BolsaPostgresRepository implements IBolsaRepository {
     return mapVacante(rows[0]);
   }
 
-  async listarAbiertasPorMunicipio(idMunicipio: number): Promise<VacanteConVehiculo[]> {
+  async listarAbiertasPorMunicipio(idMunicipio: number, idUsuarioExcluido: number): Promise<VacanteConVehiculo[]> {
     const { rows } = await pool.query<VacanteRow & {
       placa_enc: string | null; placa: string | null; modelo: string | null; color: string | null; anio: number | null;
     }>(
       `SELECT v.*, veh.placa_enc, veh.placa, veh.modelo, veh.color, veh.anio
          FROM vacantes v
          JOIN vehiculos veh ON veh.id_vehiculo = v.id_vehiculo
-        WHERE v.id_municipio = $1 AND v.estado = 'abierta'
+        WHERE v.id_municipio = $1 AND v.estado = 'abierta' AND v.id_propietario <> $2
         ORDER BY v.id_vacante DESC`,
-      [idMunicipio],
+      [idMunicipio, idUsuarioExcluido],
     );
     return rows.map((r) => ({
       ...mapVacante(r)!,
