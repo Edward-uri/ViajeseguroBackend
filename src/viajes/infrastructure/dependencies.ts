@@ -30,6 +30,7 @@ import { registrarUbicacionPasajero } from '../application/registrarUbicacionPas
 import { conductorUseCases } from '../../conductores/infrastructure/dependencies.js';
 import { listarViajesPendientes } from '../application/listarViajesPendientes.js';
 import { listarViajesAsignados } from '../application/listarViajesAsignados.js';
+import { listarHistorialConductor } from '../application/listarHistorialConductor.js';
 import { rechazarViaje } from '../application/rechazarViaje.js';
 import { estimarViaje } from '../application/estimarViaje.js';
 import { validarViajeEnMunicipio } from '../application/validarViajeEnMunicipio.js';
@@ -99,6 +100,7 @@ export const viajeUseCases = {
   registrarUbicacionPasajero: registrarUbicacionPasajero({ viajes, notifier }),
   listarViajesPendientes: listarViajesPendientes({ viajes, municipioDelConductor: conductorUseCases.municipioOperativo }),
   listarViajesAsignados: listarViajesAsignados({ viajes }),
+  listarHistorialConductor: listarHistorialConductor({ viajes }),
   rechazarViaje: rechazarViaje({ viajes }),
   listarZonasAdmin: listarZonasAdmin({ zonasAdmin }),
   crearZona: crearZona({ zonasAdmin }),

@@ -68,6 +68,11 @@ export interface IViajeRepository {
   listarPendientesPorMunicipio(idMunicipio: number, idConductor: number): Promise<Viaje[]>;
   rechazar(idViaje: number, idConductor: number): Promise<void>;
   listarPorConductor(idConductor: number): Promise<Viaje[]>;
+  /** Historial paginado del conductor con filtros opcionales (estado, rango de fecha). */
+  listarHistorialConductor(args: {
+    idConductor: number; limit: number; offset: number;
+    estado?: string | null; desde?: string | null; hasta?: string | null;
+  }): Promise<{ data: Viaje[]; total: number }>;
   /** ¿El conductor ya tiene un viaje aceptado o en curso? */
   conductorConViajeActivo(idConductor: number): Promise<boolean>;
   /** ¿Hay un viaje aceptado o en curso para este conductor o este vehículo? Usado por flotillas al revocar. */

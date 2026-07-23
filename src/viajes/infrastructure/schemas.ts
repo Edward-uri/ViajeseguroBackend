@@ -1,6 +1,15 @@
 import { z } from 'zod';
 import { MAX_PASAJEROS } from '../domain/tipos.js';
 
+// Historial del conductor: paginación (10 por defecto) + filtros opcionales.
+export const HistorialQuerySchema = z.object({
+  page: z.coerce.number().int().positive().default(1),
+  perPage: z.coerce.number().int().positive().max(50).default(10),
+  estado: z.enum(['solicitado', 'aceptado', 'en_curso', 'completado', 'cancelado']).optional(),
+  desde: z.string().optional(),
+  hasta: z.string().optional(),
+});
+
 const coord = z.object({
   lat: z.number().min(-90).max(90),
   lng: z.number().min(-180).max(180),

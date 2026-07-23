@@ -28,6 +28,7 @@ viajesRoutes.get('/mios', c.listarMisViajesController);
 viajesRoutes.get('/activo', c.getViajeActivoController);
 viajesRoutes.get('/pendientes', requireRole('conductor'), c.listarPendientesController);
 viajesRoutes.get('/asignados', requireRole('conductor'), c.listarAsignadosController);
+viajesRoutes.get('/historial', requireRole('conductor'), c.listarHistorialController);
 viajesRoutes.get('/ruta', c.rutaController);
 viajesRoutes.get('/destinos-recientes', c.destinosRecientesController);
 viajesRoutes.get('/:id', c.getViajeController);
