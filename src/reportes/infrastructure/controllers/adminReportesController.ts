@@ -26,3 +26,11 @@ export const vetarConductorController: RequestHandler = async (req, res, next) =
     res.json({ ok: true });
   } catch (e) { next(e); }
 };
+
+export const reactivarConductorController: RequestHandler = async (req, res, next) => {
+  try {
+    const idConductor = Number(req.params.id);
+    await reportesUseCases.reactivarConductor(idConductor);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+};

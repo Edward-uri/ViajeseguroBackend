@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { vetarConductor } from './vetarConductor.js';
+import { reactivarConductor } from './reactivarConductor.js';
 import { listarConductoresReportados } from './listarConductoresReportados.js';
 import { detalleConductorReportado } from './detalleConductorReportado.js';
 import { NotFoundError } from '../../core/errors.js';
@@ -11,6 +12,14 @@ describe('vetarConductor', () => {
     await vetarConductor({ users, sessions })(7);
     expect(users.suspenderCuenta).toHaveBeenCalledWith(7);
     expect(sessions.revocarTodasDeUsuario).toHaveBeenCalledWith(7);
+  });
+});
+
+describe('reactivarConductor', () => {
+  it('reactiva la cuenta del conductor', async () => {
+    const users = { reactivarCuenta: vi.fn(async () => {}) };
+    await reactivarConductor({ users })(7);
+    expect(users.reactivarCuenta).toHaveBeenCalledWith(7);
   });
 });
 

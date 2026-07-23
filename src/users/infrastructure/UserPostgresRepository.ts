@@ -324,4 +324,12 @@ export class UserPostgresRepository implements IUserRepository {
       [idUsuario],
     );
   }
+
+  async reactivarCuenta(idUsuario: number): Promise<void> {
+    await pool.query(
+      `UPDATE usuarios SET estado_cuenta = 'activo'
+        WHERE id_usuario = $1 AND estado_cuenta = 'suspendido'`,
+      [idUsuario],
+    );
+  }
 }

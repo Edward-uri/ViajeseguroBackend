@@ -28,7 +28,7 @@ export interface IConductorRepository {
   listarTodos(): Promise<{
     idConductor: number; nombre: string; telefono: string | null;
     idMunicipio: number | null; municipio: string | null; idVehiculoActivo: number | null;
-    docs: { tipo: string; estado: string }[];
+    estadoCuenta: string; docs: { tipo: string; estado: string }[];
   }[]>;
   getVehiculoActivo(idConductor: number): Promise<number | null>;
   setVehiculoActivo(idConductor: number, idVehiculo: number | null): Promise<void>;
